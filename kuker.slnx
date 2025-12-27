@@ -1,1 +1,10 @@
-<Solution />
+<Solution>
+  <Folder Name="/src/">
+    <File Path="Directory.Build.props" />
+    <Project Path="src/Kuker.Analyzers/Kuker.Analyzers.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Kuker.Analyzers.ConsoleTests/Kuker.Analyzers.ConsoleTests.csproj" />
+    <Project Path="tests/Kuker.Analyzers.Tests/Kuker.Analyzers.Tests.csproj" />
+  </Folder>
+</Solution>
