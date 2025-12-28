@@ -1,28 +1,30 @@
-# https://github.com/kurnakovv/stryker-net-action
-name: Stryker.NET mutation testing
+# Waiting for https://github.com/stryker-mutator/stryker-net/pull/3383
 
-on: [push, pull_request]
+# # https://github.com/kurnakovv/stryker-net-action
+# name: Stryker.NET mutation testing
 
-jobs:
-  stryker_net:
-    runs-on: ubuntu-latest
-    # permissions.pull-request:write is required to send a report message to a pull request (when send-report-message: "true")
-    permissions:
-      pull-requests: write
-    name: Stryker.NET GitHub action
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+# on: [push, pull_request]
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 10.0.x
+# jobs:
+#   stryker_net:
+#     runs-on: ubuntu-latest
+#     # permissions.pull-request:write is required to send a report message to a pull request (when send-report-message: "true")
+#     permissions:
+#       pull-requests: write
+#     name: Stryker.NET GitHub action
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v4
 
-      - name: Stryker.NET
-        uses: kurnakovv/stryker-net-action@v1.0.0
-        with:
-          config-path: ".config/stryker-config.json"
-          dashboard-api-key: ${{ secrets.STRYKER_DASHBOARD_API_KEY }}
-          report-source-branch-diff: true
-          send-report-message: true
+#       - name: Setup .NET
+#         uses: actions/setup-dotnet@v4
+#         with:
+#           dotnet-version: 10.0.x
+
+#       - name: Stryker.NET
+#         uses: kurnakovv/stryker-net-action@v1.0.0
+#         with:
+#           config-path: ".config/stryker-config.json"
+#           dashboard-api-key: ${{ secrets.STRYKER_DASHBOARD_API_KEY }}
+#           report-source-branch-diff: true
+#           send-report-message: true
