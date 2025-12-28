@@ -46,7 +46,7 @@ jobs:
       if: matrix.build-mode == 'manual'
       run: |
         dotnet restore
-        dotnet build DevOpsDotnet.sln
+        dotnet build kuker.slnx --no-restore
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
