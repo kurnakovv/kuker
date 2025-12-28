@@ -1,0 +1,40 @@
+name: "💡 Feature request"
+description: Create a new ticket for a feature.
+title: "💡 <title>"
+labels: [
+  "enhancement"
+]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: "Description"
+      description: Please enter an explicit description of your issue
+      placeholder: Short and explicit description
+    validations:
+      required: true
+  - type: textarea
+    id: code_example
+    attributes:
+      label: Minimal reproducible example
+      description: Provide a small code sample to help us debug
+      placeholder: e.g. Console.WriteLine("This fails");
+      render: csharp
+    validations:
+      required: true
+  - type: textarea
+    id: expect_to_see
+    attributes:
+      label: "Expect to see"
+      description: Please enter what you expect to see
+      placeholder: I expect to see X behavior
+    validations:
+      required: true
+  - type: textarea
+    id: for_what
+    attributes:
+      label: "For what"
+      description: Please enter why did you create this issue
+      placeholder: I did this issue, because X
+    validations:
+      required: true
