@@ -1035,3 +1035,12 @@ roslynator_block_braces_style = single_line_when_empty
 
 [{**Endpoint.cs,**Controller.cs,**Hub*}]
 dotnet_diagnostic.rcs1046.severity = none # RCS1046: Asynchronous method name should end with 'Async' https://josefpihrt.github.io/docs/roslynator/analyzers/RCS1046
+
+[*.cs]
+##
+## ReSharper Inspect Code https://www.jetbrains.com/help/resharper/Reference__Code_Inspections_CSHARP.html
+##
+
+# resharper_inconsistent_naming_highlighting = none # Code inspection: Inconsistent Naming https://www.jetbrains.com/help/resharper/InconsistentNaming.html
+
+## *END* ReSharper Inspect Code
