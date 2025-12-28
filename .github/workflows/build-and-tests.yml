@@ -5,9 +5,10 @@ name: Build and tests
 
 on:
   push:
-    branches: [ "*" ]
+    branches:
+      - '*'
   pull_request:
-    branches: [ "*" ]
+    types: [opened, synchronize, reopened]
 
 jobs:
   build:
