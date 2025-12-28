@@ -6,7 +6,7 @@
 * Fork and clone repository
 * Create branch based on main branch, with the following format: `k-ISSUE_NUMBER`, for example `k-19`
 * Make your changes
-* Commit changes with issue number, with the following format: `#ISSUE_NUMBER YOUR_MESSAGE`,  for example `Some changes (#42)`. Commit message must contains present tense ([reason](https://stackoverflow.com/a/3580764/22817151)) and have a meaningful form ([click1](https://gist.github.com/robertpainsi/b632364184e70900af4ab688decf6f53), [click2](https://www.freecodecamp.org/news/how-to-write-better-git-commit-messages/))
+* Commit changes with issue number, with the following format: `YOUR_MESSAGE (#ISSUE_NUMBER)`,  for example `Some changes (#42)`. Commit message must contains present tense ([reason](https://stackoverflow.com/a/3580764/22817151)) and have a meaningful form ([click1](https://gist.github.com/robertpainsi/b632364184e70900af4ab688decf6f53), [click2](https://www.freecodecamp.org/news/how-to-write-better-git-commit-messages/))
 * Create PR
 * If there are any comments in the review, correct everything in your code and click like (👍) if the comment is resolved
 * Done :)
@@ -22,7 +22,7 @@ Note: If you want to become a team member, then write to us, we will consider yo
 * Create branch based on main branch, with the following format: `k-ISSUE_NUMBER`, for example `k-19`
 * Move task from `ToDo` --> `In progress`
 * Make your changes
-* Commit changes with issue number, with the following format: `#ISSUE_NUMBER YOUR_MESSAGE`,  for example `Some changes (#42)`. Commit message must contains present tense ([reason](https://stackoverflow.com/a/3580764/22817151)) and have a meaningful form ([click1](https://gist.github.com/robertpainsi/b632364184e70900af4ab688decf6f53), [click2](https://www.freecodecamp.org/news/how-to-write-better-git-commit-messages/))
+* Commit changes with issue number, with the following format: `YOUR_MESSAGE (#ISSUE_NUMBER)`,  for example `Some changes (#42)`. Commit message must contains present tense ([reason](https://stackoverflow.com/a/3580764/22817151)) and have a meaningful form ([click1](https://gist.github.com/robertpainsi/b632364184e70900af4ab688decf6f53), [click2](https://www.freecodecamp.org/news/how-to-write-better-git-commit-messages/))
 * Create PR
 * Move task from `In progress` --> `In review` and click `request review`
 * If there are any comments in the review, correct everything in your code and click like (👍) if the comment is resolved
