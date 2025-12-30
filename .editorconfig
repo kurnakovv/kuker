@@ -36,7 +36,6 @@ indent_size = 2
 [*.{json,yaml,yml}]
 indent_size = 2
 
-# Особенности ОС
 # Shell scripts
 [*.sh]
 end_of_line = lf
@@ -774,6 +773,7 @@ dotnet_diagnostic.IL3005.severity = default # IL3005 RequiresAssemblyFilesAttrib
 # ✅ Good
 dotnet_diagnostic.CA2000.severity = error # CA2000: Dispose objects before losing scope
 dotnet_diagnostic.CA2002.severity = error # CA2002: Do not lock on objects with weak identity
+dotnet_diagnostic.CA2007.severity = error # CA2007: Do not directly await a Task
 dotnet_diagnostic.CA2008.severity = error # CA2008: Do not create tasks without passing a TaskScheduler
 dotnet_diagnostic.CA2009.severity = error # CA2009: Do not call ToImmutableCollection on an ImmutableCollection value
 dotnet_diagnostic.CA2011.severity = error # CA2011: Do not assign property within its setter
@@ -790,9 +790,6 @@ dotnet_diagnostic.CA2021.severity = error # CA2021: Don't call Enumerable.Cast<T
 dotnet_diagnostic.CA2022.severity = error # CA2022: Avoid inexact read with Stream.Read
 dotnet_diagnostic.CA2024.severity = error # CA2024: Do not use StreamReader.EndOfStream in async methods
 dotnet_diagnostic.CA2025.severity = error # CA2025: Do not pass IDisposable instances into unawaited tasks
-
-# ❌ Bad / Not for all apps
-dotnet_diagnostic.CA2007.severity = none # CA2007: Do not directly await a Task
 
 
 ### Security rules ###

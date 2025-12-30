@@ -26,9 +26,5 @@ Note: If you want to become a team member, then write to us, we will consider yo
 * Create PR
 * Move task from `In progress` --> `In review` and click `request review`
 * If there are any comments in the review, correct everything in your code and click like (👍) if the comment is resolved
-* After reviewer closed all threads and approved the task, move it from `In review` --> `Test`
-* If there are any comments from tester, correct everything in your code, create tests and click like (👍) on comment(s)
-* After tester approved your changes, move the task `Test` --> `Check`
-* If there are any comments from manager, correct everything in your code, click like (👍) on comment(s)
 * Say to owner that task is done (he will merge your PR to production soon)
 * Done :)
