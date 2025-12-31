@@ -1,0 +1,83 @@
+name: "🐛 Bug Report for rule(s)"
+description: Create a new ticket for a bug.
+title: "🐛 <title>"
+labels: [
+  "bug"
+]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: "Description"
+      description: Please enter an explicit description of your issue
+      placeholder: Short and explicit description of your incident...
+    validations:
+      required: true
+  - type: textarea
+    id: rule_ids
+    attributes:
+      label: "Rule ID(s)"
+      description: Please enter rule id(s)
+      placeholder: e.g. KUK0001
+    validations:
+      required: true
+  - type: textarea
+    id: version
+    attributes:
+      label: "Nuget version"
+      description: What version are you using?
+      placeholder: e.g. v0.2.1
+    validations:
+      required: true
+  - type: textarea
+    id: code_example
+    attributes:
+      label: Minimal reproducible example
+      description: Provide a small code sample to help us debug
+      placeholder: e.g. Console.WriteLine("This fails");
+      render: csharp
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: "Environment"
+      description: In what environment are you getting this error?
+      value: |
+        * OS: [e.g. windows 11]
+        * .NET version [e.g. 10.0.101]
+        * ...
+      render: bash
+    validations:
+      required: false
+  - type: textarea
+    id: expect_to_see
+    attributes:
+      label: "Expect to see"
+      description: Please enter what you expect to see after following the instructions
+      placeholder: I expect to see X behavior
+    validations:
+      required: true
+  - type: textarea
+    id: see
+    attributes:
+      label: "See"
+      description: Please enter what you see after following the instructions
+      placeholder: I see Y behavior
+    validations:
+      required: true
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: "Additional context"
+      description: If you have anything to add, please write about it here.
+      placeholder: Anything to add
+    validations:
+      required: false
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I have searched existing issues to ensure this is not a duplicate.
+          required: true

@@ -1,0 +1,12 @@
+{
+    "stryker-config": {
+        "reporters": [
+            "html",
+            "dashboard",
+            "progress"
+        ],
+        "project-info": {
+            "name": "github.com/kurnakovv/kuker"
+        }
+    }
+}

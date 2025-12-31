@@ -1,0 +1,36 @@
+name: InspectCode
+
+on:
+  push:
+    branches:
+      - '*'
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+  
+jobs:
+  inspect-code:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore
+
+      - name: ReSharper-InspectCode
+        uses: JetBrains/ReSharper-InspectCode@v0.9
+        with:
+          solution: ./kuker.slnx
+
+    permissions:
+      security-events: write
