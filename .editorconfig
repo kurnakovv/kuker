@@ -946,6 +946,9 @@ dotnet_diagnostic.CA2256.severity = default # CA2256: All members declared in pa
 dotnet_diagnostic.CA2257.severity = default # CA2257: Members defined on an interface with 'DynamicInterfaceCastableImplementationAttribute' should be 'static'
 dotnet_diagnostic.CA2258.severity = default # CA2258: Providing a 'DynamicInterfaceCastableImplementation' interface in Visual Basic is unsupported
 
+[tests/**]
+dotnet_diagnostic.CA2007.severity = none # CA2007: Do not directly await a Task
+
 ## **END** Code analysis (CAxxxx) rules **END**
 
 [*.cs]
