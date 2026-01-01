@@ -9,7 +9,7 @@
  [![.NET format](https://github.com/kurnakovv/kuker/actions/workflows/dotnet-format.yml/badge.svg)](https://github.com/kurnakovv/kuker/actions/workflows/dotnet-format.yml)
  [![InspectCode](https://github.com/kurnakovv/kuker/actions/workflows/inspect-code.yml/badge.svg)](https://github.com/kurnakovv/kuker/actions/workflows/inspect-code.yml)
  [![PVS studio](https://custom-icon-badges.demolab.com/badge/pvs-studio-blue.svg?logo=codescan-checkmark&logoColor=white)](https://pvs-studio.com/en/pvs-studio/?utm_source=website&utm_medium=github&utm_campaign=open_source)
- [![CodeQL](https://github.com/kurnakovv/kuker/workflows/codeql/badge.svg)](https://github.com/kurnakovv/kuker/actions?query=workflow%3Acodeql)
+ [![CodeQL](https://github.com/kurnakovv/kuker/actions/workflows/codeql.yml/badge.svg)](https://github.com/kurnakovv/kuker/actions/workflows/codeql.yml)
  [![Codecov](https://codecov.io/gh/kurnakovv/kuker/branch/main/graph/badge.svg)](https://codecov.io/gh/kurnakovv/kuker)
  [![MIT License](https://img.shields.io/github/license/kurnakovv/kuker?color=%230b0&style=flat)](https://github.com/kurnakovv/kuker/blob/main/LICENSE)
 
