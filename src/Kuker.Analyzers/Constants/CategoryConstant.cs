@@ -7,7 +7,7 @@ namespace Kuker.Analyzers.Constants
     /// <summary>
     /// Category constants.
     /// </summary>
-    public class CategoryConstant
+    public static class CategoryConstant
     {
         /// <summary>
         /// All rules category.

@@ -158,7 +158,6 @@ public class Kuk0001ObjectUsedAsArgumentToItsOwnArgumentAnalyzerTests
         await new CSharpAnalyzerTest<Kuk0001ObjectUsedAsArgumentToItsOwnArgumentAnalyzer, DefaultVerifier>
         {
             TestCode = testCode,
-            ExpectedDiagnostics = { },
         }.RunAsync();
     }
 
@@ -239,7 +238,6 @@ public class Kuk0001ObjectUsedAsArgumentToItsOwnArgumentAnalyzerTests
         await new CSharpAnalyzerTest<Kuk0001ObjectUsedAsArgumentToItsOwnArgumentAnalyzer, DefaultVerifier>
         {
             TestCode = testCode,
-            ExpectedDiagnostics = { },
         }.RunAsync();
     }
 
@@ -271,7 +269,6 @@ public class Kuk0001ObjectUsedAsArgumentToItsOwnArgumentAnalyzerTests
         await new CSharpAnalyzerTest<Kuk0001ObjectUsedAsArgumentToItsOwnArgumentAnalyzer, DefaultVerifier>
         {
             TestCode = testCode,
-            ExpectedDiagnostics = { },
         }.RunAsync();
     }
 
@@ -294,7 +291,6 @@ public class Kuk0001ObjectUsedAsArgumentToItsOwnArgumentAnalyzerTests
         await new CSharpAnalyzerTest<Kuk0001ObjectUsedAsArgumentToItsOwnArgumentAnalyzer, DefaultVerifier>
         {
             TestCode = goodCode,
-            ExpectedDiagnostics = { },
         }.RunAsync();
     }
 
@@ -738,7 +734,6 @@ public class Kuk0001ObjectUsedAsArgumentToItsOwnArgumentAnalyzerTests
         await new CSharpAnalyzerTest<Kuk0001ObjectUsedAsArgumentToItsOwnArgumentAnalyzer, DefaultVerifier>
         {
             TestCode = testCode,
-            ExpectedDiagnostics = { },
         }.RunAsync();
     }
 
@@ -772,7 +767,6 @@ public class Kuk0001ObjectUsedAsArgumentToItsOwnArgumentAnalyzerTests
         await new CSharpAnalyzerTest<Kuk0001ObjectUsedAsArgumentToItsOwnArgumentAnalyzer, DefaultVerifier>
         {
             TestCode = testCode,
-            ExpectedDiagnostics = { },
         }.RunAsync();
     }
 
@@ -800,7 +794,6 @@ public class Kuk0001ObjectUsedAsArgumentToItsOwnArgumentAnalyzerTests
         await new CSharpAnalyzerTest<Kuk0001ObjectUsedAsArgumentToItsOwnArgumentAnalyzer, DefaultVerifier>
         {
             TestCode = testCode,
-            ExpectedDiagnostics = { },
         }.RunAsync();
     }
 

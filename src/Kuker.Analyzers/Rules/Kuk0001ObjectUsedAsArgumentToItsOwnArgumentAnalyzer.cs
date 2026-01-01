@@ -21,15 +21,8 @@ namespace Kuker.Analyzers.Rules
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class Kuk0001ObjectUsedAsArgumentToItsOwnArgumentAnalyzer : DiagnosticAnalyzer
     {
-        /// <summary>
-        /// Excluded methods filter.
-        /// </summary>
-        public const string EXCLUDED_METHODS = "dotnet_diagnostic.KUK0001.excluded_methods";
-
-        /// <summary>
-        /// Diagnostic id.
-        /// </summary>
-        public const string DIAGNOSTIC_ID = "KUK0001";
+        private const string EXCLUDED_METHODS = "dotnet_diagnostic.KUK0001.excluded_methods";
+        private const string DIAGNOSTIC_ID = "KUK0001";
 
         private static readonly LocalizableString s_title = "An object is used as an argument to its own method";
         private static readonly LocalizableString s_messageFormat = "Object '{0}' is passed as an argument to its own method call; did you mean to pass a different object?";
@@ -189,28 +182,21 @@ namespace Kuker.Analyzers.Rules
                 }
                 else if (operation is IInstanceReferenceOperation)
                 {
-                    if (operation.Type is ISymbol typeSymbol)
+                    if (operation.Type != null)
                     {
-                        result.Add(new ReferencedSymbol(typeSymbol));
+                        result.Add(new ReferencedSymbol((ISymbol)operation.Type));
                     }
                     return result;
                 }
                 else if (operation is IConditionalAccessOperation conditionalAccessOperation)
                 {
-                    if (conditionalAccessOperation.WhenNotNull != null)
+                    List<ReferencedSymbol> inner = GetReferencedSymbolChain(conditionalAccessOperation.WhenNotNull);
+                    if (inner.Count > 0)
                     {
-                        List<ReferencedSymbol> inner = GetReferencedSymbolChain(conditionalAccessOperation.WhenNotNull);
-                        if (inner.Count > 0)
-                        {
-                            return inner;
-                        }
-                    }
-                    if (conditionalAccessOperation.Operation != null)
-                    {
-                        return GetReferencedSymbolChain(conditionalAccessOperation.Operation);
+                        return inner;
                     }
 
-                    return result;
+                    return GetReferencedSymbolChain(conditionalAccessOperation.Operation);
                 }
                 else if (operation is IConditionalAccessInstanceOperation conditionalAccessInstanceOperation)
                 {
@@ -230,35 +216,29 @@ namespace Kuker.Analyzers.Rules
                     object leftOperantValue = null;
                     object rightOperantValue = null;
 
-                    if (binaryOperation.LeftOperand != null)
+                    if (binaryOperation.LeftOperand.ConstantValue.HasValue)
                     {
-                        if (binaryOperation.LeftOperand.ConstantValue.HasValue)
+                        leftOperantValue = binaryOperation.LeftOperand.ConstantValue;
+                    }
+                    else
+                    {
+                        List<ReferencedSymbol> leftChain = GetReferencedSymbolChain(binaryOperation.LeftOperand);
+                        if (leftChain.Count > 0)
                         {
-                            leftOperantValue = binaryOperation.LeftOperand.ConstantValue;
-                        }
-                        else
-                        {
-                            List<ReferencedSymbol> leftChain = GetReferencedSymbolChain(binaryOperation.LeftOperand);
-                            if (leftChain.Count > 0)
-                            {
-                                result.AddRange(leftChain);
-                            }
+                            result.AddRange(leftChain);
                         }
                     }
 
-                    if (binaryOperation.RightOperand != null)
+                    if (binaryOperation.RightOperand.ConstantValue.HasValue)
                     {
-                        if (binaryOperation.RightOperand.ConstantValue.HasValue)
+                        rightOperantValue = binaryOperation.RightOperand.ConstantValue;
+                    }
+                    else
+                    {
+                        List<ReferencedSymbol> rightChain = GetReferencedSymbolChain(binaryOperation.RightOperand);
+                        if (rightChain.Count > 0)
                         {
-                            rightOperantValue = binaryOperation.RightOperand.ConstantValue;
-                        }
-                        else
-                        {
-                            List<ReferencedSymbol> rightChain = GetReferencedSymbolChain(binaryOperation.RightOperand);
-                            if (rightChain.Count > 0)
-                            {
-                                result.AddRange(rightChain);
-                            }
+                            result.AddRange(rightChain);
                         }
                     }
 
