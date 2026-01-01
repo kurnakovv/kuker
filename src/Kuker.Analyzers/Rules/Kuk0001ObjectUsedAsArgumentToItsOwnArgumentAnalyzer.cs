@@ -184,7 +184,7 @@ namespace Kuker.Analyzers.Rules
                 {
                     if (operation.Type != null)
                     {
-                        result.Add(new ReferencedSymbol((ISymbol)operation.Type));
+                        result.Add(new ReferencedSymbol(operation.Type));
                     }
                     return result;
                 }
