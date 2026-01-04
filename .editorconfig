@@ -243,7 +243,7 @@ dotnet_analyzer_diagnostic.category-CodeQuality.severity = error
 ### 'using' directive preferences ###
 
 # Require file header (IDE0073)
-file_header_template = Copyright (c) 2025 kurnakovv\nThis file is licensed under the MIT License.\nSee the LICENSE file in the project root for full license information.
+file_header_template = Copyright (c) 2026 kurnakovv\nThis file is licensed under the MIT License.\nSee the LICENSE file in the project root for full license information.
 dotnet_diagnostic.IDE0073.severity = error
 
 # Remove unnecessary using directives (IDE0005)
