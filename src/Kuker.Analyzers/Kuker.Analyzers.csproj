@@ -1,40 +1,32 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	  <TargetFramework>netstandard2.0</TargetFramework>
-	  <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     <EnableAnalyzerReleaseTracking>true</EnableAnalyzerReleaseTracking>
     <Version>0.1.0</Version>
     <PackageType>Analyzer</PackageType>
     <IncludeBuildOutput>false</IncludeBuildOutput>
   </PropertyGroup>
 
-	<ItemGroup>
-		<PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0">
-			 <PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		</PackageReference>
-		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
-	</ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
+  </ItemGroup>
 
-	<ItemGroup>
-	  <AdditionalFiles Update="AnalyzerReleases.Shipped.md">
-	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-	  </AdditionalFiles>
-	</ItemGroup>
+  <ItemGroup>
+    <AdditionalFiles Update="AnalyzerReleases.Shipped.md">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </AdditionalFiles>
+  </ItemGroup>
 
-	<ItemGroup>
-	  <None Remove="AnalyzerReleases.Unshipped.md" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <AdditionalFiles Include="AnalyzerReleases.Unshipped.md" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <XamlAppDef Include="AnalyzerReleases.Unshipped.md">
-	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-	  </XamlAppDef>
-	</ItemGroup>
+  <ItemGroup>
+    <AdditionalFiles Update="AnalyzerReleases.Unshipped.md">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </AdditionalFiles>
+  </ItemGroup>
 
 </Project>
