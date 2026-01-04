@@ -871,7 +871,7 @@ public class Kuk0001ObjectUsedAsArgumentToItsOwnArgumentAnalyzerTests
                     (1 + i + 1).Equals((1 + i + 1)); // Violation 2
                     (1 + i + 1).Equals((1 + j + 1)); // OK
 
-                    // ToDo: попробовать еще всякие * / ^ и прочее
+                    // ToDo: Try * / ^ etc
                 }
             }
         ";
