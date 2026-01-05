@@ -1,5 +1,3 @@
-# KUK0001
-
 ## Title
 Object Used As Argument To Its Own Argument Analyzer
 
