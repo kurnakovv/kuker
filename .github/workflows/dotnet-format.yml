@@ -5,8 +5,14 @@ on:
   push:
     branches:
       - '*'
+    paths-ignore:
+      - 'README.md'
+      - 'docs/**'
   pull_request:
     types: [opened, synchronize, reopened]
+    paths-ignore:
+      - 'README.md'
+      - 'docs/**'
 
 jobs:
   dotnet-format:
