@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     <EnableAnalyzerReleaseTracking>true</EnableAnalyzerReleaseTracking>
-    <Version>0.1.0</Version>
+    <Version>0.1.1</Version>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <IsPackable>true</IsPackable>
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
