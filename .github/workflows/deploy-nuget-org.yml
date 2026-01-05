@@ -6,9 +6,15 @@ on:
   push:
     branches:
       ['main']
+    paths-ignore:
+      - 'README.md'
+      - 'docs/wiki'
   pull_request:
     branches:
       - '*'
+    paths-ignore:
+      - 'README.md'
+      - 'docs/wiki'
   release:
     types:
       - published
