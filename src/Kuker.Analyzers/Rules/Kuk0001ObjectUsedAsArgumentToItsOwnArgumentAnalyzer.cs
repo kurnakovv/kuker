@@ -36,7 +36,7 @@ namespace Kuker.Analyzers.Rules
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: s_description,
-            helpLinkUri: null // ToDo: Add docs link
+            helpLinkUri: "https://github.com/kurnakovv/kuker/wiki/KUK0001ObjectUsedAsArgumentToItsOwnArgumentAnalyzer"
         );
 
         /// <summary>

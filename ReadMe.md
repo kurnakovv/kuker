@@ -23,8 +23,26 @@ This analyzer based on [Roslyn API](https://learn.microsoft.com/en-us/dotnet/csh
 ## 🚀 Quick start
 ToDo
 
-## 💡 Rules
-ToDo
+## ⚙️ Configuration
+You can configure all rules via `.editorconfig` file
+```.editorconfig
+[*.cs]
+
+##
+## kuker
+##
+# Docs here https://github.com/kurnakovv/kuker
+
+# Setup all rules with global category
+dotnet_diagnostic.KukerAllRules.severity = warning
+
+dotnet_diagnostic.KUK0001.severity = warning # Object used as argument to its own argument analyzer | https://github.com/kurnakovv/kuker/wiki/KUK0001
+dotnet_diagnostic.KUK0001.excluded_methods = Foo,Bar # Optional | Ignore selected methods
+
+# ...
+```
+
+For more information about the configuration, please visit our [wiki](https://github.com/kurnakovv/kuker/wiki)
 
 ## ❔ Reason
 The .NET ecosystem offers many powerful analyzers, including built-in ones like [CAxxxx](https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/categories?view=visualstudio) and [IDExxxx](https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/style-rules/?view=visualstudio), as well as well-known third-party analyzers based on the [Roslyn API](https://learn.microsoft.com/en-us/dotnet/csharp/roslyn-sdk/), such as [Roslynator](https://josefpihrt.github.io/docs/roslynator/) and [StyleCop](https://github.com/DotNetAnalyzers/StyleCopAnalyzers).
