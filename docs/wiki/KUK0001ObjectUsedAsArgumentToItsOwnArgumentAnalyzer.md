@@ -1,30 +1,54 @@
-## Title
+## 💡 Title  
 Object Used As Argument To Its Own Argument Analyzer
 
-## Description
-A violation of this rule occurs when the first and other arguments are equal.
-Sometimes you duplicate parameters with same type, especially if you copy-paste parameters
+## 🆔 Rule ID  
+**KUK0001**
 
-## Configuration
+## 📝 Description  
+This rule detects cases where the same object instance is passed multiple times to a method as different arguments.
+
+Such situations are usually caused by copy-paste mistakes or duplicated parameters with the same type.  
+In most APIs this is either meaningless or leads to incorrect behavior (for example, copying a stream into itself).
+
+A diagnostic is reported when the first argument and any of the other arguments refer to the same object.
+
+## ❔ Why this is a problem  
+Passing the same object as multiple arguments can:
+
+- Lead to runtime errors or undefined behavior
+- Make the code harder to understand and maintain
+- Hide copy-paste bugs that are difficult to notice during code review
+
+## ⚙️ Configuration
+
+You can configure the severity of the rule or exclude specific methods using .editorconfig.
 ```.editorconfig
 [*.cs]
-dotnet_diagnostic.KUK0001.severity = warning # Kuk0001ObjectUsedAsArgumentToItsOwnArgumentAnalyzer
+dotnet_diagnostic.KUK0001.severity = warning
 dotnet_diagnostic.KUK0001.excluded_methods = Foo,Bar # Optional | Ignore selected methods
 ```
 
-## Code
+## 💻 Example
 ```cs
 async void TestMethod(CancellationToken token)
 {
     var stream = new MemoryStream();
     var other = new MemoryStream();
-    await stream.CopyToAsync(stream, token); // Violation, because the first and second arguments are equal
-    await stream.CopyToAsync(other, token); // OK
+
+    await stream.CopyToAsync(stream, token); // ❌ Violation: source and destination are the same
+    await stream.CopyToAsync(other, token);  // ✅ OK
 }
 ```
 
-## Links
-* Issues: [#8](https://github.com/kurnakovv/kuker/issues/8)
-* [Source code](https://github.com/kurnakovv/kuker/blob/main/src/Kuker.Analyzers/Rules/Kuk0001ObjectUsedAsArgumentToItsOwnArgumentAnalyzer.cs)
-* More examples in [tests](https://github.com/kurnakovv/kuker/blob/main/tests/Kuker.Analyzers.Tests/Rules/Kuk0001ObjectUsedAsArgumentToItsOwnArgumentAnalyzerTests.cs)
-* [Severity levels](https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/configuration-options#severity-level)
+## 🗒️ Notes  
+
+- The rule compares argument expressions semantically, not just by name.
+- Only method calls are analyzed.
+- Excluded methods are matched by name.
+
+## 🔗 Links  
+
+- Issues: [#8](https://github.com/kurnakovv/kuker/issues/8)  
+- [Source code](https://github.com/kurnakovv/kuker/blob/main/src/Kuker.Analyzers/Rules/Kuk0001ObjectUsedAsArgumentToItsOwnArgumentAnalyzer.cs)  
+- More examples in [tests](https://github.com/kurnakovv/kuker/blob/main/tests/Kuker.Analyzers.Tests/Rules/Kuk0001ObjectUsedAsArgumentToItsOwnArgumentAnalyzerTests.cs)  
+- [Severity levels](https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/configuration-options#severity-level)
