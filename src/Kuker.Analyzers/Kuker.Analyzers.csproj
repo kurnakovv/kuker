@@ -5,16 +5,43 @@
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     <EnableAnalyzerReleaseTracking>true</EnableAnalyzerReleaseTracking>
     <Version>0.1.0</Version>
-    <PackageType>Analyzer</PackageType>
     <IncludeBuildOutput>false</IncludeBuildOutput>
+    <IsPackable>true</IsPackable>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <PackageId>kurnakovv.kuker</PackageId>
+    <Authors>kurnakovv</Authors>
+    <Company>kurnakovv</Company>
+    <Product>kuker</Product>
+    <Description>👨‍🍳 kuker is a C# analyzer that helps you ‍🍳 "kuk" 🔍 tasty and clean code 😸</Description>
+    <RepositoryUrl>https://github.com/kurnakovv/kuker</RepositoryUrl>
+    <PackageTags>csharp;dotnet;roslyn;analyzer;code-analysis;lint;style;refactoring;code-quality;developer-tools</PackageTags>
+    <NeutralLanguage>en</NeutralLanguage>
+    <AssemblyName>kurnakovv.kuker</AssemblyName>
+    <EnablePackageValidation>true</EnablePackageValidation>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageProjectUrl>https://github.com/kurnakovv/TestAnalyzer</PackageProjectUrl>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+    <Title>kuker</Title>
+    <PackageIcon>kuker-icon.png</PackageIcon>
+    <PackageReadmeFile>ReadMeNuGet.md</PackageReadmeFile>
+    <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="DotNet.ReproducibleBuilds" Version="1.2.39">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
+    <PackageReference Include="MinVer" Version="6.1.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
@@ -28,5 +55,39 @@
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </AdditionalFiles>
   </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\docs\images\kuker-icon.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="..\..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="ReadMeNuGet.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="$(OutputPath)$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" />
+  </ItemGroup>
+
+  <Target Name="PrepareReleaseNotesNugetOrg" BeforeTargets="GenerateNuspec" Condition="$(IS_DEPLOY_NUGET_ORG_ACTION) == 'true'">
+    <PropertyGroup>
+      <PackageReleaseNotes>$([System.IO.File]::ReadAllText("$(MSBuildProjectDirectory)/../../docs/RELEASE-NOTES"))</PackageReleaseNotes>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="PrepareReleaseNotesGitHubPackage" BeforeTargets="GenerateNuspec" Condition="$(IS_DEPLOY_NUGET_GH_PACKAGE_ACTION) == 'true'">
+    <PropertyGroup>
+      <PackageDescription>$([System.IO.File]::ReadAllText("$(MSBuildProjectDirectory)/../../docs/RELEASE-NOTES"))</PackageDescription>
+    </PropertyGroup>
+  </Target>
 
 </Project>
