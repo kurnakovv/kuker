@@ -7,13 +7,13 @@ on:
     branches:
       ['main']
     paths-ignore:
-      - 'README.md'
+      - 'ReadMe.md'
       - 'docs/wiki'
   pull_request:
     branches:
       - '*'
     paths-ignore:
-      - 'README.md'
+      - 'ReadMe.md'
       - 'docs/wiki'
   release:
     types:

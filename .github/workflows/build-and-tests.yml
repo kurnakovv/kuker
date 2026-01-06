@@ -8,12 +8,12 @@ on:
     branches:
       - '*'
     paths-ignore:
-      - 'README.md'
+      - 'ReadMe.md'
       - 'docs/**'
   pull_request:
     types: [opened, synchronize, reopened]
     paths-ignore:
-      - 'README.md'
+      - 'ReadMe.md'
       - 'docs/**'
 
 jobs:
