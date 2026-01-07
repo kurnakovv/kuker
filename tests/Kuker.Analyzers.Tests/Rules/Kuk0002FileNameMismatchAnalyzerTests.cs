@@ -20,7 +20,6 @@ public class Kuk0002FileNameMismatchAnalyzerTests
 
         await new CSharpAnalyzerTest<Kuk0002FileNameMismatchAnalyzer, DefaultVerifier>
         {
-            ExpectedDiagnostics = { },
             TestState = { Sources = { (string.Empty, testCode), }, },
         }.RunAsync();
     }
