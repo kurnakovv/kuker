@@ -2,6 +2,6 @@
 // This file is licensed under the MIT License.
 // See the LICENSE file in the project root for full license information.
 
-namespace Kuker.Analyzers.ConsoleTests;
+////namespace Kuker.Analyzers.ConsoleTests;
 
-public protected class InvalidName1 { }
+////public protected class InvalidName1 { }
