@@ -275,7 +275,7 @@ public class Kuk0001ObjectUsedAsArgumentToItsOwnArgumentAnalyzerTests
     [Fact]
     public async Task NoReportForLambdasAsync()
     {
-        string goodCode = @"
+        string testCode = @"
             using System;
             using System.Linq;
 
@@ -290,7 +290,7 @@ public class Kuk0001ObjectUsedAsArgumentToItsOwnArgumentAnalyzerTests
 
         await new CSharpAnalyzerTest<Kuk0001ObjectUsedAsArgumentToItsOwnArgumentAnalyzer, DefaultVerifier>
         {
-            TestCode = goodCode,
+            TestCode = testCode,
         }.RunAsync();
     }
 

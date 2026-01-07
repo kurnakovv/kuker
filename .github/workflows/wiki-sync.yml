@@ -4,7 +4,7 @@ name: Sync GitHub wiki with docs/wiki/** content
 on:
   push:
     branches:
-      - main
+      - dev
     paths:
       - "docs/wiki/**"
   repository_dispatch:
