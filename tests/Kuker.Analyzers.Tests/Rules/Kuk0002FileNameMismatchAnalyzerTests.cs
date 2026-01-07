@@ -335,4 +335,29 @@ public class Kuk0002FileNameMismatchAnalyzerTests
             TestState = { Sources = { ("MyClass.cs", testCode), }, },
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task NoReportForEmptyFileAsync()
+    {
+        string emptyBlockNamespaceTestCode = @"
+            namespace MyTestNamespace { }
+        ";
+
+        string emptyFilescopedNamespaceTestCode = @"
+            namespace MyTestNamespace;
+        ";
+
+        await new CSharpAnalyzerTest<Kuk0002FileNameMismatchAnalyzer, DefaultVerifier>
+        {
+            TestState =
+            {
+                Sources =
+                {
+                    ("EmptyBlockNamespace.cs", emptyBlockNamespaceTestCode),
+                    ("EmptyFilescopedNamespace.cs", emptyFilescopedNamespaceTestCode),
+                    ("EmptyFile.cs", string.Empty),
+                },
+            },
+        }.RunAsync();
+    }
 }

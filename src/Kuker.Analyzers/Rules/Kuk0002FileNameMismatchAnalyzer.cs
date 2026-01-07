@@ -79,7 +79,6 @@ namespace Kuker.Analyzers.Rules
                     ||
                     !t.Modifiers.Any(
                         m =>
-                            m.IsKind(SyntaxKind.PublicKeyword) ||
                             m.IsKind(SyntaxKind.PrivateKeyword) ||
                             m.IsKind(SyntaxKind.ProtectedKeyword)
                     )
