@@ -33,22 +33,25 @@
     <Product>kuker-preview</Product>
     <AssemblyName>kurnakovv.kuker-preview</AssemblyName>
     <Title>kuker-preview</Title>
-
-    <EnablePackageValidation>false</EnablePackageValidation>
-    <RunApiCompat>false</RunApiCompat>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DotNet.ReproducibleBuilds" Version="1.2.39">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup
+    Condition="'$(IS_DEPLOY_NUGET_ORG_ACTION_PREVIEW)' != 'true' And '$(IS_DEPLOY_NUGET_GH_PACKAGE_ACTION_PREVIEW)' != 'true'"
+  >
     <PackageReference Include="MinVer" Version="6.1.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+
+    <PackageReference Include="DotNet.ReproducibleBuilds" Version="1.2.39">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
