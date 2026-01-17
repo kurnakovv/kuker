@@ -39,8 +39,6 @@ jobs:
           dotnet pack `
             --configuration Release `
             /p:Version=${{ env.PACKAGE_VERSION }} `
-            /p:EnablePackageValidation=false `
-            /p:RunApiCompat=false `
             --no-build `
             --output .
 

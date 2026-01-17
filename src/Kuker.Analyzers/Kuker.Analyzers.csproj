@@ -28,6 +28,16 @@
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(IS_DEPLOY_NUGET_ORG_ACTION_PREVIEW)' == 'true' Or '$(IS_DEPLOY_NUGET_GH_PACKAGE_ACTION_PREVIEW)' == 'true'">
+    <PackageId>kurnakovv.kuker-preview</PackageId>
+    <Product>kuker-preview</Product>
+    <AssemblyName>kurnakovv.kuker-preview</AssemblyName>
+    <Title>kuker-preview</Title>
+
+    <EnablePackageValidation>false</EnablePackageValidation>
+    <RunApiCompat>false</RunApiCompat>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="DotNet.ReproducibleBuilds" Version="1.2.39">
       <PrivateAssets>all</PrivateAssets>
@@ -77,19 +87,6 @@
   <ItemGroup>
     <None Include="$(OutputPath)$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" />
   </ItemGroup>
-
-  <Target
-    Name="PackageInfoPreview"
-    BeforeTargets="GenerateNuspec"
-    Condition="'$(IS_DEPLOY_NUGET_ORG_ACTION_PREVIEW)' == 'true' Or '$(IS_DEPLOY_NUGET_GH_PACKAGE_ACTION_PREVIEW)' == 'true'"
-  >
-    <PropertyGroup>
-      <PackageId>kurnakovv.kuker-preview</PackageId>
-      <Product>kuker-preview</Product>
-      <AssemblyName>kurnakovv.kuker-preview</AssemblyName>
-      <Title>kuker-preview</Title>
-    </PropertyGroup>
-  </Target>
 
   <Target Name="PrepareReleaseNotesNugetOrg" BeforeTargets="GenerateNuspec" Condition="$(IS_DEPLOY_NUGET_ORG_ACTION) == 'true'">
     <PropertyGroup>
