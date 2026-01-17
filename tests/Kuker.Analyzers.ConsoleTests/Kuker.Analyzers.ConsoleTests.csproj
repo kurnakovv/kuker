@@ -9,12 +9,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference
-      Include="..\..\src\Kuker.Analyzers\Kuker.Analyzers.csproj"
-      OutputItemType="Analyzer"
-      ReferenceOutputAssembly="false"
-      PrivateAssets="all"
-    />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Kuker.Analyzers\Kuker.Analyzers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" PrivateAssets="all" />
   </ItemGroup>
 
 </Project>

@@ -2,6 +2,21 @@
 // This file is licensed under the MIT License.
 // See the LICENSE file in the project root for full license information.
 
-////namespace Kuker.Analyzers.ConsoleTests;
+namespace Kuker.Analyzers.ConsoleTests;
 
-////public protected class InvalidName1 { }
+public enum UserType
+{
+    Manager = 1,
+    Programmer = 2,
+}
+
+public class UserDto
+{
+    public string? Name { get; set; }
+    public int Age { get; set; }
+}
+
+public class MyClass
+{
+    // Test.
+}
