@@ -20,7 +20,7 @@
     <AssemblyName>kurnakovv.kuker</AssemblyName>
     <EnablePackageValidation>true</EnablePackageValidation>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
-    <PackageProjectUrl>https://github.com/kurnakovv/TestAnalyzer</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/kurnakovv/kuker</PackageProjectUrl>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <Title>kuker</Title>
     <PackageIcon>kuker-icon.png</PackageIcon>
@@ -77,6 +77,19 @@
   <ItemGroup>
     <None Include="$(OutputPath)$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" />
   </ItemGroup>
+
+  <Target
+    Name="PackageInfoPreview"
+    BeforeTargets="GenerateNuspec"
+    Condition="'$(IS_DEPLOY_NUGET_ORG_ACTION_PREVIEW)' == 'true' Or '$(IS_DEPLOY_NUGET_GH_PACKAGE_ACTION_PREVIEW)' == 'true'"
+  >
+    <PropertyGroup>
+      <PackageId>kurnakovv.kuker-preview</PackageId>
+      <Product>kuker-preview</Product>
+      <AssemblyName>kurnakovv.kuker-preview</AssemblyName>
+      <Title>kuker-preview</Title>
+    </PropertyGroup>
+  </Target>
 
   <Target Name="PrepareReleaseNotesNugetOrg" BeforeTargets="GenerateNuspec" Condition="$(IS_DEPLOY_NUGET_ORG_ACTION) == 'true'">
     <PropertyGroup>
