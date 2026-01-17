@@ -1042,6 +1042,6 @@ dotnet_diagnostic.rcs1046.severity = none # RCS1046: Asynchronous method name sh
 ##
 
 resharper_possible_multiple_enumeration_highlighting = none # Code inspection: Possible multiple enumeration https://www.jetbrains.com/help/resharper/PossibleMultipleEnumeration.html
-# resharper_inconsistent_naming_highlighting = none # Code inspection: Inconsistent Naming https://www.jetbrains.com/help/resharper/InconsistentNaming.html
+resharper_inconsistent_naming_highlighting = none # Code inspection: Inconsistent Naming https://www.jetbrains.com/help/resharper/InconsistentNaming.html
 
 ## *END* ReSharper Inspect Code
