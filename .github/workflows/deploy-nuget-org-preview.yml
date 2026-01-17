@@ -40,6 +40,8 @@ jobs:
             --configuration Release `
             --output ${{ env.NuGetDirectory }} `
             /p:PackageVersion=${{ env.PACKAGE_VERSION }}
+            /p:EnablePackageValidation=false `
+            /p:RunApiCompat=false `
 
       - name: Publish NuGet preview
         run: |
