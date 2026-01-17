@@ -11,12 +11,8 @@ namespace Kuker.Analyzers.Tests.Rules;
 
 public class Kuk0003MinMaxOnEmptySequenceAnalyzerTests
 {
-    private readonly PortableExecutableReference _portableExecutableReference;
-
-    public Kuk0003MinMaxOnEmptySequenceAnalyzerTests()
-    {
-        _portableExecutableReference = MetadataReference.CreateFromFile(typeof(Microsoft.EntityFrameworkCore.DbContext).Assembly.Location);
-    }
+    private readonly PortableExecutableReference _portableExecutableReference
+        = MetadataReference.CreateFromFile(typeof(Microsoft.EntityFrameworkCore.DbContext).Assembly.Location);
 
     [Fact]
     public async Task ReportForMinMaxMethodsAsync()

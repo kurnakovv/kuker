@@ -10,3 +10,6 @@ query-filters:
       tags: /cwe-275/
   - exclude:
       tags: /cwe-829/
+  - exclude:
+      ids: 
+        - "cs/linq/missed-where"

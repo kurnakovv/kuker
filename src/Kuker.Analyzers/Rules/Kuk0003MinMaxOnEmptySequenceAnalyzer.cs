@@ -98,7 +98,7 @@ namespace Kuker.Analyzers.Rules
             string methodNamespace = method.ContainingNamespace?.ToDisplayString();
 
             if (methodNamespace != "System.Linq" &&
-                !methodNamespace.StartsWith("Microsoft.EntityFrameworkCore")
+                methodNamespace?.StartsWith("Microsoft.EntityFrameworkCore") != true
             )
             {
                 return;
@@ -153,16 +153,6 @@ namespace Kuker.Analyzers.Rules
                 return;
             }
 
-            IParameterSymbol parameter = null;
-            if (lambdaArgument is SimpleLambdaExpressionSyntax simpleLambda)
-            {
-                parameter = semanticModel.GetDeclaredSymbol(simpleLambda.Parameter) as IParameterSymbol;
-            }
-            else if (lambdaArgument is ParenthesizedLambdaExpressionSyntax parenthesizedLambda)
-            {
-                parameter = semanticModel.GetDeclaredSymbol(parenthesizedLambda.ParameterList.Parameters.First()) as IParameterSymbol;
-            }
-
             ITypeSymbol lambdaBodyType = null;
 
             if (lambdaArgument.Body is ExpressionSyntax exprBody)
@@ -171,11 +161,22 @@ namespace Kuker.Analyzers.Rules
             }
             else if (lambdaArgument.Body is BlockSyntax blockBody)
             {
-                ReturnStatementSyntax returnStatement = blockBody.Statements
+                ExpressionSyntax returnStatementExpression = blockBody.Statements
                     .OfType<ReturnStatementSyntax>()
-                    .Last();
+                    .Last()
+                    .Expression;
 
-                lambdaBodyType = semanticModel.GetTypeInfo(returnStatement.Expression).Type;
+                if (returnStatementExpression == null)
+                {
+                    return;
+                }
+
+                lambdaBodyType = semanticModel.GetTypeInfo(returnStatementExpression).Type;
+            }
+
+            if (lambdaBodyType == null)
+            {
+                return;
             }
 
             bool isNullableValueType =
