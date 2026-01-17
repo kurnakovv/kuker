@@ -16,6 +16,10 @@ env:
   IS_DEPLOY_NUGET_GH_PACKAGE_ACTION_PREVIEW: true
   PACKAGE_VERSION: 0.0.${{ github.run_number }}-preview
 
+defaults:
+  run:
+    shell: pwsh
+
 jobs:
   build:
     runs-on: ubuntu-latest
