@@ -11,5 +11,5 @@ query-filters:
   - exclude:
       tags: /cwe-829/
   - exclude:
-      ids: 
+      rules:
         - "cs/linq/missed-where"
