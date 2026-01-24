@@ -16,17 +16,19 @@ using Microsoft.CodeAnalysis.Operations;
 namespace Kuker.Analyzers.Rules
 {
     /// <summary>
-    /// KUK0001 rule - Object Used As Argument To Its Own Argument Analyzer.
+    /// KUK0001 rule - Duplicate arguments passed to method analyzer.
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class Kuk0001ObjectUsedAsArgumentToItsOwnArgumentAnalyzer : DiagnosticAnalyzer
+    public class Kuk0001DuplicateArgumentsPassedToMethodAnalyzer : DiagnosticAnalyzer
     {
         private const string EXCLUDED_METHODS = "dotnet_diagnostic.KUK0001.excluded_methods";
         private const string DIAGNOSTIC_ID = "KUK0001";
 
-        private static readonly LocalizableString s_title = "An object is used as an argument to its own method";
-        private static readonly LocalizableString s_messageFormat = "Object '{0}' is passed as an argument to its own method call; did you mean to pass a different object?";
-        private static readonly LocalizableString s_description = "Detects calls like 'obj.Foo(obj)' or extension/static calls like 'Foo(obj, obj)'. Usually this is a typo.";
+        private static readonly LocalizableString s_title = "Duplicate arguments passed to method";
+        private static readonly LocalizableString s_messageFormat = "Argument '{0}' is passed multiple times to the same method call";
+        private static readonly LocalizableString s_description =
+            "Reports method calls where identical arguments are passed multiple times. " +
+            "In most cases this is unintentional and caused by a typo or copy-paste error.";
 
         private static readonly DiagnosticDescriptor s_rule = new DiagnosticDescriptor(
             DIAGNOSTIC_ID,
@@ -83,11 +85,6 @@ namespace Kuker.Analyzers.Rules
                 return;
             }
 
-            if (methodSymbol.IsStatic && !methodSymbol.IsExtensionMethod)
-            {
-                return;
-            }
-
             if (methodSymbol.IsStatic && invocation.ArgumentList.Arguments.Count == 1)
             {
                 return;
@@ -100,11 +97,6 @@ namespace Kuker.Analyzers.Rules
             IOperation receiverOperation = GetOperationWithoutParentheses(receiverExpression, semanticModel);
             List<ReferencedSymbol> receiverChain = GetReferencedSymbolChain(receiverOperation);
 
-            if (receiverChain.Count == 0)
-            {
-                return;
-            }
-
             for (int i = 0; i < invocation.ArgumentList.Arguments.Count; i++)
             {
                 if (methodSymbol.IsStatic && i == 0)
@@ -112,22 +104,42 @@ namespace Kuker.Analyzers.Rules
                     continue;
                 }
 
-                ArgumentSyntax argument = invocation.ArgumentList.Arguments[i];
+                ArgumentSyntax currentArgument = invocation.ArgumentList.Arguments[i];
+                IOperation currentArgumentOperation = GetOperationWithoutParentheses(currentArgument.Expression, semanticModel);
+                List<ReferencedSymbol> currentArgumentChain = GetReferencedSymbolChain(currentArgumentOperation);
 
-                IOperation argumentOperation = GetOperationWithoutParentheses(argument.Expression, semanticModel);
-                List<ReferencedSymbol> argumentChain = GetReferencedSymbolChain(argumentOperation);
-
-                if (argumentChain.Count == 0)
+                if (currentArgumentChain.Count == 0)
                 {
                     continue;
                 }
 
-                if (AreChainsEqual(receiverChain, argumentChain)
-                    && AreIndexerArgumentsEqual(receiverOperation, argumentOperation))
+                if (receiverChain.Count != 0
+                    && AreChainsEqual(receiverChain, currentArgumentChain)
+                    && AreIndexerArgumentsEqual(receiverOperation, currentArgumentOperation))
                 {
                     Diagnostic diagnostic = Diagnostic.Create(s_rule, invocation.GetLocation(), receiverOperation.Syntax.ToString());
                     context.ReportDiagnostic(diagnostic);
                     return;
+                }
+
+                for (int j = i + 1; j < invocation.ArgumentList.Arguments.Count; j++)
+                {
+                    ArgumentSyntax otherArgument = invocation.ArgumentList.Arguments[j];
+                    IOperation otherArgumentOperation = GetOperationWithoutParentheses(otherArgument.Expression, semanticModel);
+                    List<ReferencedSymbol> otherArgumentChain = GetReferencedSymbolChain(otherArgumentOperation);
+
+                    if (otherArgumentChain.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    if (AreChainsEqual(currentArgumentChain, otherArgumentChain)
+                        && AreIndexerArgumentsEqual(currentArgumentOperation, otherArgumentOperation))
+                    {
+                        Diagnostic diagnostic = Diagnostic.Create(s_rule, invocation.GetLocation(), currentArgumentOperation.Syntax.ToString());
+                        context.ReportDiagnostic(diagnostic);
+                        return;
+                    }
                 }
             }
         }
@@ -157,9 +169,15 @@ namespace Kuker.Analyzers.Rules
         private static List<ReferencedSymbol> GetReferencedSymbolChain(IOperation operation)
         {
             List<ReferencedSymbol> result = new List<ReferencedSymbol>();
+            HashSet<IOperation> visited = new HashSet<IOperation>();
 
             while (operation != null)
             {
+                if (!visited.Add(operation))
+                {
+                    break;
+                }
+
                 if (operation is ILocalReferenceOperation localOperation)
                 {
                     result.Add(new ReferencedSymbol(localOperation.Local));
@@ -332,39 +350,74 @@ namespace Kuker.Analyzers.Rules
 
         private static bool AreIndexerArgumentsEqual(IOperation leftOperation, IOperation rightOperation)
         {
-            // Are indexers
-            if (!(leftOperation is IPropertyReferenceOperation prLeftOperation && prLeftOperation.Arguments.Length > 0 &&
-                rightOperation is IPropertyReferenceOperation prRightOperation && prRightOperation.Arguments.Length > 0))
+            leftOperation = UnwrapConditional(leftOperation);
+            rightOperation = UnwrapConditional(rightOperation);
+
+            if (leftOperation is IArrayElementReferenceOperation arLeft &&
+                rightOperation is IArrayElementReferenceOperation arRight)
             {
+                if (arLeft.Indices.Length != arRight.Indices.Length)
+                {
+                    return false;
+                }
+
+                for (int i = 0; i < arLeft.Indices.Length; i++)
+                {
+                    IOperation leftIndex = arLeft.Indices[i];
+                    IOperation rightIndex = arRight.Indices[i];
+
+                    if (leftIndex.ConstantValue.HasValue && rightIndex.ConstantValue.HasValue)
+                    {
+                        if (!Equals(leftIndex.ConstantValue.Value, rightIndex.ConstantValue.Value))
+                        {
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        List<ReferencedSymbol> leftChain = GetReferencedSymbolChain(leftIndex);
+                        List<ReferencedSymbol> rightChain = GetReferencedSymbolChain(rightIndex);
+
+                        if (!AreChainsEqual(leftChain, rightChain))
+                        {
+                            return false;
+                        }
+                    }
+                }
+
                 return true;
             }
 
-            if (prLeftOperation.Arguments.Length != prRightOperation.Arguments.Length)
+            if (leftOperation is IPropertyReferenceOperation prLeftOperation && prLeftOperation.Arguments.Length > 0 &&
+                rightOperation is IPropertyReferenceOperation prRightOperation && prRightOperation.Arguments.Length > 0)
             {
-                return false;
-            }
-
-            for (int i = 0; i < prLeftOperation.Arguments.Length; i++)
-            {
-                IOperation leftArgumentOperation = prLeftOperation.Arguments[i].Value;
-                IOperation rightArgumentOperation = prRightOperation.Arguments[i].Value;
-
-                if (leftArgumentOperation.ConstantValue.HasValue && rightArgumentOperation.ConstantValue.HasValue)
+                if (prLeftOperation.Arguments.Length != prRightOperation.Arguments.Length)
                 {
-                    if (!Equals(leftArgumentOperation.ConstantValue.Value, rightArgumentOperation.ConstantValue.Value))
+                    return false;
+                }
+
+                for (int i = 0; i < prLeftOperation.Arguments.Length; i++)
+                {
+                    IOperation leftArgumentOperation = prLeftOperation.Arguments[i].Value;
+                    IOperation rightArgumentOperation = prRightOperation.Arguments[i].Value;
+
+                    if (leftArgumentOperation.ConstantValue.HasValue && rightArgumentOperation.ConstantValue.HasValue)
+                    {
+                        if (!Equals(leftArgumentOperation.ConstantValue.Value, rightArgumentOperation.ConstantValue.Value))
+                        {
+                            return false;
+                        }
+
+                        continue;
+                    }
+
+                    List<ReferencedSymbol> leftChain = GetReferencedSymbolChain(leftArgumentOperation);
+                    List<ReferencedSymbol> rightChain = GetReferencedSymbolChain(rightArgumentOperation);
+
+                    if (!AreChainsEqual(leftChain, rightChain))
                     {
                         return false;
                     }
-
-                    continue;
-                }
-
-                List<ReferencedSymbol> leftChain = GetReferencedSymbolChain(leftArgumentOperation);
-                List<ReferencedSymbol> rightChain = GetReferencedSymbolChain(rightArgumentOperation);
-
-                if (!AreChainsEqual(leftChain, rightChain))
-                {
-                    return false;
                 }
             }
 
@@ -379,6 +432,16 @@ namespace Kuker.Analyzers.Rules
             }
 
             return semanticModel.GetOperation(expression);
+        }
+
+        private static IOperation UnwrapConditional(IOperation operation)
+        {
+            while (operation is IConditionalAccessOperation c)
+            {
+                operation = c.WhenNotNull;
+            }
+
+            return operation;
         }
     }
 
