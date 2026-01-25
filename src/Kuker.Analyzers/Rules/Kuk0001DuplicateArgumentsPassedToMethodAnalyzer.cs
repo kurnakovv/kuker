@@ -75,11 +75,6 @@ namespace Kuker.Analyzers.Rules
                 return;
             }
 
-            if (!(invocation.Expression is MemberAccessExpressionSyntax memberAccess))
-            {
-                return;
-            }
-
             if (invocation.ArgumentList.Arguments.Count == 0)
             {
                 return;
@@ -90,18 +85,51 @@ namespace Kuker.Analyzers.Rules
                 return;
             }
 
-            ExpressionSyntax receiverExpression = methodSymbol.IsStatic
-                ? invocation.ArgumentList.Arguments[0].Expression
-                : memberAccess.Expression;
+            ExpressionSyntax receiverExpression = null;
+
+            if (methodSymbol.IsStatic)
+            {
+                receiverExpression = invocation.ArgumentList.Arguments[0].Expression;
+            }
+            else if (invocation.Expression is MemberBindingExpressionSyntax)
+            {
+                receiverExpression = GetConditionalReceiver(invocation);
+            }
+            else if (invocation.Expression is IdentifierNameSyntax identifierNameSyntaxExpression)
+            {
+                receiverExpression = invocation.ArgumentList.Arguments[0].Expression;
+            }
+            else if (invocation.Expression is MemberAccessExpressionSyntax memberAccess)
+            {
+                receiverExpression = memberAccess.Expression;
+            }
+            else
+            {
+                return;
+            }
+
+            if (receiverExpression == null)
+            {
+                return;
+            }
 
             IOperation receiverOperation = GetOperationWithoutParentheses(receiverExpression, semanticModel);
             List<ReferencedSymbol> receiverChain = GetReferencedSymbolChain(receiverOperation);
 
             for (int i = 0; i < invocation.ArgumentList.Arguments.Count; i++)
             {
-                if (methodSymbol.IsStatic && i == 0)
+                if (i == 0)
                 {
-                    continue;
+                    if (methodSymbol.IsStatic)
+                    {
+                        continue;
+                    }
+
+                    if (!(invocation.Expression is MemberAccessExpressionSyntax) &&
+                        !(invocation.Expression is MemberBindingExpressionSyntax))
+                    {
+                        continue;
+                    }
                 }
 
                 ArgumentSyntax currentArgument = invocation.ArgumentList.Arguments[i];
@@ -142,6 +170,21 @@ namespace Kuker.Analyzers.Rules
                     }
                 }
             }
+        }
+
+        private static ExpressionSyntax GetConditionalReceiver(SyntaxNode node)
+        {
+            while (node != null)
+            {
+                if (node is ConditionalAccessExpressionSyntax conditional)
+                {
+                    return conditional.Expression;
+                }
+
+                node = node.Parent;
+            }
+
+            return null;
         }
 
         private static bool IsMethodExcluded(

@@ -1082,5 +1082,101 @@ public class Kuk0001DuplicateArgumentsPassedToMethodAnalyzerTests
             ExpectedDiagnostics = { expected1, expected2, },
         }.RunAsync();
     }
-    // ToDo: Check !MemberAccess (M1() but not a.M1())
+
+    [Fact]
+    public async Task ReportForNonMemberAccessMethodAsync()
+    {
+        string testCode = @"
+            using System.IO;
+
+            class Test
+            {
+                void TestMethod()
+                {
+                    var a = 1;
+                    var b = 2;
+
+                    M1(a, a); // Violation 1
+                    M1(a, b); // OK
+
+                    GetA().M1(a, a); // Violation 2
+                    GetA().M1(a, b); // OK
+                }
+
+                void ConditionalAccessExpressionMethod()
+                {
+                    Stream stream = null;
+                    Stream otherStream = null;
+
+                    stream?.CopyTo(stream); // Violation 3
+                    stream?.CopyTo(otherStream); // OK
+                }
+
+                void M1(int a, int b) { }
+
+                A GetA() { return new A(); }
+            }
+
+            class A
+            {
+                public void M1(int a, int b) { }
+            }
+        ";
+
+        DiagnosticResult expected1 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+            .WithSpan(11, 21, 11, 29);
+
+        DiagnosticResult expected2 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+            .WithSpan(14, 21, 14, 36);
+
+        DiagnosticResult expected3 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+            .WithSpan(23, 28, 23, 43);
+
+        await new CSharpAnalyzerTest<Kuk0001DuplicateArgumentsPassedToMethodAnalyzer, DefaultVerifier>
+        {
+            TestCode = testCode,
+            ExpectedDiagnostics = { expected1, expected2, expected3, },
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task NoReportForNullableConditionalLambdaAsync()
+    {
+        string testCode = @"
+            using System.Linq;
+            using System.Collections.Generic;
+
+            class Test
+            {
+                void TestMethod(Company company, Cover cover)
+                {
+                    var userName = company?.Users?
+                        .Where(x => x.Id == cover.UserId)
+                        .Select(x => x.Name)
+                        .FirstOrDefault();
+                }
+            }
+
+            class Company
+            {
+                public IEnumerable<User> Users { get; set; }
+            }
+
+            class User
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            class Cover
+            {
+                public int UserId { get; set; }
+            }
+        ";
+
+        await new CSharpAnalyzerTest<Kuk0001DuplicateArgumentsPassedToMethodAnalyzer, DefaultVerifier>
+        {
+            TestCode = testCode,
+        }.RunAsync();
+    }
 }
