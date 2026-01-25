@@ -899,6 +899,12 @@ public class Kuk0001DuplicateArgumentsPassedToMethodAnalyzerTests
                     testService.M1(a, a, c); // Violation 2
                     testService.M1(a, b, b); // Violation 3
                     testService.M1(a, b, a); // Violation 4
+
+                    new TestService().M1(a, b, c); // OK
+                    new TestService().M1(a, a, a); // Violation 5
+                    new TestService().M1(a, a, c); // Violation 6
+                    new TestService().M1(a, b, b); // Violation 7
+                    new TestService().M1(a, b, a); // Violation 8
                 }
             }
         ";
@@ -915,10 +921,22 @@ public class Kuk0001DuplicateArgumentsPassedToMethodAnalyzerTests
         DiagnosticResult expected4 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
             .WithSpan(24, 21, 24, 44);
 
+        DiagnosticResult expected5 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+            .WithSpan(27, 21, 27, 50);
+
+        DiagnosticResult expected6 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+            .WithSpan(28, 21, 28, 50);
+
+        DiagnosticResult expected7 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+            .WithSpan(29, 21, 29, 50);
+
+        DiagnosticResult expected8 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+            .WithSpan(30, 21, 30, 50);
+
         await new CSharpAnalyzerTest<Kuk0001DuplicateArgumentsPassedToMethodAnalyzer, DefaultVerifier>
         {
             TestCode = testCode,
-            ExpectedDiagnostics = { expected1, expected2, expected3, expected4, },
+            ExpectedDiagnostics = { expected1, expected2, expected3, expected4, expected5, expected6, expected7, expected8, },
         }.RunAsync();
     }
 
@@ -1064,7 +1082,5 @@ public class Kuk0001DuplicateArgumentsPassedToMethodAnalyzerTests
             ExpectedDiagnostics = { expected1, expected2, },
         }.RunAsync();
     }
-
-    // ToDo: Check new Service().M1()
     // ToDo: Check !MemberAccess (M1() but not a.M1())
 }
