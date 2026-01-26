@@ -85,7 +85,7 @@ namespace Kuker.Analyzers.Rules
                 return;
             }
 
-            ExpressionSyntax receiverExpression = null;
+            ExpressionSyntax receiverExpression;
 
             if (methodSymbol.IsStatic)
             {
@@ -95,7 +95,7 @@ namespace Kuker.Analyzers.Rules
             {
                 receiverExpression = GetConditionalReceiver(invocation);
             }
-            else if (invocation.Expression is IdentifierNameSyntax identifierNameSyntaxExpression)
+            else if (invocation.Expression is IdentifierNameSyntax)
             {
                 receiverExpression = invocation.ArgumentList.Arguments[0].Expression;
             }
