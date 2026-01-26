@@ -48,16 +48,13 @@ public class Kuk0001DuplicateArgumentsPassedToMethodAnalyzerTests
             }
         ";
         DiagnosticResult expected1 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-            .WithSpan(18, 21, 18, 39)
-            .WithArguments("stream");
+            .WithSpan(18, 32, 18, 38);
 
         DiagnosticResult expected2 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-            .WithSpan(19, 21, 19, 46)
-            .WithArguments("stream");
+            .WithSpan(19, 39, 19, 45);
 
         DiagnosticResult expected3 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-            .WithSpan(22, 21, 22, 29)
-            .WithArguments("s");
+            .WithSpan(22, 27, 22, 28);
 
         await new CSharpAnalyzerTest<Kuk0001DuplicateArgumentsPassedToMethodAnalyzer, DefaultVerifier>
         {
@@ -87,8 +84,7 @@ public class Kuk0001DuplicateArgumentsPassedToMethodAnalyzerTests
         ";
 
         DiagnosticResult expected = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-            .WithSpan(12, 27, 12, 60)
-            .WithArguments("stream");
+            .WithSpan(12, 46, 12, 52);
 
         await new CSharpAnalyzerTest<Kuk0001DuplicateArgumentsPassedToMethodAnalyzer, DefaultVerifier>
         {
@@ -122,8 +118,7 @@ public class Kuk0001DuplicateArgumentsPassedToMethodAnalyzerTests
         ";
 
         DiagnosticResult expected = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-            .WithSpan(16, 21, 16, 53)
-            .WithArguments("stream");
+            .WithSpan(16, 46, 16, 52);
 
         await new CSharpAnalyzerTest<Kuk0001DuplicateArgumentsPassedToMethodAnalyzer, DefaultVerifier>
         {
@@ -149,8 +144,7 @@ public class Kuk0001DuplicateArgumentsPassedToMethodAnalyzerTests
         ";
 
         DiagnosticResult expected = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-            .WithSpan(8, 21, 8, 35)
-            .WithArguments("this");
+            .WithSpan(8, 30, 8, 34);
 
         await new CSharpAnalyzerTest<Kuk0001DuplicateArgumentsPassedToMethodAnalyzer, DefaultVerifier>
         {
@@ -290,8 +284,7 @@ public class Kuk0001DuplicateArgumentsPassedToMethodAnalyzerTests
         ";
 
         DiagnosticResult expected = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-            .WithSpan(16, 21, 16, 40)
-            .WithArguments("a.Ids");
+            .WithSpan(16, 34, 16, 39);
 
         await new CSharpAnalyzerTest<Kuk0001DuplicateArgumentsPassedToMethodAnalyzer, DefaultVerifier>
         {
@@ -337,24 +330,16 @@ public class Kuk0001DuplicateArgumentsPassedToMethodAnalyzerTests
         ";
 
         DiagnosticResult expected1 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-            .WithSpan(21, 34, 21, 84)
-            ////.WithArguments(".NullableCase2")
-            ;
+            .WithSpan(21, 56, 21, 83);
 
         DiagnosticResult expected2 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-            .WithSpan(22, 48, 22, 92)
-            ////.WithArguments(".Ids")
-            ;
+            .WithSpan(22, 60, 22, 91);
 
         DiagnosticResult expected3 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-            .WithSpan(23, 48, 23, 91)
-            ////.WithArguments(".Ids")
-            ;
+            .WithSpan(23, 60, 23, 90);
 
         DiagnosticResult expected4 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-            .WithSpan(24, 21, 24, 91)
-            ////.WithArguments("nullableCase.NullableCase2.Ids")
-            ;
+            .WithSpan(24, 59, 24, 90);
 
         await new CSharpAnalyzerTest<Kuk0001DuplicateArgumentsPassedToMethodAnalyzer, DefaultVerifier>
         {
@@ -395,20 +380,16 @@ public class Kuk0001DuplicateArgumentsPassedToMethodAnalyzerTests
         ";
 
         DiagnosticResult expected1 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-            .WithSpan(16, 21, 16, 42)
-            .WithArguments("a.Ids");
+            .WithSpan(16, 36, 16, 41);
 
         DiagnosticResult expected2 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-            .WithSpan(17, 21, 17, 44)
-            .WithArguments("a.Ids");
+            .WithSpan(17, 36, 17, 43);
 
         DiagnosticResult expected3 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-            .WithSpan(18, 21, 18, 42)
-            .WithArguments("a.Ids");
+            .WithSpan(18, 34, 18, 41);
 
         DiagnosticResult expected4 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-            .WithSpan(19, 21, 19, 66)
-            .WithArguments("a.Ids");
+            .WithSpan(19, 46, 19, 65);
 
         await new CSharpAnalyzerTest<Kuk0001DuplicateArgumentsPassedToMethodAnalyzer, DefaultVerifier>
         {
@@ -468,32 +449,25 @@ public class Kuk0001DuplicateArgumentsPassedToMethodAnalyzerTests
         ";
 
         DiagnosticResult expected1 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-            .WithSpan(20, 21, 20, 46)
-            .WithArguments("a.Ids[0]");
+            .WithSpan(20, 37, 20, 45);
 
         DiagnosticResult expected2 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-           .WithSpan(25, 21, 25, 50)
-           .WithArguments("myList1[0]");
+           .WithSpan(25, 39, 25, 49);
 
         DiagnosticResult expected3 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-           .WithSpan(30, 21, 30, 50)
-           .WithArguments("myList1[i]");
+           .WithSpan(30, 39, 30, 49);
 
         DiagnosticResult expected4 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-           .WithSpan(31, 21, 31, 58)
-           .WithArguments("myList1[i + 1]");
+           .WithSpan(31, 43, 31, 57);
 
         DiagnosticResult expected5 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-           .WithSpan(32, 21, 32, 58)
-           .WithArguments("myList1[1 + i]");
+           .WithSpan(32, 43, 32, 57);
 
         // var expected6 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-        //   .WithSpan(40, 21, 40, 54)
-        //   .WithArguments("myList1[i++]");
+        //   .WithSpan(40, 21, 40, 54);
 
         // var expected7 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-        //   .WithSpan(41, 21, 41, 54)
-        //   .WithArguments("myList1[++i]");
+        //   .WithSpan(41, 21, 41, 54);
 
         await new CSharpAnalyzerTest<Kuk0001DuplicateArgumentsPassedToMethodAnalyzer, DefaultVerifier>
         {
@@ -527,16 +501,13 @@ public class Kuk0001DuplicateArgumentsPassedToMethodAnalyzerTests
         ";
 
         DiagnosticResult expected1 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-            .WithSpan(8, 21, 8, 44)
-            .WithArguments("this._a");
+            .WithSpan(8, 36, 8, 43);
 
         DiagnosticResult expected2 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-           .WithSpan(9, 21, 9, 39)
-            .WithArguments("_a");
+           .WithSpan(9, 31, 9, 38);
 
         DiagnosticResult expected3 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-            .WithSpan(10, 21, 10, 44)
-            .WithArguments("this._a");
+            .WithSpan(10, 36, 10, 43);
 
         await new CSharpAnalyzerTest<Kuk0001DuplicateArgumentsPassedToMethodAnalyzer, DefaultVerifier>
         {
@@ -567,8 +538,7 @@ public class Kuk0001DuplicateArgumentsPassedToMethodAnalyzerTests
         ";
 
         DiagnosticResult expected = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-            .WithSpan(11, 21, 11, 62)
-            .WithArguments("anonymousType1.A");
+            .WithSpan(11, 45, 11, 61);
 
         await new CSharpAnalyzerTest<Kuk0001DuplicateArgumentsPassedToMethodAnalyzer, DefaultVerifier>
         {
@@ -622,20 +592,16 @@ public class Kuk0001DuplicateArgumentsPassedToMethodAnalyzerTests
         ";
 
         DiagnosticResult expected1 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-            .WithSpan(29, 21, 29, 36)
-            .WithArguments("i");
+            .WithSpan(29, 30, 29, 35);
 
         DiagnosticResult expected2 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-            .WithSpan(30, 21, 30, 54)
-            .WithArguments("i");
+            .WithSpan(30, 48, 30, 53);
 
         DiagnosticResult expected3 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-            .WithSpan(31, 21, 31, 36)
-            .WithArguments("i");
+            .WithSpan(31, 30, 31, 35);
 
         DiagnosticResult expected4 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-            .WithSpan(32, 21, 32, 50)
-            .WithArguments("i");
+            .WithSpan(32, 44, 32, 49);
 
         await new CSharpAnalyzerTest<Kuk0001DuplicateArgumentsPassedToMethodAnalyzer, DefaultVerifier>
         {
@@ -668,12 +634,10 @@ public class Kuk0001DuplicateArgumentsPassedToMethodAnalyzerTests
         ";
 
         DiagnosticResult expected1 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-            .WithSpan(13, 21, 13, 34)
-            .WithArguments("i");
+            .WithSpan(13, 32, 13, 33);
 
         DiagnosticResult expected2 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-            .WithSpan(14, 21, 14, 29)
-            .WithArguments("i");
+            .WithSpan(14, 27, 14, 28);
 
         await new CSharpAnalyzerTest<Kuk0001DuplicateArgumentsPassedToMethodAnalyzer, DefaultVerifier>
         {
@@ -805,12 +769,10 @@ public class Kuk0001DuplicateArgumentsPassedToMethodAnalyzerTests
         ";
 
         DiagnosticResult expected1 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-            .WithSpan(18, 21, 18, 32)
-            .WithArguments("a");
+            .WithSpan(18, 30, 18, 31);
 
         DiagnosticResult expected2 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-            .WithSpan(19, 21, 19, 32)
-            .WithArguments("a");
+            .WithSpan(19, 30, 19, 31);
 
         CSharpAnalyzerTest<Kuk0001DuplicateArgumentsPassedToMethodAnalyzer, DefaultVerifier> test = new()
         {
@@ -858,12 +820,10 @@ public class Kuk0001DuplicateArgumentsPassedToMethodAnalyzerTests
         ";
 
         DiagnosticResult expected1 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-            .WithSpan(9, 21, 9, 42)
-            .WithArguments("i + 1");
+            .WithSpan(9, 36, 9, 41);
 
         DiagnosticResult expected2 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-            .WithSpan(16, 21, 16, 52)
-            .WithArguments("1 + i + 1");
+            .WithSpan(16, 40, 16, 51);
 
         await new CSharpAnalyzerTest<Kuk0001DuplicateArgumentsPassedToMethodAnalyzer, DefaultVerifier>
         {
@@ -910,28 +870,28 @@ public class Kuk0001DuplicateArgumentsPassedToMethodAnalyzerTests
         ";
 
         DiagnosticResult expected1 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-            .WithSpan(21, 21, 21, 44);
+            .WithSpan(21, 39, 21, 40);
 
         DiagnosticResult expected2 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-            .WithSpan(22, 21, 22, 44);
+            .WithSpan(22, 39, 22, 40);
 
         DiagnosticResult expected3 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-            .WithSpan(23, 21, 23, 44);
+            .WithSpan(23, 42, 23, 43);
 
         DiagnosticResult expected4 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-            .WithSpan(24, 21, 24, 44);
+            .WithSpan(24, 42, 24, 43);
 
         DiagnosticResult expected5 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-            .WithSpan(27, 21, 27, 50);
+            .WithSpan(27, 45, 27, 46);
 
         DiagnosticResult expected6 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-            .WithSpan(28, 21, 28, 50);
+            .WithSpan(28, 45, 28, 46);
 
         DiagnosticResult expected7 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-            .WithSpan(29, 21, 29, 50);
+            .WithSpan(29, 48, 29, 49);
 
         DiagnosticResult expected8 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-            .WithSpan(30, 21, 30, 50);
+            .WithSpan(30, 48, 30, 49);
 
         await new CSharpAnalyzerTest<Kuk0001DuplicateArgumentsPassedToMethodAnalyzer, DefaultVerifier>
         {
@@ -970,16 +930,16 @@ public class Kuk0001DuplicateArgumentsPassedToMethodAnalyzerTests
         ";
 
         DiagnosticResult expected1 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-            .WithSpan(19, 21, 19, 43);
+            .WithSpan(19, 38, 19, 39);
 
         DiagnosticResult expected2 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-            .WithSpan(20, 21, 20, 43);
+            .WithSpan(20, 38, 20, 39);
 
         DiagnosticResult expected3 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-            .WithSpan(21, 21, 21, 43);
+            .WithSpan(21, 41, 21, 42);
 
         DiagnosticResult expected4 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-            .WithSpan(22, 21, 22, 43);
+            .WithSpan(22, 41, 22, 42);
 
         await new CSharpAnalyzerTest<Kuk0001DuplicateArgumentsPassedToMethodAnalyzer, DefaultVerifier>
         {
@@ -1020,16 +980,16 @@ public class Kuk0001DuplicateArgumentsPassedToMethodAnalyzerTests
         ";
 
         DiagnosticResult expected1 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-            .WithSpan(6, 21, 6, 59);
+            .WithSpan(6, 57, 6, 58);
 
         DiagnosticResult expected2 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-            .WithSpan(7, 21, 7, 59);
+            .WithSpan(7, 57, 7, 58);
 
         DiagnosticResult expected3 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-            .WithSpan(8, 21, 8, 59);
+            .WithSpan(8, 44, 8, 45);
 
         DiagnosticResult expected4 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-            .WithSpan(9, 21, 9, 49);
+            .WithSpan(9, 44, 9, 45);
 
         await new CSharpAnalyzerTest<Kuk0001DuplicateArgumentsPassedToMethodAnalyzer, DefaultVerifier>
         {
@@ -1071,10 +1031,10 @@ public class Kuk0001DuplicateArgumentsPassedToMethodAnalyzerTests
         ";
 
         DiagnosticResult expected1 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-            .WithSpan(21, 21, 21, 50);
+            .WithSpan(21, 38, 21, 49);
 
         DiagnosticResult expected2 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-            .WithSpan(24, 21, 24, 50);
+            .WithSpan(24, 38, 24, 49);
 
         await new CSharpAnalyzerTest<Kuk0001DuplicateArgumentsPassedToMethodAnalyzer, DefaultVerifier>
         {
@@ -1124,13 +1084,13 @@ public class Kuk0001DuplicateArgumentsPassedToMethodAnalyzerTests
         ";
 
         DiagnosticResult expected1 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-            .WithSpan(11, 21, 11, 29);
+            .WithSpan(11, 27, 11, 28);
 
         DiagnosticResult expected2 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-            .WithSpan(14, 21, 14, 36);
+            .WithSpan(14, 34, 14, 35);
 
         DiagnosticResult expected3 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
-            .WithSpan(23, 28, 23, 43);
+            .WithSpan(23, 36, 23, 42);
 
         await new CSharpAnalyzerTest<Kuk0001DuplicateArgumentsPassedToMethodAnalyzer, DefaultVerifier>
         {
