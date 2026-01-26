@@ -732,7 +732,12 @@ public class Kuk0001DuplicateArgumentsPassedToMethodAnalyzerTests
                     Equals(10, 10); // OK
                     MyStatic.Foo(10, 10); // OK
                     "test".Equals("test"); // OK
+                    string.Empty.Equals(string.Empty); // OK
+
+                    M1("test", string.Empty, string.Empty); // OK
                 }
+
+                void M1(string a, string b, string c) { }
             }
         """;
 
