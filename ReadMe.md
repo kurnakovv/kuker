@@ -71,7 +71,7 @@ You can configure all rules via `.editorconfig` file
 # Setup all rules with global category
 dotnet_diagnostic.KukerAllRules.severity = warning
 
-dotnet_diagnostic.KUK0001.severity = warning # Object used as argument to its own argument analyzer | https://github.com/kurnakovv/kuker/wiki/KUK0001
+dotnet_diagnostic.KUK0001.severity = warning # Duplicate arguments passed to method | https://github.com/kurnakovv/kuker/wiki/KUK0001
 dotnet_diagnostic.KUK0002.severity = warning # File name mismatch | https://github.com/kurnakovv/kuker/wiki/KUK0002
 dotnet_diagnostic.KUK0003.severity = warning # Min/Max (Async) and MinBy/MaxBy may throw InvalidOperationException on empty sequences | https://github.com/kurnakovv/kuker/wiki/KUK0003
 
