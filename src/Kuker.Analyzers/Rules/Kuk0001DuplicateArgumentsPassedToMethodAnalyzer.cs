@@ -233,6 +233,14 @@ namespace Kuker.Analyzers.Rules
                 }
                 else if (operation is IFieldReferenceOperation fieldOperation)
                 {
+                    if (fieldOperation.Field.Name == "Empty" &&
+                        fieldOperation.Field.IsStatic &&
+                        fieldOperation.Field.ContainingType.SpecialType == SpecialType.System_String
+                    )
+                    {
+                        return new List<ReferencedSymbol>();
+                    }
+
                     result.Add(new ReferencedSymbol(fieldOperation.Field));
                     operation = fieldOperation.Instance;
                 }
