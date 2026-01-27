@@ -134,6 +134,12 @@ namespace Kuker.Analyzers.Rules
 
                 ArgumentSyntax currentArgument = invocation.ArgumentList.Arguments[i];
                 IOperation currentArgumentOperation = GetOperationWithoutParentheses(currentArgument.Expression, semanticModel);
+
+                if (currentArgumentOperation?.ConstantValue.HasValue == true)
+                {
+                    continue;
+                }
+
                 List<ReferencedSymbol> currentArgumentChain = GetReferencedSymbolChain(currentArgumentOperation);
 
                 if (currentArgumentChain.Count == 0)
@@ -154,6 +160,12 @@ namespace Kuker.Analyzers.Rules
                 {
                     ArgumentSyntax otherArgument = invocation.ArgumentList.Arguments[j];
                     IOperation otherArgumentOperation = GetOperationWithoutParentheses(otherArgument.Expression, semanticModel);
+
+                    if (otherArgumentOperation?.ConstantValue.HasValue == true)
+                    {
+                        continue;
+                    }
+
                     List<ReferencedSymbol> otherArgumentChain = GetReferencedSymbolChain(otherArgumentOperation);
 
                     if (otherArgumentChain.Count == 0)
@@ -282,61 +294,23 @@ namespace Kuker.Analyzers.Rules
                 }
                 else if (operation is IBinaryOperation binaryOperation)
                 {
-                    object leftOperantValue = null;
-                    object rightOperantValue = null;
+                    result.AddRange(GetReferencedSymbolChain(binaryOperation.LeftOperand));
 
-                    if (binaryOperation.LeftOperand.ConstantValue.HasValue)
-                    {
-                        leftOperantValue = binaryOperation.LeftOperand.ConstantValue;
-                    }
-                    else
-                    {
-                        List<ReferencedSymbol> leftChain = GetReferencedSymbolChain(binaryOperation.LeftOperand);
-                        if (leftChain.Count > 0)
+                    result.Add(
+                        new ReferencedSymbol(null)
                         {
-                            result.AddRange(leftChain);
+                            BinaryOperation = new BinaryOperation(binaryOperation.OperatorKind, null),
                         }
-                    }
+                    );
 
-                    if (binaryOperation.RightOperand.ConstantValue.HasValue)
-                    {
-                        rightOperantValue = binaryOperation.RightOperand.ConstantValue;
-                    }
-                    else
-                    {
-                        List<ReferencedSymbol> rightChain = GetReferencedSymbolChain(binaryOperation.RightOperand);
-                        if (rightChain.Count > 0)
-                        {
-                            result.AddRange(rightChain);
-                        }
-                    }
-
-                    if (leftOperantValue != null && rightOperantValue != null)
-                    {
-                        return result;
-                    }
-
-                    if (leftOperantValue != null)
-                    {
-                        result.Add(
-                            new ReferencedSymbol(null)
-                            {
-                                BinaryOperation = new BinaryOperation(binaryOperation.OperatorKind, leftOperantValue),
-                            }
-                        );
-                    }
-
-                    if (rightOperantValue != null)
-                    {
-                        result.Add(
-                            new ReferencedSymbol(null)
-                            {
-                                BinaryOperation = new BinaryOperation(binaryOperation.OperatorKind, rightOperantValue),
-                            }
-                        );
-                    }
+                    result.AddRange(GetReferencedSymbolChain(binaryOperation.RightOperand));
 
                     return result;
+                }
+                else if (operation is IConversionOperation conversionOperation)
+                {
+                    operation = conversionOperation.Operand;
+                    continue;
                 }
                 else
                 {
@@ -374,22 +348,33 @@ namespace Kuker.Analyzers.Rules
                 }
                 else
                 {
-                    if (leftSymbol.BinaryOperation == null)
+                    BinaryOperation leftOp = leftSymbol.BinaryOperation;
+                    BinaryOperation rightOp = rightSymbol.BinaryOperation;
+
+                    if (leftOp == null || rightOp == null)
                     {
                         return false;
                     }
 
-                    if (rightSymbol.BinaryOperation == null)
+                    if (leftOp.Kind != rightOp.Kind)
                     {
                         return false;
                     }
 
-                    if (leftSymbol.BinaryOperation.Kind != rightSymbol.BinaryOperation.Kind)
+                    object leftValue = leftOp.Value;
+                    object rightValue = rightOp.Value;
+
+                    if (leftValue == null && rightValue == null)
+                    {
+                        continue;
+                    }
+
+                    if (leftValue == null || rightValue == null)
                     {
                         return false;
                     }
 
-                    if (!leftSymbol.BinaryOperation.Value.Equals(rightSymbol.BinaryOperation.Value))
+                    if (!leftValue.Equals(rightValue))
                     {
                         return false;
                     }
