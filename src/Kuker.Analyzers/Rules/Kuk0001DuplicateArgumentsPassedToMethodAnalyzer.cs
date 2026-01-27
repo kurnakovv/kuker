@@ -310,7 +310,6 @@ namespace Kuker.Analyzers.Rules
                 else if (operation is IConversionOperation conversionOperation)
                 {
                     operation = conversionOperation.Operand;
-                    continue;
                 }
                 else
                 {
