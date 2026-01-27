@@ -151,7 +151,7 @@ namespace Kuker.Analyzers.Rules
                     && AreChainsEqual(receiverChain, currentArgumentChain)
                     && AreIndexerArgumentsEqual(receiverOperation, currentArgumentOperation))
                 {
-                    Diagnostic diagnostic = Diagnostic.Create(s_rule, currentArgument.GetLocation(), currentArgumentOperation.Syntax.ToString());
+                    Diagnostic diagnostic = Diagnostic.Create(s_rule, currentArgument.GetLocation(), currentArgumentOperation?.Syntax.ToString());
                     context.ReportDiagnostic(diagnostic);
                     return;
                 }
@@ -176,7 +176,7 @@ namespace Kuker.Analyzers.Rules
                     if (AreChainsEqual(currentArgumentChain, otherArgumentChain)
                         && AreIndexerArgumentsEqual(currentArgumentOperation, otherArgumentOperation))
                     {
-                        Diagnostic diagnostic = Diagnostic.Create(s_rule, otherArgument.GetLocation(), otherArgumentOperation.Syntax.ToString());
+                        Diagnostic diagnostic = Diagnostic.Create(s_rule, otherArgument.GetLocation(), otherArgumentOperation?.Syntax.ToString());
                         context.ReportDiagnostic(diagnostic);
                         return;
                     }
