@@ -647,7 +647,7 @@ public class Kuk0001DuplicateArgumentsPassedToMethodAnalyzerTests
     }
 
     [Fact]
-    public async Task NoReportForCastsAsync()
+    public async Task ReportForCastsAsync()
     {
         string testCode = @"
             using System.Collections.Generic;
@@ -663,16 +663,33 @@ public class Kuk0001DuplicateArgumentsPassedToMethodAnalyzerTests
                 {
                     var i = 0;
                     var a = new Test() { Ids = new List<long>() { 1, 2, 3 } };
-                    i.Equals((int)i); // OK
-                    a.Equals((Test)a); // OK
-                    a.Ids.Equals((List<long>)a.Ids); // OK
+                    i.Equals((int)i); // Violation 1
+                    a.Equals((Test)a); // Violation 2
+                    a.Ids.Equals((List<long>)a.Ids); // Violation 3
+
+                    var j = 0;
+                    var b = new Test() { Ids = new List<long>() { 1, 2, 3 } };
+
+                    i.Equals((int)j); // OK
+                    a.Equals((Test)b); // OK
+                    a.Ids.Equals((List<long>)b.Ids); // OK
                 }
             }
         ";
 
+        DiagnosticResult expected1 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+            .WithSpan(15, 30, 15, 36);
+
+        DiagnosticResult expected2 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+            .WithSpan(16, 30, 16, 37);
+
+        DiagnosticResult expected3 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+            .WithSpan(17, 34, 17, 51);
+
         await new CSharpAnalyzerTest<Kuk0001DuplicateArgumentsPassedToMethodAnalyzer, DefaultVerifier>
         {
             TestCode = testCode,
+            ExpectedDiagnostics = { expected1, expected2, expected3, },
         }.RunAsync();
     }
 
@@ -819,8 +836,44 @@ public class Kuk0001DuplicateArgumentsPassedToMethodAnalyzerTests
                     (1 + i + 1).Equals((1 + i + 1)); // Violation 2
                     (1 + i + 1).Equals((1 + j + 1)); // OK
 
-                    // ToDo: Try * / ^ etc
+                    (i + i).Equals(i - i); // OK
+                    (i * i).Equals(i - i); // OK
+                    (i * i).Equals(i * i); // Violation 3
+                    (i * i).Equals(i * j); // OK
+                    (i - i).Equals(i / i); // OK
+                    (i - i + 1).Equals(i / i + 1); // OK
+                    (i ^ i).Equals(i * i); // OK
                 }
+
+                void TestMethod2()
+                {
+                    int test1 = 1;
+                    int test2 = 1;
+                    int test3 = 1;
+                    int test4 = 1;
+                    int test5 = 1;
+                    int test6 = 1;
+                    M1(
+                        a: test1,
+                        b: test1 + test2 + test3,
+                        c: test4,
+                        d: test5 - test3 - test4 - test6
+                    ); // OK
+
+                    MyStatic.M1(
+                        a: test1,
+                        b: test1 + test2 + test3,
+                        c: test4,
+                        d: test5 - test3 - test4 - test6
+                    ); // OK
+                }
+
+                void M1(float a, float b, float c, float d) {}
+            }
+
+            static class MyStatic
+            {
+                public static void M1(float a, float b, float c, float d) {}
             }
         ";
 
@@ -830,10 +883,49 @@ public class Kuk0001DuplicateArgumentsPassedToMethodAnalyzerTests
         DiagnosticResult expected2 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
             .WithSpan(16, 40, 16, 51);
 
+        DiagnosticResult expected3 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+            .WithSpan(21, 36, 21, 41);
+
         await new CSharpAnalyzerTest<Kuk0001DuplicateArgumentsPassedToMethodAnalyzer, DefaultVerifier>
         {
             TestCode = testCode,
-            ExpectedDiagnostics = { expected1, expected2 },
+            ExpectedDiagnostics = { expected1, expected2, expected3, },
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task ReportForBinaryOperatorsWithDiffTypesAsync()
+    {
+        string testCode = @"
+            class TestClass
+            {
+                void TestMethod()
+                {
+                    int test1 = 1;
+                    float test2 = 1;
+                    int test3 = 1;
+                    int test4 = 1;
+                    int test5 = 1;
+                    int test6 = 1;
+
+                    M1(
+                        a: test5 + test2 + test3,
+                        b: test6 + test2 + test3 + test4
+                    ); // OK
+
+                    M1(
+                        a: test5 + test2 + test3,
+                        b: test6 + test2 + test3
+                    ); // OK
+                }
+
+                void M1(float a, float b) {}
+            }
+        ";
+
+        await new CSharpAnalyzerTest<Kuk0001DuplicateArgumentsPassedToMethodAnalyzer, DefaultVerifier>
+        {
+            TestCode = testCode,
         }.RunAsync();
     }
 
