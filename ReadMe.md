@@ -33,7 +33,7 @@ dotnet add package kurnakovv.kuker
 This command adds the following reference to your project:
 ```xml
 <!-- Use the latest available version -->
-<PackageReference Include="kurnakovv.kuker" Version="0.1.1">
+<PackageReference Include="kurnakovv.kuker" Version="0.2.0">
   <PrivateAssets>all</PrivateAssets>
   <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 </PackageReference>
