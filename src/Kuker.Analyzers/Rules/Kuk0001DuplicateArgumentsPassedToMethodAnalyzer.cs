@@ -16,17 +16,19 @@ using Microsoft.CodeAnalysis.Operations;
 namespace Kuker.Analyzers.Rules
 {
     /// <summary>
-    /// KUK0001 rule - Object Used As Argument To Its Own Argument Analyzer.
+    /// KUK0001 rule - Duplicate arguments passed to method analyzer.
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class Kuk0001ObjectUsedAsArgumentToItsOwnArgumentAnalyzer : DiagnosticAnalyzer
+    public class Kuk0001DuplicateArgumentsPassedToMethodAnalyzer : DiagnosticAnalyzer
     {
         private const string EXCLUDED_METHODS = "dotnet_diagnostic.KUK0001.excluded_methods";
         private const string DIAGNOSTIC_ID = "KUK0001";
 
-        private static readonly LocalizableString s_title = "An object is used as an argument to its own method";
-        private static readonly LocalizableString s_messageFormat = "Object '{0}' is passed as an argument to its own method call; did you mean to pass a different object?";
-        private static readonly LocalizableString s_description = "Detects calls like 'obj.Foo(obj)' or extension/static calls like 'Foo(obj, obj)'. Usually this is a typo.";
+        private static readonly LocalizableString s_title = "Duplicate arguments passed to method";
+        private static readonly LocalizableString s_messageFormat = "Argument '{0}' is passed multiple times to the same method call";
+        private static readonly LocalizableString s_description =
+            "Reports method calls where identical arguments are passed multiple times. " +
+            "In most cases this is unintentional and caused by a typo or copy-paste error.";
 
         private static readonly DiagnosticDescriptor s_rule = new DiagnosticDescriptor(
             DIAGNOSTIC_ID,
@@ -73,17 +75,7 @@ namespace Kuker.Analyzers.Rules
                 return;
             }
 
-            if (!(invocation.Expression is MemberAccessExpressionSyntax memberAccess))
-            {
-                return;
-            }
-
             if (invocation.ArgumentList.Arguments.Count == 0)
-            {
-                return;
-            }
-
-            if (methodSymbol.IsStatic && !methodSymbol.IsExtensionMethod)
             {
                 return;
             }
@@ -93,43 +85,118 @@ namespace Kuker.Analyzers.Rules
                 return;
             }
 
-            ExpressionSyntax receiverExpression = methodSymbol.IsStatic
-                ? invocation.ArgumentList.Arguments[0].Expression
-                : memberAccess.Expression;
+            ExpressionSyntax receiverExpression;
 
-            IOperation receiverOperation = GetOperationWithoutParentheses(receiverExpression, semanticModel);
-            List<ReferencedSymbol> receiverChain = GetReferencedSymbolChain(receiverOperation);
-
-            if (receiverChain.Count == 0)
+            if (methodSymbol.IsStatic)
+            {
+                receiverExpression = invocation.ArgumentList.Arguments[0].Expression;
+            }
+            else if (invocation.Expression is MemberBindingExpressionSyntax)
+            {
+                receiverExpression = GetConditionalReceiver(invocation);
+            }
+            else if (invocation.Expression is IdentifierNameSyntax)
+            {
+                receiverExpression = invocation.ArgumentList.Arguments[0].Expression;
+            }
+            else if (invocation.Expression is MemberAccessExpressionSyntax memberAccess)
+            {
+                receiverExpression = memberAccess.Expression;
+            }
+            else
             {
                 return;
             }
 
+            if (receiverExpression == null)
+            {
+                return;
+            }
+
+            IOperation receiverOperation = GetOperationWithoutParentheses(receiverExpression, semanticModel);
+            List<ReferencedSymbol> receiverChain = GetReferencedSymbolChain(receiverOperation);
+
             for (int i = 0; i < invocation.ArgumentList.Arguments.Count; i++)
             {
-                if (methodSymbol.IsStatic && i == 0)
+                if (i == 0)
+                {
+                    if (methodSymbol.IsStatic)
+                    {
+                        continue;
+                    }
+
+                    if (!(invocation.Expression is MemberAccessExpressionSyntax) &&
+                        !(invocation.Expression is MemberBindingExpressionSyntax))
+                    {
+                        continue;
+                    }
+                }
+
+                ArgumentSyntax currentArgument = invocation.ArgumentList.Arguments[i];
+                IOperation currentArgumentOperation = GetOperationWithoutParentheses(currentArgument.Expression, semanticModel);
+
+                if (currentArgumentOperation?.ConstantValue.HasValue == true)
                 {
                     continue;
                 }
 
-                ArgumentSyntax argument = invocation.ArgumentList.Arguments[i];
+                List<ReferencedSymbol> currentArgumentChain = GetReferencedSymbolChain(currentArgumentOperation);
 
-                IOperation argumentOperation = GetOperationWithoutParentheses(argument.Expression, semanticModel);
-                List<ReferencedSymbol> argumentChain = GetReferencedSymbolChain(argumentOperation);
-
-                if (argumentChain.Count == 0)
+                if (currentArgumentChain.Count == 0)
                 {
                     continue;
                 }
 
-                if (AreChainsEqual(receiverChain, argumentChain)
-                    && AreIndexerArgumentsEqual(receiverOperation, argumentOperation))
+                if (receiverChain.Count != 0
+                    && AreChainsEqual(receiverChain, currentArgumentChain)
+                    && AreIndexerArgumentsEqual(receiverOperation, currentArgumentOperation))
                 {
-                    Diagnostic diagnostic = Diagnostic.Create(s_rule, invocation.GetLocation(), receiverOperation.Syntax.ToString());
+                    Diagnostic diagnostic = Diagnostic.Create(s_rule, currentArgument.GetLocation(), currentArgumentOperation?.Syntax.ToString());
                     context.ReportDiagnostic(diagnostic);
                     return;
                 }
+
+                for (int j = i + 1; j < invocation.ArgumentList.Arguments.Count; j++)
+                {
+                    ArgumentSyntax otherArgument = invocation.ArgumentList.Arguments[j];
+                    IOperation otherArgumentOperation = GetOperationWithoutParentheses(otherArgument.Expression, semanticModel);
+
+                    if (otherArgumentOperation?.ConstantValue.HasValue == true)
+                    {
+                        continue;
+                    }
+
+                    List<ReferencedSymbol> otherArgumentChain = GetReferencedSymbolChain(otherArgumentOperation);
+
+                    if (otherArgumentChain.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    if (AreChainsEqual(currentArgumentChain, otherArgumentChain)
+                        && AreIndexerArgumentsEqual(currentArgumentOperation, otherArgumentOperation))
+                    {
+                        Diagnostic diagnostic = Diagnostic.Create(s_rule, otherArgument.GetLocation(), otherArgumentOperation?.Syntax.ToString());
+                        context.ReportDiagnostic(diagnostic);
+                        return;
+                    }
+                }
             }
+        }
+
+        private static ExpressionSyntax GetConditionalReceiver(SyntaxNode node)
+        {
+            while (node != null)
+            {
+                if (node is ConditionalAccessExpressionSyntax conditional)
+                {
+                    return conditional.Expression;
+                }
+
+                node = node.Parent;
+            }
+
+            return null;
         }
 
         private static bool IsMethodExcluded(
@@ -157,9 +224,15 @@ namespace Kuker.Analyzers.Rules
         private static List<ReferencedSymbol> GetReferencedSymbolChain(IOperation operation)
         {
             List<ReferencedSymbol> result = new List<ReferencedSymbol>();
+            HashSet<IOperation> visited = new HashSet<IOperation>();
 
             while (operation != null)
             {
+                if (!visited.Add(operation))
+                {
+                    break;
+                }
+
                 if (operation is ILocalReferenceOperation localOperation)
                 {
                     result.Add(new ReferencedSymbol(localOperation.Local));
@@ -172,6 +245,14 @@ namespace Kuker.Analyzers.Rules
                 }
                 else if (operation is IFieldReferenceOperation fieldOperation)
                 {
+                    if (fieldOperation.Field.Name == "Empty" &&
+                        fieldOperation.Field.IsStatic &&
+                        fieldOperation.Field.ContainingType.SpecialType == SpecialType.System_String
+                    )
+                    {
+                        return new List<ReferencedSymbol>();
+                    }
+
                     result.Add(new ReferencedSymbol(fieldOperation.Field));
                     operation = fieldOperation.Instance;
                 }
@@ -213,61 +294,22 @@ namespace Kuker.Analyzers.Rules
                 }
                 else if (operation is IBinaryOperation binaryOperation)
                 {
-                    object leftOperantValue = null;
-                    object rightOperantValue = null;
+                    result.AddRange(GetReferencedSymbolChain(binaryOperation.LeftOperand));
 
-                    if (binaryOperation.LeftOperand.ConstantValue.HasValue)
-                    {
-                        leftOperantValue = binaryOperation.LeftOperand.ConstantValue;
-                    }
-                    else
-                    {
-                        List<ReferencedSymbol> leftChain = GetReferencedSymbolChain(binaryOperation.LeftOperand);
-                        if (leftChain.Count > 0)
+                    result.Add(
+                        new ReferencedSymbol(null)
                         {
-                            result.AddRange(leftChain);
+                            BinaryOperation = new BinaryOperation(binaryOperation.OperatorKind, null),
                         }
-                    }
+                    );
 
-                    if (binaryOperation.RightOperand.ConstantValue.HasValue)
-                    {
-                        rightOperantValue = binaryOperation.RightOperand.ConstantValue;
-                    }
-                    else
-                    {
-                        List<ReferencedSymbol> rightChain = GetReferencedSymbolChain(binaryOperation.RightOperand);
-                        if (rightChain.Count > 0)
-                        {
-                            result.AddRange(rightChain);
-                        }
-                    }
-
-                    if (leftOperantValue != null && rightOperantValue != null)
-                    {
-                        return result;
-                    }
-
-                    if (leftOperantValue != null)
-                    {
-                        result.Add(
-                            new ReferencedSymbol(null)
-                            {
-                                BinaryOperation = new BinaryOperation(binaryOperation.OperatorKind, leftOperantValue),
-                            }
-                        );
-                    }
-
-                    if (rightOperantValue != null)
-                    {
-                        result.Add(
-                            new ReferencedSymbol(null)
-                            {
-                                BinaryOperation = new BinaryOperation(binaryOperation.OperatorKind, rightOperantValue),
-                            }
-                        );
-                    }
+                    result.AddRange(GetReferencedSymbolChain(binaryOperation.RightOperand));
 
                     return result;
+                }
+                else if (operation is IConversionOperation conversionOperation)
+                {
+                    operation = conversionOperation.Operand;
                 }
                 else
                 {
@@ -305,22 +347,33 @@ namespace Kuker.Analyzers.Rules
                 }
                 else
                 {
-                    if (leftSymbol.BinaryOperation == null)
+                    BinaryOperation leftOp = leftSymbol.BinaryOperation;
+                    BinaryOperation rightOp = rightSymbol.BinaryOperation;
+
+                    if (leftOp == null || rightOp == null)
                     {
                         return false;
                     }
 
-                    if (rightSymbol.BinaryOperation == null)
+                    if (leftOp.Kind != rightOp.Kind)
                     {
                         return false;
                     }
 
-                    if (leftSymbol.BinaryOperation.Kind != rightSymbol.BinaryOperation.Kind)
+                    object leftValue = leftOp.Value;
+                    object rightValue = rightOp.Value;
+
+                    if (leftValue == null && rightValue == null)
+                    {
+                        continue;
+                    }
+
+                    if (leftValue == null || rightValue == null)
                     {
                         return false;
                     }
 
-                    if (!leftSymbol.BinaryOperation.Value.Equals(rightSymbol.BinaryOperation.Value))
+                    if (!leftValue.Equals(rightValue))
                     {
                         return false;
                     }
@@ -332,39 +385,74 @@ namespace Kuker.Analyzers.Rules
 
         private static bool AreIndexerArgumentsEqual(IOperation leftOperation, IOperation rightOperation)
         {
-            // Are indexers
-            if (!(leftOperation is IPropertyReferenceOperation prLeftOperation && prLeftOperation.Arguments.Length > 0 &&
-                rightOperation is IPropertyReferenceOperation prRightOperation && prRightOperation.Arguments.Length > 0))
+            leftOperation = UnwrapConditional(leftOperation);
+            rightOperation = UnwrapConditional(rightOperation);
+
+            if (leftOperation is IArrayElementReferenceOperation arLeft &&
+                rightOperation is IArrayElementReferenceOperation arRight)
             {
+                if (arLeft.Indices.Length != arRight.Indices.Length)
+                {
+                    return false;
+                }
+
+                for (int i = 0; i < arLeft.Indices.Length; i++)
+                {
+                    IOperation leftIndex = arLeft.Indices[i];
+                    IOperation rightIndex = arRight.Indices[i];
+
+                    if (leftIndex.ConstantValue.HasValue && rightIndex.ConstantValue.HasValue)
+                    {
+                        if (!Equals(leftIndex.ConstantValue.Value, rightIndex.ConstantValue.Value))
+                        {
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        List<ReferencedSymbol> leftChain = GetReferencedSymbolChain(leftIndex);
+                        List<ReferencedSymbol> rightChain = GetReferencedSymbolChain(rightIndex);
+
+                        if (!AreChainsEqual(leftChain, rightChain))
+                        {
+                            return false;
+                        }
+                    }
+                }
+
                 return true;
             }
 
-            if (prLeftOperation.Arguments.Length != prRightOperation.Arguments.Length)
+            if (leftOperation is IPropertyReferenceOperation prLeftOperation && prLeftOperation.Arguments.Length > 0 &&
+                rightOperation is IPropertyReferenceOperation prRightOperation && prRightOperation.Arguments.Length > 0)
             {
-                return false;
-            }
-
-            for (int i = 0; i < prLeftOperation.Arguments.Length; i++)
-            {
-                IOperation leftArgumentOperation = prLeftOperation.Arguments[i].Value;
-                IOperation rightArgumentOperation = prRightOperation.Arguments[i].Value;
-
-                if (leftArgumentOperation.ConstantValue.HasValue && rightArgumentOperation.ConstantValue.HasValue)
+                if (prLeftOperation.Arguments.Length != prRightOperation.Arguments.Length)
                 {
-                    if (!Equals(leftArgumentOperation.ConstantValue.Value, rightArgumentOperation.ConstantValue.Value))
+                    return false;
+                }
+
+                for (int i = 0; i < prLeftOperation.Arguments.Length; i++)
+                {
+                    IOperation leftArgumentOperation = prLeftOperation.Arguments[i].Value;
+                    IOperation rightArgumentOperation = prRightOperation.Arguments[i].Value;
+
+                    if (leftArgumentOperation.ConstantValue.HasValue && rightArgumentOperation.ConstantValue.HasValue)
+                    {
+                        if (!Equals(leftArgumentOperation.ConstantValue.Value, rightArgumentOperation.ConstantValue.Value))
+                        {
+                            return false;
+                        }
+
+                        continue;
+                    }
+
+                    List<ReferencedSymbol> leftChain = GetReferencedSymbolChain(leftArgumentOperation);
+                    List<ReferencedSymbol> rightChain = GetReferencedSymbolChain(rightArgumentOperation);
+
+                    if (!AreChainsEqual(leftChain, rightChain))
                     {
                         return false;
                     }
-
-                    continue;
-                }
-
-                List<ReferencedSymbol> leftChain = GetReferencedSymbolChain(leftArgumentOperation);
-                List<ReferencedSymbol> rightChain = GetReferencedSymbolChain(rightArgumentOperation);
-
-                if (!AreChainsEqual(leftChain, rightChain))
-                {
-                    return false;
                 }
             }
 
@@ -379,6 +467,16 @@ namespace Kuker.Analyzers.Rules
             }
 
             return semanticModel.GetOperation(expression);
+        }
+
+        private static IOperation UnwrapConditional(IOperation operation)
+        {
+            while (operation is IConditionalAccessOperation c)
+            {
+                operation = c.WhenNotNull;
+            }
+
+            return operation;
         }
     }
 

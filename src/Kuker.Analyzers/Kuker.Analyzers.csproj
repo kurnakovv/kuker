@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     <EnableAnalyzerReleaseTracking>true</EnableAnalyzerReleaseTracking>
-    <Version>0.1.1</Version>
+    <Version>0.2.0</Version>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <IsPackable>true</IsPackable>
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
@@ -20,7 +20,7 @@
     <AssemblyName>kurnakovv.kuker</AssemblyName>
     <EnablePackageValidation>true</EnablePackageValidation>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
-    <PackageProjectUrl>https://github.com/kurnakovv/TestAnalyzer</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/kurnakovv/kuker</PackageProjectUrl>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <Title>kuker</Title>
     <PackageIcon>kuker-icon.png</PackageIcon>
@@ -28,17 +28,30 @@
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(IS_DEPLOY_NUGET_ORG_ACTION_PREVIEW)' == 'true' Or '$(IS_DEPLOY_NUGET_GH_PACKAGE_ACTION_PREVIEW)' == 'true'">
+    <PackageId>kurnakovv.kuker-preview</PackageId>
+    <Product>kuker-preview</Product>
+    <AssemblyName>kurnakovv.kuker-preview</AssemblyName>
+    <Title>kuker-preview</Title>
+  </PropertyGroup>
+
   <ItemGroup>
-    <PackageReference Include="DotNet.ReproducibleBuilds" Version="1.2.39">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup
+    Condition="'$(IS_DEPLOY_NUGET_ORG_ACTION_PREVIEW)' != 'true' And '$(IS_DEPLOY_NUGET_GH_PACKAGE_ACTION_PREVIEW)' != 'true'"
+  >
     <PackageReference Include="MinVer" Version="6.1.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+
+    <PackageReference Include="DotNet.ReproducibleBuilds" Version="1.2.39">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
