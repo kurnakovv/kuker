@@ -39,7 +39,7 @@ jobs:
 
     - name: Set release notes
       run: |
-        echo "${{ github.event.release.body }}" > docs/RELEASE-NOTES
+        echo "https://github.com/kurnakovv/kuker/releases/tag/${{ github.event.release.tag_name }}" > docs/RELEASE-NOTES
         echo "" >> docs/RELEASE
         echo "[Other releases](https://github.com/kurnakovv/kuker/releases)" >> docs/RELEASE
 
