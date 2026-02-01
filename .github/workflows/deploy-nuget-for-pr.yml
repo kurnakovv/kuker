@@ -39,10 +39,18 @@ jobs:
 
           echo "DEPLOY_NUMBER=$deployNumber" >> $env:GITHUB_ENV
 
+      - name: Resolve PR head SHA
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $pr = gh api repos/${{ github.repository }}/pulls/${{ github.event.issue.number }}
+          $sha = ($pr | ConvertFrom-Json).head.sha
+          echo "PR_HEAD_SHA=$sha" >> $env:GITHUB_ENV
+
       - name: Checkout PR
         uses: actions/checkout@v4
         with:
-          ref: refs/pull/${{ github.event.issue.number }}/head
+          ref: ${{ env.PR_HEAD_SHA }}
           fetch-depth: 0
 
       - name: Setup .NET
