@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     <EnableAnalyzerReleaseTracking>true</EnableAnalyzerReleaseTracking>
-    <Version>0.2.0</Version>
+    <Version>0.2.1</Version>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <IsPackable>true</IsPackable>
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
@@ -28,6 +28,13 @@
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(IS_DEPLOY_NUGET_FOR_PR)' == 'true'">
+    <PackageId>kurnakovv.kuker-pr</PackageId>
+    <Product>kuker-pr</Product>
+    <AssemblyName>kurnakovv.kuker-pr</AssemblyName>
+    <Title>kuker-pr</Title>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(IS_DEPLOY_NUGET_ORG_ACTION_PREVIEW)' == 'true' Or '$(IS_DEPLOY_NUGET_GH_PACKAGE_ACTION_PREVIEW)' == 'true'">
     <PackageId>kurnakovv.kuker-preview</PackageId>
     <Product>kuker-preview</Product>
@@ -40,11 +47,11 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" />
   </ItemGroup>
 
   <ItemGroup
-    Condition="'$(IS_DEPLOY_NUGET_ORG_ACTION_PREVIEW)' != 'true' And '$(IS_DEPLOY_NUGET_GH_PACKAGE_ACTION_PREVIEW)' != 'true'"
+    Condition="'$(IS_DEPLOY_NUGET_ORG_ACTION_PREVIEW)' != 'true' And '$(IS_DEPLOY_NUGET_GH_PACKAGE_ACTION_PREVIEW)' != 'true' And '$(IS_DEPLOY_NUGET_FOR_PR)' != 'true'"
   >
     <PackageReference Include="MinVer" Version="6.1.0">
       <PrivateAssets>all</PrivateAssets>
