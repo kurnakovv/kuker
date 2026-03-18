@@ -15,7 +15,7 @@ Rule ID | Category | Severity | Notes
 KUK0002 | KukerAllRules | Warning | Kuk0002FileNameMismatchAnalyzer [Documentation](https://github.com/kurnakovv/kuker/wiki/KUK0002)
 KUK0003 | KukerAllRules | Warning | Kuk0003MinMaxOnEmptySequenceAnalyzer [Documentation](https://github.com/kurnakovv/kuker/wiki/KUK0003)
 
-# Release 0.3.0
+## Release 0.3.0
 
 ### New Rules
 
