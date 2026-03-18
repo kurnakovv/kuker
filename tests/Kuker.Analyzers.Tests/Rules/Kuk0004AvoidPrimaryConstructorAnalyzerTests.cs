@@ -15,7 +15,7 @@ public class Kuk0004AvoidPrimaryConstructorAnalyzerTests
     public async Task ReportOnPrimaryConstructorInClassAsync()
     {
         string testCode = """
-            // KUK0004: Avoid primary constructor for 'BadUserModel'.
+            // KUK0004: Avoid primary constructor for 'BadUserModel'
             public class BadUserModel(string name, int age)
             {
                 public string SayHello()
