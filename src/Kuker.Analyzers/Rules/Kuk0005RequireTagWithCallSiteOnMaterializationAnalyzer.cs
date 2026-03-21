@@ -130,12 +130,15 @@ namespace Kuker.Analyzers.Rules
                 return true;
             }
 
-            if (type.Name == "DbSet")
+            INamedTypeSymbol dbSetSymbol = context.SemanticModel.Compilation.GetTypeByMetadataName("Microsoft.EntityFrameworkCore.DbSet`1");
+
+            if (dbSetSymbol == null)
             {
-                return true;
+                return false;
             }
 
-            return false;
+            return type is INamedTypeSymbol named &&
+                SymbolEqualityComparer.Default.Equals(named.OriginalDefinition, dbSetSymbol);
         }
 
         private static bool ImplementsIQueryable(ITypeSymbol type)

@@ -31,7 +31,8 @@ public class Kuk0005RequireTagWithCallSiteOnMaterializationAnalyzerTests
     [InlineData("/* Concat query with TagWithCallSite (OK) */ var query = _appDbContext.Users; var callQuery = await query.TagWithCallSite().ToListAsync();", 0, 0, 0, 0)]
     [InlineData("var queryMethodViolation = await GetUserQuery().ToListAsync();", 35, 46, 35, 74)]
     [InlineData("var queryMethodOK = await GetUserQuery().TagWithCallSite().ToListAsync();", 0, 0, 0, 0)]
-    [InlineData("var toListNotEF = new List<User>().AsQueryable().ToList();", 0, 0, 0, 0)]
+    [InlineData("var toListNotEFQueryable = new List<User>().AsQueryable().ToList();", 0, 0, 0, 0)]
+    [InlineData("var toListNotEF = new List<User>().ToList();", 0, 0, 0, 0)]
     [InlineData("var simpleToListSyncOK = _appDbContext.Users.TagWithCallSite().ToList();", 0, 0, 0, 0)]
     [InlineData("var simpleToListSyncViolation = _appDbContext.Users.ToList();", 35, 45, 35, 73)]
     [InlineData("var firstSyncOK = _appDbContext.Users.TagWithCallSite().First();", 0, 0, 0, 0)]
@@ -180,6 +181,55 @@ public class Kuk0005RequireTagWithCallSiteOnMaterializationAnalyzerTests
 
             test.ExpectedDiagnostics.Add(expected);
         }
+
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task NoReportForEmptyChainAsync()
+    {
+        string testCode = """
+            using System.Linq;
+
+            public class TestClass
+            {
+                public void M1()
+                {
+                    var x = .ToList();
+                }
+            }
+        """;
+
+        CSharpAnalyzerTest<Kuk0005RequireTagWithCallSiteOnMaterializationAnalyzer, DefaultVerifier> test = new()
+        {
+            TestCode = testCode,
+            ExpectedDiagnostics = { new DiagnosticResult("CS1525", DiagnosticSeverity.Error).WithSpan(7, 21, 7, 22) },
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+            TestState = { AdditionalReferences = { _portableExecutableReference }, },
+        };
+
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestIQueryableWithoutEFCoreAsync()
+    {
+        string testCode = """
+            using System.Linq;
+
+            class Test
+            {
+                void M(IQueryable<int> q)
+                {
+                    q.ToList();
+                }
+            }
+        """;
+
+        CSharpAnalyzerTest<Kuk0005RequireTagWithCallSiteOnMaterializationAnalyzer, DefaultVerifier> test = new()
+        {
+            TestCode = testCode,
+        };
 
         await test.RunAsync();
     }
