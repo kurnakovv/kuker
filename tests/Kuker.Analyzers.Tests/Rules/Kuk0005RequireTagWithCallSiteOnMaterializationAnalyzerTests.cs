@@ -14,6 +14,7 @@ public class Kuk0005RequireTagWithCallSiteOnMaterializationAnalyzerTests
     private readonly PortableExecutableReference _portableExecutableReference
         = MetadataReference.CreateFromFile(typeof(Microsoft.EntityFrameworkCore.DbContext).Assembly.Location);
 
+#pragma warning disable RCS0053, SA1117 // Fix formatting of a list
     [Theory]
     [InlineData("var simpleToListOK = await _appDbContext.Users.TagWithCallSite().ToListAsync();", 0, 0, 0, 0)]
     [InlineData("var simpleToListViolation = await _appDbContext.Users.ToListAsync();", 35, 47, 35, 80)]
@@ -105,6 +106,19 @@ public class Kuk0005RequireTagWithCallSiteOnMaterializationAnalyzerTests
     [InlineData("var asEnumerableSyncViolation = _appDbContext.Users.AsEnumerable();", 35, 45, 35, 79)]
     [InlineData("var asAsyncEnumerableOK = _appDbContext.Users.TagWithCallSite().AsAsyncEnumerable();", 0, 0, 0, 0)]
     [InlineData("var asAsyncEnumerableViolation = _appDbContext.Users.AsAsyncEnumerable();", 35, 46, 35, 85)]
+    [InlineData("""
+       await _appDbContext.Users
+          .Where(x => x.Id == 1)
+          .Where(x => x.Name == "Test")
+          .Where(x => x.Age > 10)
+          .ExecuteUpdateAsync(
+              s => s
+                  .SetProperty(x => x.Name, x => "Test")
+                  .SetProperty(x => x.Age, x => 10),
+              CancellationToken.None
+          );
+       """, 35, 19, 44, 5)]
+#pragma warning restore RCS0053,SA1117 // Fix formatting of a list
     public async Task RunAsync(string inputQuery, int startLine, int startColumn, int endLine, int endColumn)
     {
         string testCode = """

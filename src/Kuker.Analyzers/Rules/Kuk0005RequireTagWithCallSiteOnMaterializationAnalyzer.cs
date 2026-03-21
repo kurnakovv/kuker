@@ -35,36 +35,8 @@ namespace Kuker.Analyzers.Rules
             helpLinkUri: "https://github.com/kurnakovv/kuker/wiki/KUK0005"
         );
 
-        private static readonly HashSet<string> s_materializationMethods = new HashSet<string>()
-        {
-            "ToList",
-            "ToDictionary",
-            "ToHashSet",
-
-            "First",
-            "FirstOrDefault",
-            "Single",
-            "SingleOrDefault",
-            "Last",
-            "LastOrDefault",
-
-            "Any",
-            "All",
-
-            "Count",
-            "LongCount",
-
-            "Sum",
-            "Min",
-            "Max",
-            "Average",
-
-            "ExecuteUpdate",
-            "ExecuteDelete",
-
-            "AsEnumerable",
-            "AsAsyncEnumerable",
-        };
+        private static readonly ImmutableHashSet<string> s_executingMethods =
+            CreateExecutingMethods();
 
         /// <summary>
         /// SupportedDiagnostics.
@@ -94,7 +66,7 @@ namespace Kuker.Analyzers.Rules
 
             string methodName = memberAccess.Name.Identifier.Text;
 
-            if (!(s_materializationMethods.Contains(methodName) || s_materializationMethods.Select(x => x + "Async").Contains(methodName)))
+            if (!s_executingMethods.Contains(methodName))
             {
                 return;
             }
@@ -169,20 +141,13 @@ namespace Kuker.Analyzers.Rules
         private static bool ImplementsIQueryable(ITypeSymbol type)
         {
             if (type is INamedTypeSymbol named &&
-                named.ConstructedFrom?.ToDisplayString() == "System.Linq.IQueryable<T>")
+                named.ConstructedFrom.ToDisplayString() == "System.Linq.IQueryable<T>")
             {
                 return true;
             }
 
-            foreach (INamedTypeSymbol iface in type.AllInterfaces)
-            {
-                if (iface.ConstructedFrom?.ToDisplayString() == "System.Linq.IQueryable<T>")
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return type.AllInterfaces
+                .Any(iface => iface.ConstructedFrom.ToDisplayString() == "System.Linq.IQueryable<T>");
         }
 
         private static bool HasTagWithCallSiteInChain(
@@ -192,25 +157,61 @@ namespace Kuker.Analyzers.Rules
         {
             while (expression is InvocationExpressionSyntax invocation)
             {
-                if (invocation.Expression is MemberAccessExpressionSyntax memberAccess)
-                {
-                    if (context.SemanticModel.GetSymbolInfo(invocation).Symbol is IMethodSymbol symbol
-                        && symbol.Name == "TagWithCallSite"
-                        && symbol.ContainingType.ToDisplayString()
-                            .Contains("Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions"))
-                    {
-                        return true;
-                    }
-
-                    expression = memberAccess.Expression;
-                }
-                else
+                if (!(invocation.Expression is MemberAccessExpressionSyntax memberAccess))
                 {
                     break;
                 }
+
+                if (context.SemanticModel.GetSymbolInfo(invocation).Symbol is IMethodSymbol symbol
+                    && symbol.Name == "TagWithCallSite"
+                    && symbol.ContainingType.ToDisplayString()
+                        .Contains("Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions"))
+                {
+                    return true;
+                }
+
+                expression = memberAccess.Expression;
             }
 
             return false;
+        }
+
+        private static ImmutableHashSet<string> CreateExecutingMethods()
+        {
+            HashSet<string> baseMethods = new HashSet<string>()
+            {
+                "ToList",
+                "ToDictionary",
+                "ToHashSet",
+
+                "First",
+                "FirstOrDefault",
+                "Single",
+                "SingleOrDefault",
+                "Last",
+                "LastOrDefault",
+
+                "Any",
+                "All",
+
+                "Count",
+                "LongCount",
+
+                "Sum",
+                "Min",
+                "Max",
+                "Average",
+
+                "ExecuteUpdate",
+                "ExecuteDelete",
+
+                "AsEnumerable",
+                "AsAsyncEnumerable",
+            };
+
+            return baseMethods
+                .Concat(baseMethods.Select(x => x + "Async"))
+                .ToImmutableHashSet();
         }
     }
 }
