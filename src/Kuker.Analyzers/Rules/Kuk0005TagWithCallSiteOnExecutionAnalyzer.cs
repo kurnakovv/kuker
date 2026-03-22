@@ -17,7 +17,7 @@ namespace Kuker.Analyzers.Rules
     /// KUK0005 rule - Require .TagWithCallSite() on EF Core query execution.
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class Kuk0005RequireTagWithCallSiteOnMaterializationAnalyzer : DiagnosticAnalyzer
+    public class Kuk0005TagWithCallSiteOnExecutionAnalyzer : DiagnosticAnalyzer
     {
         private const string DIAGNOSTIC_ID = "KUK0005";
         private static readonly LocalizableString s_title = "Require .TagWithCallSite() on EF Core query execution";

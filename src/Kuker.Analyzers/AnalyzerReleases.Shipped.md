@@ -22,4 +22,4 @@ KUK0003 | KukerAllRules | Warning | Kuk0003MinMaxOnEmptySequenceAnalyzer [Docume
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 KUK0004 | KukerAllRules | Warning | Kuk0004AvoidPrimaryConstructorAnalyzer [Documentation](https://github.com/kurnakovv/kuker/wiki/KUK0004)
-KUK0005 | KukerAllRules | Warning | Kuk0005RequireTagWithCallSiteOnMaterializationAnalyzer [Documentation](https://github.com/kurnakovv/kuker/wiki/KUK0005)
+KUK0005 | KukerAllRules | Warning | Kuk0005TagWithCallSiteOnExecutionAnalyzer [Documentation](https://github.com/kurnakovv/kuker/wiki/KUK0005)

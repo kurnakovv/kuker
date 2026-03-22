@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Testing;
 
 namespace Kuker.Analyzers.Tests.Rules;
 
-public class Kuk0005RequireTagWithCallSiteOnMaterializationAnalyzerTests
+public class Kuk0005TagWithCallSiteOnExecutionAnalyzerTests
 {
     private readonly PortableExecutableReference _portableExecutableReference
         = MetadataReference.CreateFromFile(typeof(Microsoft.EntityFrameworkCore.DbContext).Assembly.Location);
@@ -168,7 +168,7 @@ public class Kuk0005RequireTagWithCallSiteOnMaterializationAnalyzerTests
             }
         """.Replace("{%inputQuery%}", inputQuery, StringComparison.OrdinalIgnoreCase);
 
-        CSharpAnalyzerTest<Kuk0005RequireTagWithCallSiteOnMaterializationAnalyzer, DefaultVerifier> test = new()
+        CSharpAnalyzerTest<Kuk0005TagWithCallSiteOnExecutionAnalyzer, DefaultVerifier> test = new()
         {
             TestCode = testCode,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
@@ -201,7 +201,7 @@ public class Kuk0005RequireTagWithCallSiteOnMaterializationAnalyzerTests
             }
         """;
 
-        CSharpAnalyzerTest<Kuk0005RequireTagWithCallSiteOnMaterializationAnalyzer, DefaultVerifier> test = new()
+        CSharpAnalyzerTest<Kuk0005TagWithCallSiteOnExecutionAnalyzer, DefaultVerifier> test = new()
         {
             TestCode = testCode,
             ExpectedDiagnostics = { new DiagnosticResult("CS1525", DiagnosticSeverity.Error).WithSpan(7, 21, 7, 22) },
@@ -227,7 +227,7 @@ public class Kuk0005RequireTagWithCallSiteOnMaterializationAnalyzerTests
             }
         """;
 
-        CSharpAnalyzerTest<Kuk0005RequireTagWithCallSiteOnMaterializationAnalyzer, DefaultVerifier> test = new()
+        CSharpAnalyzerTest<Kuk0005TagWithCallSiteOnExecutionAnalyzer, DefaultVerifier> test = new()
         {
             TestCode = testCode,
         };
