@@ -205,8 +205,10 @@ namespace Kuker.Analyzers.Rules
 
         private static ImmutableHashSet<string> CreateExecutingMethods()
         {
+            // https://learn.microsoft.com/en-us/dotnet/api/system.data.entity.queryableextensions?view=entity-framework-6.2.0
             HashSet<string> baseMethods = new HashSet<string>()
             {
+                "ToArray",
                 "ToList",
                 "ToDictionary",
                 "ToHashSet",
@@ -234,10 +236,18 @@ namespace Kuker.Analyzers.Rules
 
                 "AsEnumerable",
                 "AsAsyncEnumerable",
+
+                "Load",
+                "ContainsAsync",
+                "ForEachAsync",
             };
 
             return baseMethods
-                .Concat(baseMethods.Select(x => x + "Async"))
+                .Concat(
+                    baseMethods
+                        .Where(x => x != "AsEnumerable" && x != "AsAsyncEnumerable" && x != "ContainsAsync" && x != "ForEachAsync")
+                        .Select(x => x + "Async")
+                )
                 .ToImmutableHashSet();
         }
     }

@@ -108,6 +108,18 @@ public class Kuk0005TagWithCallSiteOnExecutionAnalyzerTests
     [InlineData("var asEnumerableSyncViolation = _appDbContext.Users.AsEnumerable();", 35, 45, 35, 79)]
     [InlineData("var asAsyncEnumerableOK = _appDbContext.Users.TagWithCallSite().AsAsyncEnumerable();", 0, 0, 0, 0)]
     [InlineData("var asAsyncEnumerableViolation = _appDbContext.Users.AsAsyncEnumerable();", 35, 46, 35, 85)]
+    [InlineData("var toArraySyncOK = _appDbContext.Users.TagWithCallSite().ToArray();", 0, 0, 0, 0)]
+    [InlineData("var toArraySyncViolation = _appDbContext.Users.ToArray();", 35, 40, 35, 69)]
+    [InlineData("var toArrayAsyncOK = await _appDbContext.Users.TagWithCallSite().ToArrayAsync();", 0, 0, 0, 0)]
+    [InlineData("var toArrayAsyncViolation = await _appDbContext.Users.ToArrayAsync();", 35, 47, 35, 81)]
+    [InlineData("await _appDbContext.Users.TagWithCallSite().LoadAsync();", 0, 0, 0, 0)]
+    [InlineData("await _appDbContext.Users.LoadAsync();", 35, 19, 35, 50)]
+    [InlineData("_appDbContext.Users.TagWithCallSite().Load();", 0, 0, 0, 0)]
+    [InlineData("_appDbContext.Users.Load();", 35, 13, 35, 39)]
+    [InlineData("var containsAsyncOK = await _appDbContext.Users.TagWithCallSite().ContainsAsync(new User());", 0, 0, 0, 0)]
+    [InlineData("var containsAsyncViolation = await _appDbContext.Users.ContainsAsync(new User());", 35, 48, 35, 93)]
+    [InlineData("await _appDbContext.Users.TagWithCallSite().ForEachAsync(x => { });", 0, 0, 0, 0)]
+    [InlineData("await _appDbContext.Users.ForEachAsync(x => { });", 35, 19, 35, 61)]
     [InlineData("""
        await _appDbContext.Users
           .Where(x => x.Id == 1)
