@@ -31,6 +31,7 @@ public class Kuk0005RequireTagWithCallSiteOnMaterializationAnalyzerTests
     [InlineData("/* Concat query with TagWithCallSite (OK) */ var query = _appDbContext.Users; var callQuery = await query.TagWithCallSite().ToListAsync();", 0, 0, 0, 0)]
     [InlineData("var queryMethodViolation = await GetUserQuery().ToListAsync();", 35, 46, 35, 74)]
     [InlineData("var queryMethodOK = await GetUserQuery().TagWithCallSite().ToListAsync();", 0, 0, 0, 0)]
+    [InlineData("var tagWithCallSiteAfterExecuteViolation = (await _appDbContext.Users.ToListAsync()).AsQueryable().TagWithCallSite();", 35, 63, 35, 96)]
     [InlineData("var toListNotEFQueryable = new List<User>().AsQueryable().ToList();", 0, 0, 0, 0)]
     [InlineData("var toListNotEF = new List<User>().ToList();", 0, 0, 0, 0)]
     [InlineData("var simpleToListSyncOK = _appDbContext.Users.TagWithCallSite().ToList();", 0, 0, 0, 0)]
