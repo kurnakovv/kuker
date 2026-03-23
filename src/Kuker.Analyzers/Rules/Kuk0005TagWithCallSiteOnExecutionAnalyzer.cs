@@ -205,7 +205,7 @@ namespace Kuker.Analyzers.Rules
 
         private static ImmutableHashSet<string> CreateExecutingMethods()
         {
-            // https://learn.microsoft.com/en-us/dotnet/api/system.data.entity.queryableextensions?view=entity-framework-6.2.0
+            // https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.entityframeworkqueryableextensions
             HashSet<string> baseMethods = new HashSet<string>()
             {
                 "ToArray",
