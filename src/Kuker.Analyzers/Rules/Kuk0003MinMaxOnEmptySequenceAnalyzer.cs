@@ -406,7 +406,7 @@ namespace Kuker.Analyzers.Rules
                 foreach (SubpatternSyntax prop in recursive.PropertyPatternClause.Subpatterns)
                 {
                     if (prop.NameColon?.Name is IdentifierNameSyntax id &&
-                        id.Identifier.Text == "Count" &&
+                        IsSizeProperty(id.Identifier.Text) &&
                         prop.Pattern is RelationalPatternSyntax rel &&
                         rel.OperatorToken.IsKind(SyntaxKind.GreaterThanToken))
                     {
@@ -467,7 +467,7 @@ namespace Kuker.Analyzers.Rules
         )
         {
             if (expr is MemberAccessExpressionSyntax ma &&
-                ma.Name.Identifier.Text == "Count" &&
+                IsSizeProperty(ma.Name.Identifier.Text) &&
                 AreSameSymbol(ma.Expression, collection, model))
             {
                 return true;
@@ -511,6 +511,11 @@ namespace Kuker.Analyzers.Rules
             }
 
             return SymbolEqualityComparer.Default.Equals(leftSymbol, rightSymbol);
+        }
+
+        private static bool IsSizeProperty(string name)
+        {
+            return name == "Count" || name == "Length";
         }
     }
 }

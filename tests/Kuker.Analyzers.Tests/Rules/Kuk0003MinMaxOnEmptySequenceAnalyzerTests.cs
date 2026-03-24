@@ -1244,18 +1244,6 @@ public class Kuk0003MinMaxOnEmptySequenceAnalyzerTests
        """, 18, 14, 18, 29)]
 
     [InlineData("""
-       // Ternary operator check for .Max();
-
-       var result = myNumbers.Any() ? myNumbers.Max() : 0;
-       """, 0, 0, 0, 0)]
-
-    [InlineData("""
-       // Ternary operator check for .Max(); violation
-
-       var result = myNumbers.Any() ? 0 : myNumbers.Max();
-       """, 13, 36, 13, 51)]
-
-    [InlineData("""
        // myNumbers is { Count: > 0 } check for .Max();
 
        if (myNumbers is { Count: > 0 })
@@ -1276,6 +1264,192 @@ public class Kuk0003MinMaxOnEmptySequenceAnalyzerTests
        var result = myNumbers.Max();
 
        """, 18, 14, 18, 29)]
+
+    [InlineData("""
+       // Count check for another collection -> violation
+
+       var other = new List<int>();
+
+       if (other.Count > 0)
+       {
+           var result = myNumbers.Max();
+       }
+
+       """, 17, 18, 17, 33)]
+
+    [InlineData("""
+       // Count via variable
+
+       var count = myNumbers.Count;
+
+       if (count > 0)
+       {
+           var result = myNumbers.Max();
+       }
+
+       """, 0, 0, 0, 0)]
+
+    [InlineData("""
+       // Length > 0 check for .Max();
+
+       var myNumbersArr = Array.Empty<int>();
+
+       if (myNumbersArr.Length > 0)
+       {
+           var result = myNumbersArr.Max();
+       }
+       """, 0, 0, 0, 0)]
+
+    [InlineData("""
+       // Length < 0 check for .Max(); violation
+
+       var myNumbersArr = Array.Empty<int>();
+
+       if (myNumbersArr.Length < 0)
+       {
+           var result = myNumbersArr.Max();
+       }
+       """, 17, 18, 17, 36)]
+
+    [InlineData("""
+       // Length != 0 check for .Max();
+
+       var myNumbersArr = Array.Empty<int>();
+
+       if (myNumbersArr.Length != 0)
+       {
+           var result = myNumbersArr.Max();
+       }
+       """, 0, 0, 0, 0)]
+
+    [InlineData("""
+       // Length == 0 check for .Max(); violation
+
+       var myNumbersArr = Array.Empty<int>();
+
+       if (myNumbersArr.Length == 0)
+       {
+           var result = myNumbersArr.Max();
+       }
+       """, 17, 18, 17, 36)]
+
+    [InlineData("""
+       // Length == 0 check for .Max(); (guard clause)
+
+       var myNumbersArr = Array.Empty<int>();
+
+       if (myNumbersArr.Length == 0)
+       {
+           return;
+       }
+
+       var result = myNumbersArr.Max();
+       """, 0, 0, 0, 0)]
+
+    [InlineData("""
+       // Length != 0 check for .Max(); (guard clause) violation
+
+       var myNumbersArr = Array.Empty<int>();
+
+       if (myNumbersArr.Length != 0)
+       {
+           return;
+       }
+
+       var result = myNumbersArr.Max();
+       """, 20, 14, 20, 32)]
+
+    [InlineData("""
+       // Length <= 0 check for .Max(); (guard clause)
+
+       var myNumbersArr = Array.Empty<int>();
+
+       if (myNumbersArr.Length <= 0)
+       {
+           return;
+       }
+
+       var result = myNumbersArr.Max();
+       """, 0, 0, 0, 0)]
+
+    [InlineData("""
+       // Length >= 0 check for .Max(); (guard clause) violation
+
+       var myNumbersArr = Array.Empty<int>();
+
+       if (myNumbersArr.Length >= 0)
+       {
+           return;
+       }
+
+       var result = myNumbersArr.Max();
+       """, 20, 14, 20, 32)]
+
+    [InlineData("""
+       // myNumbersArr is { Length: > 0 } check for .Max();
+
+       var myNumbersArr = Array.Empty<int>();
+
+       if (myNumbersArr is { Length: > 0 })
+       {
+           var result = myNumbersArr.Max();
+       }
+
+       """, 0, 0, 0, 0)]
+
+    [InlineData("""
+       // myNumbersArr is { Length: > 0 } check for .Max(); violation
+
+       var myNumbersArr = Array.Empty<int>();
+
+       if (myNumbersArr is { Length: > 0 })
+       {
+           return;
+       }
+
+       var result = myNumbersArr.Max();
+
+       """, 20, 14, 20, 32)]
+
+    [InlineData("""
+       // Length check for another collection -> violation
+
+       var myNumbersArr = Array.Empty<int>();
+
+       var other = new List<int>();
+
+       if (other.Count > 0)
+       {
+           var result = myNumbersArr.Max();
+       }
+
+       """, 19, 18, 19, 36)]
+
+    [InlineData("""
+       // Length via variable
+
+       var myNumbersArr = Array.Empty<int>();
+
+       var length = myNumbersArr.Length;
+
+       if (length > 0)
+       {
+           var result = myNumbersArr.Max();
+       }
+
+       """, 0, 0, 0, 0)]
+
+    [InlineData("""
+       // Ternary operator check for .Max();
+
+       var result = myNumbers.Any() ? myNumbers.Max() : 0;
+       """, 0, 0, 0, 0)]
+
+    [InlineData("""
+       // Ternary operator check for .Max(); violation
+
+       var result = myNumbers.Any() ? 0 : myNumbers.Max();
+       """, 13, 36, 13, 51)]
 
     [InlineData("""
        // Check for another collection -> violation
@@ -1385,30 +1559,6 @@ public class Kuk0003MinMaxOnEmptySequenceAnalyzerTests
            {
                var result = myNumbers.Max();
            }
-       }
-
-       """, 0, 0, 0, 0)]
-
-    [InlineData("""
-       // Count check for another collection -> violation
-
-       var other = new List<int>();
-
-       if (other.Count > 0)
-       {
-           var result = myNumbers.Max();
-       }
-
-       """, 17, 18, 17, 33)]
-
-    [InlineData("""
-       // Count via variable
-
-       var count = myNumbers.Count;
-
-       if (count > 0)
-       {
-           var result = myNumbers.Max();
        }
 
        """, 0, 0, 0, 0)]
