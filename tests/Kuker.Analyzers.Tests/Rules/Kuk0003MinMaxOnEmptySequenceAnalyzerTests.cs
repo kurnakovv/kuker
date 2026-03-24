@@ -1562,6 +1562,112 @@ public class Kuk0003MinMaxOnEmptySequenceAnalyzerTests
        }
 
        """, 0, 0, 0, 0)]
+
+    [InlineData("""
+       // Max and plus operation
+
+       var users = new List<User>();
+
+       var result = users.Count != 0 ? users.Max(x => x.Age) + 1 : 0;
+
+       """, 0, 0, 0, 0)]
+
+    [InlineData("""
+       // Max and plus operation violation
+
+       var users = new List<User>();
+
+       var result = users.Count == 0 ? users.Max(x => x.Age) + 1 : 0;
+
+       """, 15, 43, 15, 53)]
+
+    [InlineData("""
+       // Max and cast
+
+       var users = new List<User>();
+
+       var result = users.Count != 0 ? (ushort)users.Max(x => x.Age) : 0;
+
+       """, 0, 0, 0, 0)]
+
+    [InlineData("""
+       // Max and cast violation
+
+       var users = new List<User>();
+
+       var result = users.Count == 0 ? (ushort)users.Max(x => x.Age) : 0;
+
+       """, 15, 51, 15, 61)]
+
+    [InlineData("""
+       // Max and cast and plus operation
+
+       var users = new List<User>();
+
+       var result = users.Count != 0 ? (ushort)(users.Max(x => x.Age) + 1) : 0;
+
+       """, 0, 0, 0, 0)]
+
+    [InlineData("""
+       // Max and cast and plus operation violation
+
+       var users = new List<User>();
+
+       var result = users.Count == 0 ? (ushort)(users.Max(x => x.Age) + 1) : 0;
+
+       """, 15, 52, 15, 62)]
+
+    [InlineData("""
+       // Max and cast and plus operation (inside if)
+
+       var users = new List<User>();
+
+       if (users.Count != 0)
+       {
+           var result = (ushort)(users.Max(x => x.Age) + 1);
+       }
+
+       """, 0, 0, 0, 0)]
+
+    [InlineData("""
+       // Max and cast and plus operation (inside if) violation
+
+       var users = new List<User>();
+
+       if (users.Count == 0)
+       {
+           var result = (ushort)(users.Max(x => x.Age) + 1);
+       }
+
+       """, 17, 37, 17, 47)]
+
+    [InlineData("""
+       // Max and cast and plus operation (guard clause)
+
+       var users = new List<User>();
+
+       if (users.Count == 0)
+       {
+           return;
+       }
+
+       var result = (ushort)(users.Max(x => x.Age) + 1);
+
+       """, 0, 0, 0, 0)]
+
+    [InlineData("""
+       // Max and cast and plus operation (guard clause) violation
+
+       var users = new List<User>();
+
+       if (users.Count != 0)
+       {
+           return;
+       }
+
+       var result = (ushort)(users.Max(x => x.Age) + 1);
+
+       """, 20, 33, 20, 43)]
 #pragma warning restore RCS0053, SA1117 // Fix formatting of a list
     public async Task TestForEmptyCheckAsync(string input, int startLine, int startColumn, int endLine, int endColumn)
     {
@@ -1578,6 +1684,11 @@ public class Kuk0003MinMaxOnEmptySequenceAnalyzerTests
 
                     {%inputQuery%}
                 }
+            }
+
+            public class User
+            {
+                public int Age { get; set; }
             }
         """.Replace("{%inputQuery%}", input, StringComparison.OrdinalIgnoreCase);
 

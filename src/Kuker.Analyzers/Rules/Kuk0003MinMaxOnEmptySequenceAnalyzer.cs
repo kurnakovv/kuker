@@ -334,7 +334,10 @@ namespace Kuker.Analyzers.Rules
                 }
             }
 
-            if (invocation.Parent is ConditionalExpressionSyntax ternary)
+            ConditionalExpressionSyntax ternary =
+                invocation.Ancestors().OfType<ConditionalExpressionSyntax>().FirstOrDefault();
+
+            if (ternary != null)
             {
                 if (IsPositiveCheck(ternary.Condition, collectionExpression, semanticModel))
                 {
