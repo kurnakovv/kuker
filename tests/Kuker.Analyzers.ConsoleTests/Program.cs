@@ -4,6 +4,20 @@
 
 Console.WriteLine("Hello, World!");
 
+List<int> list = [];
+
+////if (list is { Count: > 0 })
+////{
+////    return;
+////}
+
+if (!list.Any())
+{
+    return;
+}
+
+int a = list.Max();
+
 // int a = 12;
 // int b = 13;
 

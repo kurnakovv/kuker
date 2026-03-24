@@ -1068,4 +1068,382 @@ public class Kuk0003MinMaxOnEmptySequenceAnalyzerTests
             TestCode = testCode,
         }.RunAsync();
     }
+
+#pragma warning disable RCS0053, SA1117 // Fix formatting of a list
+    [Theory]
+    [InlineData("""
+       // Any check for .Max();
+
+       if (myNumbers.Any())
+       {
+           var result = myNumbers.Max();
+       }
+       
+       """, 0, 0, 0, 0)]
+
+    [InlineData("""
+       // Any check for .Max(x => x);
+
+       if (myNumbers.Any())
+       {
+           var result = myNumbers.Max(x => x);
+       }
+       
+       """, 0, 0, 0, 0)]
+
+    [InlineData("""
+       // Any check for .Max(x => x); violation
+
+       bool someBool = true;
+
+       if (myNumbers.Any() || someBool)
+       {
+           var result = myNumbers.Max(x => x);
+       }
+       
+       """, 17, 32, 17, 38)]
+
+    [InlineData("""
+       // Any check for .Max(); guard clause (return)
+
+       if (!myNumbers.Any())
+       {
+           return;
+       }
+       
+       var result = myNumbers.Max();
+       
+       """, 0, 0, 0, 0)]
+
+    [InlineData("""
+       // Any check for .Max(x => x); guard clause (return)
+
+       if (!myNumbers.Any())
+       {
+           return;
+       }
+       
+       var result = myNumbers.Max(x => x);
+       
+       """, 0, 0, 0, 0)]
+
+    [InlineData("""
+       // Any check for .Max(x => x); guard clause (return) violation
+
+       if (myNumbers.Any())
+       {
+           return;
+       }
+       
+       var result = myNumbers.Max(x => x);
+       
+       """, 18, 28, 18, 34)]
+
+    [InlineData("""
+       // Any check for .Max(); guard clause (throw) violation
+
+       if (myNumbers.Any())
+       {
+           throw new Exception();
+       }
+       
+       var result = myNumbers.Max();
+       
+       """, 18, 14, 18, 29)]
+
+    [InlineData("""
+       // Any check for .Max(x => x); guard clause (throw)
+
+       if (!myNumbers.Any())
+       {
+           throw new Exception();
+       }
+       
+       var result = myNumbers.Max(x => x);
+       
+       """, 0, 0, 0, 0)]
+
+    [InlineData("""
+       // Count > 0 check for .Max();
+
+       if (myNumbers.Count > 0)
+       {
+           var result = myNumbers.Max();
+       }
+       """, 0, 0, 0, 0)]
+
+    [InlineData("""
+       // Count < 0 check for .Max(); violation
+
+       if (myNumbers.Count < 0)
+       {
+           var result = myNumbers.Max();
+       }
+       """, 15, 18, 15, 33)]
+
+    [InlineData("""
+       // Count != 0 check for .Max();
+
+       if (myNumbers.Count != 0)
+       {
+           var result = myNumbers.Max();
+       }
+       """, 0, 0, 0, 0)]
+
+    [InlineData("""
+       // Count == 0 check for .Max(); violation
+
+       if (myNumbers.Count == 0)
+       {
+           var result = myNumbers.Max();
+       }
+       """, 15, 18, 15, 33)]
+
+    [InlineData("""
+       // Count == 0 check for .Max(); (guard clause)
+
+       if (myNumbers.Count == 0)
+       {
+           return;
+       }
+
+       var result = myNumbers.Max();
+       """, 0, 0, 0, 0)]
+
+    [InlineData("""
+       // Count != 0 check for .Max(); (guard clause) violation
+
+       if (myNumbers.Count != 0)
+       {
+           return;
+       }
+
+       var result = myNumbers.Max();
+       """, 18, 14, 18, 29)]
+
+    [InlineData("""
+       // Count <= 0 check for .Max(); (guard clause)
+
+       if (myNumbers.Count <= 0)
+       {
+           return;
+       }
+
+       var result = myNumbers.Max();
+       """, 0, 0, 0, 0)]
+
+    [InlineData("""
+       // Count >= 0 check for .Max(); (guard clause) violation
+
+       if (myNumbers.Count >= 0)
+       {
+           return;
+       }
+
+       var result = myNumbers.Max();
+       """, 18, 14, 18, 29)]
+
+    [InlineData("""
+       // Ternary operator check for .Max();
+
+       var result = myNumbers.Any() ? myNumbers.Max() : 0;
+       """, 0, 0, 0, 0)]
+
+    [InlineData("""
+       // Ternary operator check for .Max(); violation
+
+       var result = myNumbers.Any() ? 0 : myNumbers.Max();
+       """, 13, 36, 13, 51)]
+
+    [InlineData("""
+       // myNumbers is { Count: > 0 } check for .Max();
+
+       if (myNumbers is { Count: > 0 })
+       {
+           var result = myNumbers.Max();
+       }
+
+       """, 0, 0, 0, 0)]
+
+    [InlineData("""
+       // myNumbers is { Count: > 0 } check for .Max(); violation
+
+       if (myNumbers is { Count: > 0 })
+       {
+           return;
+       }
+
+       var result = myNumbers.Max();
+
+       """, 18, 14, 18, 29)]
+
+    [InlineData("""
+       // Check for another collection -> violation
+
+       var other = new List<int>();
+
+       if (other.Any())
+       {
+           var result = myNumbers.Max();
+       }
+
+       """, 17, 18, 17, 33)]
+
+    [InlineData("""
+       // Check via variable
+
+       var hasItems = myNumbers.Any();
+
+       if (hasItems)
+       {
+           var result = myNumbers.Max();
+       }
+
+       """, 0, 0, 0, 0)]
+
+    [InlineData("""
+       // Any with predicate -> violation
+
+       if (myNumbers.Any(x => x > 0))
+       {
+           var result = myNumbers.Max();
+       }
+
+       """, 15, 18, 15, 33)]
+
+    [InlineData("""
+       // !Any but still using Max inside -> violation
+
+       if (!myNumbers.Any())
+       {
+           var result = myNumbers.Max();
+       }
+
+       """, 15, 18, 15, 33)]
+
+    [InlineData("""
+       // Any check but Max in else
+
+       if (!myNumbers.Any())
+       {
+           return;
+       }
+       else
+       {
+           var result = myNumbers.Max();
+       }
+
+       """, 0, 0, 0, 0)]
+
+    [InlineData("""
+       // Any check but Max in else violation
+
+       if (myNumbers.Any())
+       {
+           return;
+       }
+       else
+       {
+           var result = myNumbers.Max();
+       }
+
+       """, 19, 18, 19, 33)]
+
+    [InlineData("""
+       // Any check not directly guarding -> violation
+
+       if (myNumbers.Any())
+       {
+           Console.WriteLine();
+       }
+
+       var result = myNumbers.Max();
+
+       """, 18, 14, 18, 29)]
+
+    [InlineData("""
+       // Nested if but wrong level -> violation
+
+       if (true)
+       {
+           if (myNumbers.Any())
+           {
+               Console.WriteLine();
+           }
+
+           var result = myNumbers.Max();
+       }
+
+       """, 20, 18, 20, 33)]
+
+    [InlineData("""
+       // Nested correct guard -> OK
+
+       if (true)
+       {
+           if (myNumbers.Any())
+           {
+               var result = myNumbers.Max();
+           }
+       }
+
+       """, 0, 0, 0, 0)]
+
+    [InlineData("""
+       // Count check for another collection -> violation
+
+       var other = new List<int>();
+
+       if (other.Count > 0)
+       {
+           var result = myNumbers.Max();
+       }
+
+       """, 17, 18, 17, 33)]
+
+    [InlineData("""
+       // Count via variable
+
+       var count = myNumbers.Count;
+
+       if (count > 0)
+       {
+           var result = myNumbers.Max();
+       }
+
+       """, 0, 0, 0, 0)]
+#pragma warning restore RCS0053, SA1117 // Fix formatting of a list
+    public async Task TestForEmptyCheckAsync(string input, int startLine, int startColumn, int endLine, int endColumn)
+    {
+        string testCode = """
+            using System.Collections.Generic;
+            using System.Linq;
+            using System;
+
+            public class TestClass
+            {
+                public void M1()
+                {
+                    var myNumbers = new List<int>();
+
+                    {%inputQuery%}
+                }
+            }
+        """.Replace("{%inputQuery%}", input, StringComparison.OrdinalIgnoreCase);
+
+        CSharpAnalyzerTest<Kuk0003MinMaxOnEmptySequenceAnalyzer, DefaultVerifier> test = new()
+        {
+            TestCode = testCode,
+        };
+
+        if (!(startLine == 0 && startColumn == 0 && endLine == 0 && endColumn == 0))
+        {
+            DiagnosticResult expected = new DiagnosticResult("KUK0003", DiagnosticSeverity.Warning)
+                .WithSpan(startLine, startColumn, endLine, endColumn);
+
+            test.ExpectedDiagnostics.Add(expected);
+        }
+
+        await test.RunAsync();
+    }
 }
