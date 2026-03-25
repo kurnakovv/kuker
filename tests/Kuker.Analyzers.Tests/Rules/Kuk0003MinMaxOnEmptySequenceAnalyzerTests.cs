@@ -1668,6 +1668,56 @@ public class Kuk0003MinMaxOnEmptySequenceAnalyzerTests
        var result = (ushort)(users.Max(x => x.Age) + 1);
 
        """, 20, 33, 20, 43)]
+
+    [InlineData("""
+       // Any and Max in if
+
+       if (myNumbers.Any() && myNumbers.Max() > 10)
+       {
+           Console.WriteLine("Test");
+       }
+
+       """, 0, 0, 0, 0)]
+
+    [InlineData("""
+       // Any and Max in if violation
+
+       if (!myNumbers.Any() && myNumbers.Max() > 10)
+       {
+           Console.WriteLine("Test");
+       }
+
+       """, 13, 25, 13, 40)]
+
+    [InlineData("""
+       // Any or Max in if
+
+       if (myNumbers.Any() || myNumbers.Max() > 10)
+       {
+           Console.WriteLine("Test");
+       }
+
+       """, 13, 24, 13, 39)]
+
+    [InlineData("""
+       // Count and Max in if
+
+       if (myNumbers.Count != 0 && myNumbers.Max() > 10)
+       {
+           Console.WriteLine("Test");
+       }
+
+       """, 0, 0, 0, 0)]
+
+    [InlineData("""
+       // Count and Max in if violation
+
+       if (myNumbers.Count == 0 && myNumbers.Max() > 10)
+       {
+           Console.WriteLine("Test");
+       }
+
+       """, 13, 29, 13, 44)]
 #pragma warning restore RCS0053, SA1117 // Fix formatting of a list
     public async Task TestForEmptyCheckAsync(string input, int startLine, int startColumn, int endLine, int endColumn)
     {

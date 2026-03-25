@@ -376,6 +376,29 @@ namespace Kuker.Analyzers.Rules
                 }
             }
 
+            BinaryExpressionSyntax andExpression =
+                invocation.Ancestors().OfType<BinaryExpressionSyntax>()
+                    .FirstOrDefault(b => b.IsKind(SyntaxKind.LogicalAndExpression));
+
+            if (andExpression != null)
+            {
+                ExpressionSyntax left = andExpression.Left;
+                ExpressionSyntax right = andExpression.Right;
+
+                if (right.Span.Contains(invocation.Span))
+                {
+                    if (IsPositiveCheck(left, collectionExpression, semanticModel))
+                    {
+                        return true;
+                    }
+
+                    if (IsNegativeCheck(left, collectionExpression, semanticModel))
+                    {
+                        return false;
+                    }
+                }
+            }
+
             return false;
         }
 
