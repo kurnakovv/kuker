@@ -1718,6 +1718,26 @@ public class Kuk0003MinMaxOnEmptySequenceAnalyzerTests
        }
 
        """, 13, 29, 13, 44)]
+
+    [InlineData("""
+       // MinBy count check
+
+       if (myNumbers.Count != 0)
+       {
+           var result = myNumbers.MinBy(x => x);
+       }
+
+       """, 0, 0, 0, 0)]
+
+    [InlineData("""
+       // MinBy count check (violation)
+
+       if (myNumbers.Count == 0)
+       {
+           var result = myNumbers.MinBy(x => x);
+       }
+
+       """, 15, 18, 15, 41)]
 #pragma warning restore RCS0053, SA1117 // Fix formatting of a list
     public async Task TestForEmptyCheckAsync(string input, int startLine, int startColumn, int endLine, int endColumn)
     {
@@ -1745,6 +1765,7 @@ public class Kuk0003MinMaxOnEmptySequenceAnalyzerTests
         CSharpAnalyzerTest<Kuk0003MinMaxOnEmptySequenceAnalyzer, DefaultVerifier> test = new()
         {
             TestCode = testCode,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         };
 
         if (!(startLine == 0 && startColumn == 0 && endLine == 0 && endColumn == 0))

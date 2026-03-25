@@ -23,8 +23,8 @@ namespace Kuker.Analyzers.Rules
         private static readonly LocalizableString s_messageFormat = "'{0}' on a sequence of non-nullable value types may throw InvalidOperationException if the sequence is empty. {1}.";
         private static readonly LocalizableString s_description =
             "Min/Max (including async equivalents) and MinBy/MaxBy can throw InvalidOperationException when applied to empty sequences of non-nullable value types.\n" +
-            "Min/Max (Async) can be made safe by using a nullable selector, DefaultIfEmpty(), or checking that the sequence is not empty.\n" +
-            "MinBy/MaxBy always require DefaultIfEmpty() or checking that the sequence is not empty, as a nullable selector does not prevent the exception.";
+            "Min/Max (Async) can be made safe by using a nullable selector, DefaultIfEmpty(), or check that the sequence is not empty.\n" +
+            "MinBy/MaxBy always require DefaultIfEmpty() or check that the sequence is not empty, as a nullable selector does not prevent the exception.";
 
         private static readonly DiagnosticDescriptor s_rule = new DiagnosticDescriptor(
             id: DIAGNOSTIC_ID,
@@ -120,12 +120,16 @@ namespace Kuker.Analyzers.Rules
             }
 
             string details = isMinMax
-                ? "Use a nullable selector or DefaultIfEmpty()"
-                : "Use DefaultIfEmpty() to make the operation safe";
+                ? "Use a nullable selector, DefaultIfEmpty(), or check that the sequence is not empty"
+                : "Use DefaultIfEmpty() or check that the sequence is not empty to make the operation safe";
 
             if (isMinMaxBy)
             {
-                context.ReportDiagnostic(Diagnostic.Create(s_rule, invocation.GetLocation(), methodName, details));
+                if (!IsGuardedByNotEmptyCheck(invocation, memberAccess.Expression, semanticModel))
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(s_rule, invocation.GetLocation(), methodName, details));
+                }
+
                 return;
             }
 
