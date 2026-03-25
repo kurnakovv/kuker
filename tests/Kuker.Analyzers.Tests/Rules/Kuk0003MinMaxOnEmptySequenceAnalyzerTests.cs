@@ -1738,6 +1738,42 @@ public class Kuk0003MinMaxOnEmptySequenceAnalyzerTests
        }
 
        """, 15, 18, 15, 41)]
+
+    [InlineData("""
+       // Max guard clause check with condition
+
+       var someCondition = false;
+
+       if (myNumbers.Count == 0)
+       {
+           if (someCondition)
+           {
+               return;
+           }
+
+           return;
+       }
+
+       var result = myNumbers.Max();
+
+       """, 0, 0, 0, 0)]
+
+    [InlineData("""
+       // Max guard clause check with condition violation
+
+       var someCondition = false;
+
+       if (myNumbers.Count == 0)
+       {
+           if (someCondition)
+           {
+               return;
+           }
+       }
+
+       var result = myNumbers.Max();
+
+       """, 23, 14, 23, 29)]
 #pragma warning restore RCS0053, SA1117 // Fix formatting of a list
     public async Task TestForEmptyCheckAsync(string input, int startLine, int startColumn, int endLine, int endColumn)
     {
