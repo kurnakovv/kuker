@@ -325,9 +325,8 @@ namespace Kuker.Analyzers.Rules
                 {
                     ExpressionSyntax condition = statement.Condition;
 
-                    bool isNegative = IsNegativeCheck(condition, collectionExpression, semanticModel);
-
-                    if (isNegative && IsExitStatement(statement.Statement))
+                    if (IsNegativeCheck(condition, collectionExpression, semanticModel) &&
+                        IsExitStatement(statement.Statement))
                     {
                         return true;
                     }
@@ -355,7 +354,6 @@ namespace Kuker.Analyzers.Rules
                 ExpressionSyntax condition = ifStatement.Condition;
 
                 bool isPositive = IsPositiveCheck(condition, collectionExpression, semanticModel);
-                bool isNegative = IsNegativeCheck(condition, collectionExpression, semanticModel);
 
                 if (isPositive && ifStatement.Statement.Span.Contains(invocation.Span))
                 {
@@ -364,7 +362,9 @@ namespace Kuker.Analyzers.Rules
 
                 if (ifStatement.Else != null)
                 {
-                    if (isNegative && ifStatement.Else.Statement.Span.Contains(invocation.Span))
+                    if (IsNegativeCheck(condition, collectionExpression, semanticModel) &&
+                        ifStatement.Else.Statement.Span.Contains(invocation.Span)
+                    )
                     {
                         return true;
                     }
@@ -411,34 +411,34 @@ namespace Kuker.Analyzers.Rules
             if (condition is InvocationExpressionSyntax invocation &&
                 invocation.Expression is MemberAccessExpressionSyntax ma &&
                 ma.Name.Identifier.Text == "Any" &&
-                AreSameSymbol(ma.Expression, collection, model))
+                AreSameSymbol(ma.Expression, collection, model)
+            )
             {
                 return invocation.ArgumentList.Arguments.Count == 0;
             }
 
-            if (condition is BinaryExpressionSyntax binary && IsCountAccess(binary.Left, collection, model) &&
-                    IsZero(binary.Right, model))
+            if (condition is BinaryExpressionSyntax binary &&
+                IsCountAccess(binary.Left, collection, model) &&
+                IsZero(binary.Right, model)
+            )
             {
                 return binary.IsKind(SyntaxKind.GreaterThanExpression) ||
                        binary.IsKind(SyntaxKind.NotEqualsExpression);
             }
 
             if (condition is IsPatternExpressionSyntax pattern &&
-                pattern.Expression != null &&
                 AreSameSymbol(pattern.Expression, collection, model) &&
                 pattern.Pattern is RecursivePatternSyntax recursive &&
-                recursive.PropertyPatternClause != null)
+                recursive.PropertyPatternClause?.Subpatterns
+                    .Any(
+                        prop => prop.NameColon?.Name is IdentifierNameSyntax id &&
+                            IsSizeProperty(id.Identifier.Text) &&
+                            prop.Pattern is RelationalPatternSyntax rel &&
+                            rel.OperatorToken.IsKind(SyntaxKind.GreaterThanToken)
+                    ) == true
+            )
             {
-                foreach (SubpatternSyntax prop in recursive.PropertyPatternClause.Subpatterns)
-                {
-                    if (prop.NameColon?.Name is IdentifierNameSyntax id &&
-                        IsSizeProperty(id.Identifier.Text) &&
-                        prop.Pattern is RelationalPatternSyntax rel &&
-                        rel.OperatorToken.IsKind(SyntaxKind.GreaterThanToken))
-                    {
-                        return true;
-                    }
-                }
+                return true;
             }
 
             if (condition is IdentifierNameSyntax identifier)
@@ -460,13 +460,16 @@ namespace Kuker.Analyzers.Rules
         )
         {
             if (condition is PrefixUnaryExpressionSyntax prefix &&
-                prefix.IsKind(SyntaxKind.LogicalNotExpression))
+                prefix.IsKind(SyntaxKind.LogicalNotExpression)
+            )
             {
                 return IsPositiveCheck(prefix.Operand, collection, model);
             }
 
-            if (condition is BinaryExpressionSyntax binary && IsCountAccess(binary.Left, collection, model) &&
-                    IsZero(binary.Right, model))
+            if (condition is BinaryExpressionSyntax binary &&
+                IsCountAccess(binary.Left, collection, model) &&
+                IsZero(binary.Right, model)
+            )
             {
                 return binary.IsKind(SyntaxKind.EqualsExpression) ||
                        binary.IsKind(SyntaxKind.LessThanOrEqualExpression);
@@ -494,7 +497,8 @@ namespace Kuker.Analyzers.Rules
         {
             if (expr is MemberAccessExpressionSyntax ma &&
                 IsSizeProperty(ma.Name.Identifier.Text) &&
-                AreSameSymbol(ma.Expression, collection, model))
+                AreSameSymbol(ma.Expression, collection, model)
+            )
             {
                 return true;
             }
