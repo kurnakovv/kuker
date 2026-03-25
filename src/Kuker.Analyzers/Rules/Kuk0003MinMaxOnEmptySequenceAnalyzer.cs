@@ -330,7 +330,8 @@ namespace Kuker.Analyzers.Rules
                     ExpressionSyntax condition = statement.Condition;
 
                     if (IsNegativeCheck(condition, collectionExpression, semanticModel) &&
-                        IsExitStatement(statement.Statement))
+                        IsExitStatement(statement.Statement)
+                    )
                     {
                         return true;
                     }
@@ -380,9 +381,10 @@ namespace Kuker.Analyzers.Rules
                 }
             }
 
-            BinaryExpressionSyntax andExpression =
-                invocation.Ancestors().OfType<BinaryExpressionSyntax>()
-                    .FirstOrDefault(b => b.IsKind(SyntaxKind.LogicalAndExpression));
+            BinaryExpressionSyntax andExpression = invocation
+                .Ancestors()
+                .OfType<BinaryExpressionSyntax>()
+                .FirstOrDefault(b => b.IsKind(SyntaxKind.LogicalAndExpression));
 
             if (andExpression != null)
             {
@@ -507,9 +509,9 @@ namespace Kuker.Analyzers.Rules
                 return true;
             }
 
-            if (expr is IdentifierNameSyntax id)
+            if (expr is IdentifierNameSyntax ins)
             {
-                ILocalSymbol symbol = model.GetSymbolInfo(id).Symbol as ILocalSymbol;
+                ILocalSymbol symbol = model.GetSymbolInfo(ins).Symbol as ILocalSymbol;
                 if (symbol?.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() is VariableDeclaratorSyntax vd)
                 {
                     return IsCountAccess(vd.Initializer?.Value, collection, model);
