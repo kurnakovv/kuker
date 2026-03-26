@@ -1774,6 +1774,203 @@ public class Kuk0003MinMaxOnEmptySequenceAnalyzerTests
        var result = myNumbers.Max();
 
        """, 23, 14, 23, 29)]
+
+    [InlineData("""
+       // Max with select
+
+       if (myNumbers.Count == 0)
+       {
+           return;
+       }
+
+       var result = myNumbers.Select(x => x).Max(x => x);
+
+       """, 0, 0, 0, 0)]
+
+    [InlineData("""
+       // Max with select violation
+
+       var result = myNumbers.Select(x => x).Max(x => x);
+
+       """, 13, 43, 13, 49)]
+
+    [InlineData("""
+       // Max with group + select
+
+       if (myNumbers.Count == 0)
+       {
+           return;
+       }
+
+       var result = myNumbers.GroupBy(x => x).Select(x => new { x.Key, Count = x.Count() }).Max(x => x.Count);
+
+       """, 0, 0, 0, 0)]
+
+    [InlineData("""
+       // Max with group + select violation
+
+       var result = myNumbers.GroupBy(x => x).Select(x => new { x.Key, Count = x.Count() }).Max(x => x.Count);
+
+       """, 13, 90, 13, 102)]
+
+    [InlineData("""
+       // Max with where + select (violation)
+
+       if (myNumbers.Count == 0)
+       {
+           return;
+       }
+
+       var result = myNumbers.Where(x => x != 0).Select(x => x).Max(x => x);
+
+       """, 18, 62, 18, 68)]
+
+    [InlineData("""
+       // Max with where (violation)
+
+       var result = myNumbers.Where(x => x != 0).Max(x => x);
+
+       """, 13, 47, 13, 53)]
+
+    [InlineData("""
+       // Max with OfType (violation)
+
+       if (myNumbers.Count == 0)
+       {
+           return;
+       }
+
+       var result = myNumbers.OfType<int>().Max(x => x);
+
+       """, 18, 42, 18, 48)]
+
+    [InlineData("""
+       // Max with Take (violation)
+
+       if (myNumbers.Count == 0)
+       {
+           return;
+       }
+
+       var result = myNumbers.Take(0).Max(x => x);
+
+       """, 18, 36, 18, 42)]
+
+    [InlineData("""
+       // Max with Skip (violation)
+
+       if (myNumbers.Count == 0)
+       {
+           return;
+       }
+
+       var result = myNumbers.Skip(5).Max(x => x);
+
+       """, 18, 36, 18, 42)]
+
+    [InlineData("""
+       // Max with TakeWhile (violation)
+
+       if (myNumbers.Count == 0)
+       {
+           return;
+       }
+
+       var result = myNumbers.TakeWhile(x => x > 0).Max(x => x);
+
+       """, 18, 50, 18, 56)]
+
+    [InlineData("""
+       // Max with SkipWhile (violation)
+
+       if (myNumbers.Count == 0)
+       {
+           return;
+       }
+
+       var result = myNumbers.SkipWhile(x => x > 0).Max(x => x);
+
+       """, 18, 50, 18, 56)]
+
+    [InlineData("""
+       // Max with Where + Take (violation)
+
+       if (myNumbers.Count == 0)
+       {
+           return;
+       }
+
+       var result = myNumbers.Where(x => x > 0).Take(3).Max(x => x);
+
+       """, 18, 54, 18, 60)]
+
+    [InlineData("""
+       // Max with Skip + Select (violation)
+
+       if (myNumbers.Count == 0)
+       {
+           return;
+       }
+
+       var result = myNumbers.Skip(1).Select(x => x).Max(x => x);
+
+       """, 18, 51, 18, 57)]
+
+    [InlineData("""
+       // Max with property
+
+       var user = new User();
+
+       if (user.Roles.Length == 0)
+       {
+           return;
+       }
+
+       var result = user.Roles.Max(x => x.Id);
+
+       """, 0, 0, 0, 0)]
+
+    [InlineData("""
+       // Max with property violation
+
+       var user = new User();
+
+       if (user.Roles.Length != 0)
+       {
+           return;
+       }
+
+       var result = user.Roles.Max(x => x.Id);
+
+       """, 20, 29, 20, 38)]
+
+    [InlineData("""
+       // Max with property and LINQ
+
+       var user = new User();
+
+       if (user.Roles.Length == 0)
+       {
+           return;
+       }
+
+       var result = user.Roles.Select(x => x.Id).Max();
+
+       """, 0, 0, 0, 0)]
+
+    [InlineData("""
+       // Max with property and LINQ violation
+
+       var user = new User();
+
+       if (user.Roles.Length != 0)
+       {
+           return;
+       }
+
+       var result = user.Roles.Select(x => x.Id).Max();
+
+       """, 20, 14, 20, 48)]
 #pragma warning restore RCS0053, SA1117 // Fix formatting of a list
     public async Task TestForEmptyCheckAsync(string input, int startLine, int startColumn, int endLine, int endColumn)
     {
@@ -1795,6 +1992,12 @@ public class Kuk0003MinMaxOnEmptySequenceAnalyzerTests
             public class User
             {
                 public int Age { get; set; }
+                public Role[] Roles { get; set; }
+            }
+
+            public class Role
+            {
+                public int Id { get; set; }
             }
         """.Replace("{%inputQuery%}", input, StringComparison.OrdinalIgnoreCase);
 

@@ -319,6 +319,12 @@ namespace Kuker.Analyzers.Rules
             SemanticModel semanticModel
         )
         {
+            if (collectionExpression is InvocationExpressionSyntax &&
+                !TryGetSafeRoot(collectionExpression, out collectionExpression))
+            {
+                return false;
+            }
+
             StatementSyntax currentStatement = invocation.Ancestors().OfType<StatementSyntax>().FirstOrDefault();
 
             if (currentStatement?.Parent is BlockSyntax block)
@@ -538,6 +544,11 @@ namespace Kuker.Analyzers.Rules
                 return false;
             }
 
+            if (SyntaxFactory.AreEquivalent(left, right))
+            {
+                return true;
+            }
+
             ISymbol leftSymbol = semanticModel.GetSymbolInfo(left).Symbol;
             ISymbol rightSymbol = semanticModel.GetSymbolInfo(right).Symbol;
 
@@ -552,6 +563,38 @@ namespace Kuker.Analyzers.Rules
         private static bool IsSizeProperty(string name)
         {
             return name == "Count" || name == "Length";
+        }
+
+        private static bool TryGetSafeRoot(
+            ExpressionSyntax expression,
+            out ExpressionSyntax root
+        )
+        {
+            root = expression;
+
+            while (expression is InvocationExpressionSyntax invocation &&
+                   invocation.Expression is MemberAccessExpressionSyntax ma)
+            {
+                if (IsFilteringMethod(ma.Name.Identifier.Text))
+                {
+                    return false;
+                }
+
+                expression = ma.Expression;
+                root = expression;
+            }
+
+            return true;
+        }
+
+        private static bool IsFilteringMethod(string method)
+        {
+            return method == "Where" ||
+                   method == "OfType" ||
+                   method == "Take" ||
+                   method == "Skip" ||
+                   method == "TakeWhile" ||
+                   method == "SkipWhile";
         }
     }
 }
