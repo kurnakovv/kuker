@@ -4,14 +4,6 @@
 
 Console.WriteLine("Hello, World!");
 
-List<int> list = [];
-
-////list.GroupBy(x => x).Select(x => new { x.Key, Count = x.Count() }).Max(x => x.Count);
-
-int a = list.GroupBy(x => x).Max(x => x.Count());
-
-Console.WriteLine(list.GroupBy(x => x).Max(x => x));
-
 // int a = 12;
 // int b = 13;
 
