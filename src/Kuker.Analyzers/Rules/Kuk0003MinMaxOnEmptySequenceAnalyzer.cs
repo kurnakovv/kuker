@@ -319,6 +319,11 @@ namespace Kuker.Analyzers.Rules
             SemanticModel semanticModel
         )
         {
+            if (!TryGetSafeRoot(collectionExpression, out collectionExpression))
+            {
+                return false;
+            }
+
             StatementSyntax currentStatement = invocation.Ancestors().OfType<StatementSyntax>().FirstOrDefault();
 
             if (currentStatement?.Parent is BlockSyntax block)
@@ -552,6 +557,49 @@ namespace Kuker.Analyzers.Rules
         private static bool IsSizeProperty(string name)
         {
             return name == "Count" || name == "Length";
+        }
+
+        private static bool TryGetSafeRoot(
+            ExpressionSyntax expression,
+            out ExpressionSyntax root
+        )
+        {
+            root = expression;
+
+            while (true)
+            {
+                if (expression is InvocationExpressionSyntax invocation &&
+                    invocation.Expression is MemberAccessExpressionSyntax ma)
+                {
+                    if (IsFilteringMethod(ma.Name.Identifier.Text))
+                    {
+                        return false;
+                    }
+
+                    expression = ma.Expression;
+                    root = expression;
+                    continue;
+                }
+
+                if (expression is MemberAccessExpressionSyntax memberAccess)
+                {
+                    expression = memberAccess.Expression;
+                    root = expression;
+                    continue;
+                }
+
+                return true;
+            }
+        }
+
+        private static bool IsFilteringMethod(string method)
+        {
+            return method == "Where" ||
+                   method == "OfType" ||
+                   method == "Take" ||
+                   method == "Skip" ||
+                   method == "TakeWhile" ||
+                   method == "SkipWhile";
         }
     }
 }
