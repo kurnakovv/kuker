@@ -1915,6 +1915,62 @@ public class Kuk0003MinMaxOnEmptySequenceAnalyzerTests
        var result = myNumbers.Skip(1).Select(x => x).Max(x => x);
 
        """, 18, 51, 18, 57)]
+
+    [InlineData("""
+       // Max with property
+
+       var user = new User();
+
+       if (user.Roles.Length == 0)
+       {
+           return;
+       }
+
+       var result = user.Roles.Max(x => x.Id);
+
+       """, 0, 0, 0, 0)]
+
+    [InlineData("""
+       // Max with property violation
+
+       var user = new User();
+
+       if (user.Roles.Length != 0)
+       {
+           return;
+       }
+
+       var result = user.Roles.Max(x => x.Id);
+
+       """, 20, 29, 20, 38)]
+
+    [InlineData("""
+       // Max with property and LINQ
+
+       var user = new User();
+
+       if (user.Roles.Length == 0)
+       {
+           return;
+       }
+
+       var result = user.Roles.Select(x => x.Id).Max();
+
+       """, 0, 0, 0, 0)]
+
+    [InlineData("""
+       // Max with property and LINQ violation
+
+       var user = new User();
+
+       if (user.Roles.Length != 0)
+       {
+           return;
+       }
+
+       var result = user.Roles.Select(x => x.Id).Max();
+
+       """, 20, 14, 20, 48)]
 #pragma warning restore RCS0053, SA1117 // Fix formatting of a list
     public async Task TestForEmptyCheckAsync(string input, int startLine, int startColumn, int endLine, int endColumn)
     {
@@ -1936,6 +1992,12 @@ public class Kuk0003MinMaxOnEmptySequenceAnalyzerTests
             public class User
             {
                 public int Age { get; set; }
+                public Role[] Roles { get; set; }
+            }
+
+            public class Role
+            {
+                public int Id { get; set; }
             }
         """.Replace("{%inputQuery%}", input, StringComparison.OrdinalIgnoreCase);
 

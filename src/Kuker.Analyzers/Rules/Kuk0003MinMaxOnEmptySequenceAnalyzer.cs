@@ -319,7 +319,8 @@ namespace Kuker.Analyzers.Rules
             SemanticModel semanticModel
         )
         {
-            if (!TryGetSafeRoot(collectionExpression, out collectionExpression))
+            if (collectionExpression is InvocationExpressionSyntax &&
+                !TryGetSafeRoot(collectionExpression, out collectionExpression))
             {
                 return false;
             }
@@ -543,6 +544,11 @@ namespace Kuker.Analyzers.Rules
                 return false;
             }
 
+            if (SyntaxFactory.AreEquivalent(left, right))
+            {
+                return true;
+            }
+
             ISymbol leftSymbol = semanticModel.GetSymbolInfo(left).Symbol;
             ISymbol rightSymbol = semanticModel.GetSymbolInfo(right).Symbol;
 
@@ -566,30 +572,19 @@ namespace Kuker.Analyzers.Rules
         {
             root = expression;
 
-            while (true)
+            while (expression is InvocationExpressionSyntax invocation &&
+                   invocation.Expression is MemberAccessExpressionSyntax ma)
             {
-                if (expression is InvocationExpressionSyntax invocation &&
-                    invocation.Expression is MemberAccessExpressionSyntax ma)
+                if (IsFilteringMethod(ma.Name.Identifier.Text))
                 {
-                    if (IsFilteringMethod(ma.Name.Identifier.Text))
-                    {
-                        return false;
-                    }
-
-                    expression = ma.Expression;
-                    root = expression;
-                    continue;
+                    return false;
                 }
 
-                if (expression is MemberAccessExpressionSyntax memberAccess)
-                {
-                    expression = memberAccess.Expression;
-                    root = expression;
-                    continue;
-                }
-
-                return true;
+                expression = ma.Expression;
+                root = expression;
             }
+
+            return true;
         }
 
         private static bool IsFilteringMethod(string method)
