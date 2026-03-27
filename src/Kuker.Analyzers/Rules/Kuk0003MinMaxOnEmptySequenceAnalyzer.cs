@@ -23,8 +23,8 @@ namespace Kuker.Analyzers.Rules
         private static readonly LocalizableString s_messageFormat = "'{0}' on a sequence of non-nullable value types may throw InvalidOperationException if the sequence is empty. {1}.";
         private static readonly LocalizableString s_description =
             "Min/Max (including async equivalents) and MinBy/MaxBy can throw InvalidOperationException when applied to empty sequences of non-nullable value types.\n" +
-            "Min/Max (Async) can be made safe by using a nullable selector or DefaultIfEmpty().\n" +
-            "MinBy/MaxBy always require DefaultIfEmpty(), as a nullable selector does not prevent the exception.";
+            "Min/Max (Async) can be made safe by using a nullable selector, DefaultIfEmpty(), or check that the sequence is not empty.\n" +
+            "MinBy/MaxBy always require DefaultIfEmpty() or check that the sequence is not empty, as a nullable selector does not prevent the exception.";
 
         private static readonly DiagnosticDescriptor s_rule = new DiagnosticDescriptor(
             id: DIAGNOSTIC_ID,
@@ -120,12 +120,16 @@ namespace Kuker.Analyzers.Rules
             }
 
             string details = isMinMax
-                ? "Use a nullable selector or DefaultIfEmpty()"
-                : "Use DefaultIfEmpty() to make the operation safe";
+                ? "Use a nullable selector, DefaultIfEmpty(), or check that the sequence is not empty"
+                : "Use DefaultIfEmpty() or check that the sequence is not empty to make the operation safe";
 
             if (isMinMaxBy)
             {
-                context.ReportDiagnostic(Diagnostic.Create(s_rule, invocation.GetLocation(), methodName, details));
+                if (!IsGuardedByNotEmptyCheck(invocation, memberAccess.Expression, semanticModel))
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(s_rule, invocation.GetLocation(), methodName, details));
+                }
+
                 return;
             }
 
@@ -140,10 +144,17 @@ namespace Kuker.Analyzers.Rules
                     return;
                 }
 
-                if (IsNonNullableValueType(elementType))
+                if (!IsNonNullableValueType(elementType))
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(s_rule, invocation.GetLocation(), methodName, details));
+                    return;
                 }
+
+                if (IsGuardedByNotEmptyCheck(invocation, memberAccess.Expression, semanticModel))
+                {
+                    return;
+                }
+
+                context.ReportDiagnostic(Diagnostic.Create(s_rule, invocation.GetLocation(), methodName, details));
 
                 return;
             }
@@ -190,11 +201,18 @@ namespace Kuker.Analyzers.Rules
                 return;
             }
 
-            if (lambdaBodyType.IsValueType)
+            if (!lambdaBodyType.IsValueType)
             {
-                Diagnostic diagnostic = Diagnostic.Create(s_rule, arguments[0].GetLocation(), methodName, details);
-                context.ReportDiagnostic(diagnostic);
+                return;
             }
+
+            if (IsGuardedByNotEmptyCheck(invocation, memberAccess.Expression, semanticModel))
+            {
+                return;
+            }
+
+            Diagnostic diagnostic = Diagnostic.Create(s_rule, arguments[0].GetLocation(), methodName, details);
+            context.ReportDiagnostic(diagnostic);
         }
 
         private static ITypeSymbol GetSequenceElementType(ITypeSymbol type)
@@ -293,6 +311,290 @@ namespace Kuker.Analyzers.Rules
             }
 
             return false;
+        }
+
+        private static bool IsGuardedByNotEmptyCheck(
+            InvocationExpressionSyntax invocation,
+            ExpressionSyntax collectionExpression,
+            SemanticModel semanticModel
+        )
+        {
+            if (collectionExpression is InvocationExpressionSyntax &&
+                !TryGetSafeRoot(collectionExpression, out collectionExpression))
+            {
+                return false;
+            }
+
+            StatementSyntax currentStatement = invocation.Ancestors().OfType<StatementSyntax>().FirstOrDefault();
+
+            if (currentStatement?.Parent is BlockSyntax block)
+            {
+                int index = block.Statements.IndexOf(currentStatement);
+
+                foreach (IfStatementSyntax statement in block.Statements.Take(index).OfType<IfStatementSyntax>())
+                {
+                    ExpressionSyntax condition = statement.Condition;
+
+                    if (IsNegativeCheck(condition, collectionExpression, semanticModel) &&
+                        IsExitStatement(statement.Statement)
+                    )
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            ConditionalExpressionSyntax ternary =
+                invocation.Ancestors().OfType<ConditionalExpressionSyntax>().FirstOrDefault();
+
+            if (ternary != null)
+            {
+                if (IsPositiveCheck(ternary.Condition, collectionExpression, semanticModel))
+                {
+                    return ternary.WhenTrue.Span.Contains(invocation.Span);
+                }
+
+                if (IsNegativeCheck(ternary.Condition, collectionExpression, semanticModel))
+                {
+                    return ternary.WhenFalse.Span.Contains(invocation.Span);
+                }
+            }
+
+            foreach (IfStatementSyntax ifStatement in invocation.Ancestors().OfType<IfStatementSyntax>())
+            {
+                ExpressionSyntax condition = ifStatement.Condition;
+
+                bool isPositive = IsPositiveCheck(condition, collectionExpression, semanticModel);
+
+                if (isPositive && ifStatement.Statement.Span.Contains(invocation.Span))
+                {
+                    return true;
+                }
+
+                if (ifStatement.Else != null)
+                {
+                    if (IsNegativeCheck(condition, collectionExpression, semanticModel) &&
+                        ifStatement.Else.Statement.Span.Contains(invocation.Span)
+                    )
+                    {
+                        return true;
+                    }
+
+                    if (isPositive && ifStatement.Else.Statement.Span.Contains(invocation.Span))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            BinaryExpressionSyntax andExpression = invocation
+                .Ancestors()
+                .OfType<BinaryExpressionSyntax>()
+                .FirstOrDefault(b => b.IsKind(SyntaxKind.LogicalAndExpression));
+
+            if (andExpression != null)
+            {
+                ExpressionSyntax left = andExpression.Left;
+                ExpressionSyntax right = andExpression.Right;
+
+                if (right.Span.Contains(invocation.Span))
+                {
+                    if (IsPositiveCheck(left, collectionExpression, semanticModel))
+                    {
+                        return true;
+                    }
+
+                    if (IsNegativeCheck(left, collectionExpression, semanticModel))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private static bool IsPositiveCheck(
+            ExpressionSyntax condition,
+            ExpressionSyntax collection,
+            SemanticModel model
+        )
+        {
+            if (condition is InvocationExpressionSyntax invocation &&
+                invocation.Expression is MemberAccessExpressionSyntax ma &&
+                ma.Name.Identifier.Text == "Any" &&
+                AreSameSymbol(ma.Expression, collection, model)
+            )
+            {
+                return invocation.ArgumentList.Arguments.Count == 0;
+            }
+
+            if (condition is BinaryExpressionSyntax binary &&
+                IsCountAccess(binary.Left, collection, model) &&
+                IsZero(binary.Right, model)
+            )
+            {
+                return binary.IsKind(SyntaxKind.GreaterThanExpression) ||
+                       binary.IsKind(SyntaxKind.NotEqualsExpression);
+            }
+
+            if (condition is IsPatternExpressionSyntax pattern &&
+                AreSameSymbol(pattern.Expression, collection, model) &&
+                pattern.Pattern is RecursivePatternSyntax recursive &&
+                recursive.PropertyPatternClause?.Subpatterns
+                    .Any(
+                        prop => prop.NameColon?.Name is IdentifierNameSyntax id &&
+                            IsSizeProperty(id.Identifier.Text) &&
+                            prop.Pattern is RelationalPatternSyntax rel &&
+                            rel.OperatorToken.IsKind(SyntaxKind.GreaterThanToken)
+                    ) == true
+            )
+            {
+                return true;
+            }
+
+            if (condition is IdentifierNameSyntax identifier)
+            {
+                ILocalSymbol symbol = model.GetSymbolInfo(identifier).Symbol as ILocalSymbol;
+                if (symbol?.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() is VariableDeclaratorSyntax vd)
+                {
+                    return IsPositiveCheck(vd.Initializer?.Value, collection, model);
+                }
+            }
+
+            return false;
+        }
+
+        private static bool IsNegativeCheck(
+            ExpressionSyntax condition,
+            ExpressionSyntax collection,
+            SemanticModel model
+        )
+        {
+            if (condition is PrefixUnaryExpressionSyntax prefix &&
+                prefix.IsKind(SyntaxKind.LogicalNotExpression)
+            )
+            {
+                return IsPositiveCheck(prefix.Operand, collection, model);
+            }
+
+            if (condition is BinaryExpressionSyntax binary &&
+                IsCountAccess(binary.Left, collection, model) &&
+                IsZero(binary.Right, model)
+            )
+            {
+                return binary.IsKind(SyntaxKind.EqualsExpression) ||
+                       binary.IsKind(SyntaxKind.LessThanOrEqualExpression);
+            }
+
+            return false;
+        }
+
+        private static bool IsExitStatement(StatementSyntax statement)
+        {
+            if (statement is BlockSyntax block)
+            {
+                return block.Statements.Any(IsExitStatement);
+            }
+
+            return statement is ReturnStatementSyntax ||
+                   statement is ThrowStatementSyntax;
+        }
+
+        private static bool IsCountAccess(
+            ExpressionSyntax expr,
+            ExpressionSyntax collection,
+            SemanticModel model
+        )
+        {
+            if (expr is MemberAccessExpressionSyntax ma &&
+                IsSizeProperty(ma.Name.Identifier.Text) &&
+                AreSameSymbol(ma.Expression, collection, model)
+            )
+            {
+                return true;
+            }
+
+            if (expr is IdentifierNameSyntax ins)
+            {
+                ILocalSymbol symbol = model.GetSymbolInfo(ins).Symbol as ILocalSymbol;
+                if (symbol?.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() is VariableDeclaratorSyntax vd)
+                {
+                    return IsCountAccess(vd.Initializer?.Value, collection, model);
+                }
+            }
+
+            return false;
+        }
+
+        private static bool IsZero(ExpressionSyntax expr, SemanticModel model)
+        {
+            Optional<object> constant = model.GetConstantValue(expr);
+            return constant.HasValue && constant.Value is int i && i == 0;
+        }
+
+        private static bool AreSameSymbol(
+            ExpressionSyntax left,
+            ExpressionSyntax right,
+            SemanticModel semanticModel
+        )
+        {
+            if (left == null || right == null)
+            {
+                return false;
+            }
+
+            if (SyntaxFactory.AreEquivalent(left, right))
+            {
+                return true;
+            }
+
+            ISymbol leftSymbol = semanticModel.GetSymbolInfo(left).Symbol;
+            ISymbol rightSymbol = semanticModel.GetSymbolInfo(right).Symbol;
+
+            if (leftSymbol == null || rightSymbol == null)
+            {
+                return false;
+            }
+
+            return SymbolEqualityComparer.Default.Equals(leftSymbol, rightSymbol);
+        }
+
+        private static bool IsSizeProperty(string name)
+        {
+            return name == "Count" || name == "Length";
+        }
+
+        private static bool TryGetSafeRoot(
+            ExpressionSyntax expression,
+            out ExpressionSyntax root
+        )
+        {
+            root = expression;
+
+            while (expression is InvocationExpressionSyntax invocation &&
+                   invocation.Expression is MemberAccessExpressionSyntax ma)
+            {
+                if (IsFilteringMethod(ma.Name.Identifier.Text))
+                {
+                    return false;
+                }
+
+                expression = ma.Expression;
+                root = expression;
+            }
+
+            return true;
+        }
+
+        private static bool IsFilteringMethod(string method)
+        {
+            return method == "Where" ||
+                   method == "OfType" ||
+                   method == "Take" ||
+                   method == "Skip" ||
+                   method == "TakeWhile" ||
+                   method == "SkipWhile";
         }
     }
 }

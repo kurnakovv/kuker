@@ -33,7 +33,7 @@ dotnet add package kurnakovv.kuker
 This command adds the following reference to your project:
 ```xml
 <!-- Use the latest available version -->
-<PackageReference Include="kurnakovv.kuker" Version="0.2.1">
+<PackageReference Include="kurnakovv.kuker" Version="0.3.0">
   <PrivateAssets>all</PrivateAssets>
   <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 </PackageReference>
@@ -82,6 +82,8 @@ dotnet_analyzer_diagnostic.category-KukerAllRules.severity = warning
 dotnet_diagnostic.KUK0001.severity = warning # Duplicate arguments passed to method | https://github.com/kurnakovv/kuker/wiki/KUK0001
 dotnet_diagnostic.KUK0002.severity = warning # File name mismatch | https://github.com/kurnakovv/kuker/wiki/KUK0002
 dotnet_diagnostic.KUK0003.severity = warning # Min/Max (Async) and MinBy/MaxBy may throw InvalidOperationException on empty sequences | https://github.com/kurnakovv/kuker/wiki/KUK0003
+dotnet_diagnostic.KUK0004.severity = warning # Avoid primary constructor | https://github.com/kurnakovv/kuker/wiki/KUK0004
+dotnet_diagnostic.KUK0005.severity = warning # .TagWithCallSite() on EF Core query execution | https://github.com/kurnakovv/kuker/wiki/KUK0005
 
 dotnet_diagnostic.KUK0001.excluded_methods = Foo,Bar # Optional | Ignore selected methods
 
