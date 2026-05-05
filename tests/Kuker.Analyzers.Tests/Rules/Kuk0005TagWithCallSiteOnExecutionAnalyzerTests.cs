@@ -116,6 +116,8 @@ public class Kuk0005TagWithCallSiteOnExecutionAnalyzerTests
     [InlineData("await _appDbContext.Users.LoadAsync();", 13, 19, 13, 50)]
     [InlineData("_appDbContext.Users.TagWithCallSite().Load();", 0, 0, 0, 0)]
     [InlineData("_appDbContext.Users.Load();", 13, 13, 13, 39)]
+    [InlineData("var containsOK = _appDbContext.Users.TagWithCallSite().Contains(new User());", 0, 0, 0, 0)]
+    [InlineData("var containsViolation = _appDbContext.Users.Contains(new User());", 13, 37, 13, 77)]
     [InlineData("var containsAsyncOK = await _appDbContext.Users.TagWithCallSite().ContainsAsync(new User());", 0, 0, 0, 0)]
     [InlineData("var containsAsyncViolation = await _appDbContext.Users.ContainsAsync(new User());", 13, 48, 13, 93)]
     [InlineData("await _appDbContext.Users.TagWithCallSite().ForEachAsync(x => { });", 0, 0, 0, 0)]

@@ -251,14 +251,14 @@ namespace Kuker.Analyzers.Rules
                 "AsAsyncEnumerable",
 
                 "Load",
-                "ContainsAsync",
+                "Contains",
                 "ForEachAsync",
             };
 
             return baseMethods
                 .Concat(
                     baseMethods
-                        .Where(x => x != "AsEnumerable" && x != "AsAsyncEnumerable" && x != "ContainsAsync" && x != "ForEachAsync")
+                        .Where(x => x != "AsEnumerable" && x != "AsAsyncEnumerable" && x != "ForEachAsync")
                         .Select(x => x + "Async")
                 )
                 .ToImmutableHashSet();
