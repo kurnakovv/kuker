@@ -104,6 +104,11 @@ namespace Kuker.Analyzers.Rules
                 return;
             }
 
+            if (IsInsideQueryableExpression(invocation))
+            {
+                return;
+            }
+
             Diagnostic diagnostic = Diagnostic.Create(
                 s_rule,
                 invocation.GetLocation(),
@@ -201,6 +206,14 @@ namespace Kuker.Analyzers.Rules
             }
 
             return false;
+        }
+
+        private static bool IsInsideQueryableExpression(SyntaxNode node)
+        {
+            return node.Ancestors().Any(x =>
+                x is LambdaExpressionSyntax ||
+                x is QueryClauseSyntax
+            );
         }
 
         private static ImmutableHashSet<string> CreateExecutingMethods()
