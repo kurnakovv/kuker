@@ -144,7 +144,7 @@ namespace Kuker.Analyzers.Rules
                 return;
             }
 
-            if (IsInsideQueryableExpression(invocation))
+            if (IsInsideQueryableExpression(invocation, context, compilationSymbolsModel))
             {
                 return;
             }
@@ -184,11 +184,6 @@ namespace Kuker.Analyzers.Rules
 
             ITypeSymbol type = context.SemanticModel.GetTypeInfo(expression).Type;
 
-            if (type == null)
-            {
-                return false;
-            }
-
             if (!ImplementsIQueryable(type, compilationSymbolsModel))
             {
                 return false;
@@ -209,21 +204,18 @@ namespace Kuker.Analyzers.Rules
                 SymbolEqualityComparer.Default.Equals(named.OriginalDefinition, compilationSymbolsModel.DbSetSymbol);
         }
 
-        private static bool ImplementsIQueryable(
-            ITypeSymbol type,
-            CompilationSymbolsModel compilationSymbolsModel
-        )
+        private static bool ImplementsIQueryable(ITypeSymbol type, CompilationSymbolsModel model)
         {
-            if (type is INamedTypeSymbol named &&
-                SymbolEqualityComparer.Default.Equals(named.OriginalDefinition, compilationSymbolsModel.IQueryableSymbol)
-            )
+            if (type == null)
+            {
+                return false;
+            }
+            if (SymbolEqualityComparer.Default.Equals(type.OriginalDefinition, model.IQueryableSymbol))
             {
                 return true;
             }
-
             return type.AllInterfaces.Any(i =>
-                SymbolEqualityComparer.Default.Equals(i.OriginalDefinition, compilationSymbolsModel.IQueryableSymbol)
-            );
+                SymbolEqualityComparer.Default.Equals(i.OriginalDefinition, model.IQueryableSymbol));
         }
 
         private static bool HasTagWithCallSiteInChain(
@@ -253,26 +245,89 @@ namespace Kuker.Analyzers.Rules
             return false;
         }
 
-        private static bool IsInsideQueryableExpression(SyntaxNode node)
+        private static bool IsInsideQueryableExpression(
+            SyntaxNode node,
+            SyntaxNodeAnalysisContext context,
+            CompilationSymbolsModel model
+        )
         {
             return node.Ancestors().Any(x =>
                 x is QueryClauseSyntax ||
-                (x is LambdaExpressionSyntax lambda && IsQueryOperatorLambda(lambda))
+                (x is LambdaExpressionSyntax lambda && IsQueryOperatorLambda(lambda, context, model))
             );
         }
 
-        private static bool IsQueryOperatorLambda(LambdaExpressionSyntax lambda)
+        private static bool IsQueryOperatorLambda(
+            LambdaExpressionSyntax lambda,
+            SyntaxNodeAnalysisContext context,
+            CompilationSymbolsModel model
+        )
         {
             if (!(lambda.Parent is ArgumentSyntax argument) ||
-                !(argument.Parent is BaseArgumentListSyntax) ||
-                !(argument.Parent?.Parent is InvocationExpressionSyntax invocation))
+                !(argument.Parent is BaseArgumentListSyntax argumentList) ||
+                !(argumentList.Parent is InvocationExpressionSyntax invocation))
             {
                 return false;
             }
-            string methodName = invocation.Expression is MemberAccessExpressionSyntax memberAccess
-                ? memberAccess.Name.Identifier.ValueText
-                : null;
-            return methodName != null && s_queryLambdaMethodNames.Contains(methodName);
+            IMethodSymbol methodSymbol = GetInvocationMethodSymbol(invocation, context);
+            if (methodSymbol == null)
+            {
+                return false;
+            }
+            IMethodSymbol originalMethod = methodSymbol.ReducedFrom ?? methodSymbol;
+            if (!s_queryLambdaMethodNames.Contains(originalMethod.Name))
+            {
+                return false;
+            }
+            if (!IsQueryableOperatorMethod(originalMethod, model))
+            {
+                return false;
+            }
+            ExpressionSyntax sourceExpression = GetQuerySourceExpression(invocation, originalMethod);
+            if (sourceExpression == null)
+            {
+                return false;
+            }
+            ITypeSymbol sourceType = context.SemanticModel.GetTypeInfo(sourceExpression).Type;
+            if (!ImplementsIQueryable(sourceType, model))
+            {
+                return false;
+            }
+            return IsFromDbSet(sourceExpression, context, model);
+        }
+
+        private static IMethodSymbol GetInvocationMethodSymbol(
+            InvocationExpressionSyntax invocation,
+            SyntaxNodeAnalysisContext context
+        )
+        {
+            SymbolInfo symbolInfo = context.SemanticModel.GetSymbolInfo(invocation);
+            if (symbolInfo.Symbol is IMethodSymbol methodSymbol)
+            {
+                return methodSymbol;
+            }
+            return symbolInfo.CandidateSymbols.OfType<IMethodSymbol>().FirstOrDefault();
+        }
+        private static bool IsQueryableOperatorMethod(IMethodSymbol methodSymbol, CompilationSymbolsModel model)
+        {
+            INamedTypeSymbol containingType = methodSymbol.ContainingType;
+            return containingType != null &&
+                (
+                    containingType.ToDisplayString() == "System.Linq.Queryable" ||
+                    SymbolEqualityComparer.Default.Equals(containingType, model.EfExtensionsSymbol)
+                );
+        }
+        private static ExpressionSyntax GetQuerySourceExpression(
+            InvocationExpressionSyntax invocation,
+            IMethodSymbol methodSymbol
+        )
+        {
+            if (methodSymbol.IsExtensionMethod &&
+                invocation.Expression is MemberAccessExpressionSyntax memberAccess)
+            {
+                return memberAccess.Expression;
+            }
+            return invocation.ArgumentList.Arguments.FirstOrDefault()?.Expression;
         }
 
         private static ImmutableHashSet<string> CreateAsyncVariants(IEnumerable<string> methods)

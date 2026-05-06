@@ -407,6 +407,26 @@ public class Kuk0005TagWithCallSiteOnExecutionAnalyzerTests
                       .ToArray()
         );
         """, 14, 11, 16, 25)]
+    [InlineData("""
+        var executionInsideSelectOK = new List<long>() { 1, 2, 3 }.Select(id =>
+            _appDbContext.Users.Where(u => u.Id == id).TagWithCallSite().ToList()
+        ).ToList();
+        """, 0, 0, 0, 0)]
+    [InlineData("""
+        var executionInsideSelectViolation = new List<long>() { 1, 2, 3 }.Select(id =>
+            _appDbContext.Users.Where(u => u.Id == id).ToList()
+        ).ToList();
+        """, 14, 5, 14, 56)]
+    [InlineData("""
+        var executionWithSubqueryInsideWhereOK = new List<long>() { 1, 2, 3 }.Where(id =>
+            _appDbContext.Users.TagWithCallSite().Any(u => _appDbContext.Companies.Any(c => c.Id == u.Id) && u.Id == id)
+        ).ToArray();
+        """, 0, 0, 0, 0)]
+    [InlineData("""
+        var executionWithSubqueryInsideWhereViolation = new List<long>() { 1, 2, 3 }.Where(id =>
+            _appDbContext.Users.Any(u => _appDbContext.Companies.Any(c => c.Id == u.Id) && u.Id == id)
+        ).ToArray();
+        """, 14, 5, 14, 95)]
 #pragma warning restore RCS0053,SA1117 // Fix formatting of a list
     public async Task RunAsync(string inputQuery, int startLine, int startColumn, int endLine, int endColumn)
     {
@@ -535,6 +555,55 @@ public class Kuk0005TagWithCallSiteOnExecutionAnalyzerTests
         CSharpAnalyzerTest<Kuk0005TagWithCallSiteOnExecutionAnalyzer, DefaultVerifier> test = new()
         {
             TestCode = testCode,
+        };
+
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestCustomSelectMethodAsync()
+    {
+        string testCode = """
+            using System;
+            using System.Linq;
+            using System.Collections.Generic;
+            using Microsoft.EntityFrameworkCore;
+
+            class TestDbContext : DbContext
+            {
+                public DbSet<User> Users { get; set; }
+            }
+
+            class User { public int Id { get; set; } }
+
+            static class MyExtensions
+            {
+                public static IEnumerable<T> Select<T>(this IEnumerable<T> source, Func<T, T> f) => source;
+            }
+
+            class TestClass
+            {
+                void Test(TestDbContext db, List<int> ids)
+                {
+                    var resultOK = ids.Select(id =>
+                    {
+                        return db.Users.TagWithCallSite().ToList();
+                    });
+
+                    var resultViolation = ids.Select(id =>
+                    {
+                        return db.Users.ToList();
+                    });
+                }
+            }
+        """;
+
+        CSharpAnalyzerTest<Kuk0005TagWithCallSiteOnExecutionAnalyzer, DefaultVerifier> test = new()
+        {
+            TestCode = testCode,
+            ExpectedDiagnostics = { new DiagnosticResult("KUK0005", DiagnosticSeverity.Warning).WithSpan(29, 24, 29, 41) },
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+            TestState = { AdditionalReferences = { _portableExecutableReference }, },
         };
 
         await test.RunAsync();
