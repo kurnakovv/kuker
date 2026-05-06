@@ -264,15 +264,9 @@ namespace Kuker.Analyzers.Rules
             {
                 return false;
             }
-            string methodName;
-            if (invocation.Expression is MemberAccessExpressionSyntax memberAccess)
-            {
-                methodName = memberAccess.Name.Identifier.ValueText;
-            }
-            else
-            {
-                methodName = null;
-            }
+            string methodName = invocation.Expression is MemberAccessExpressionSyntax memberAccess
+                ? memberAccess.Name.Identifier.ValueText
+                : null;
             return methodName != null && s_queryLambdaMethodNames.Contains(methodName);
         }
 
