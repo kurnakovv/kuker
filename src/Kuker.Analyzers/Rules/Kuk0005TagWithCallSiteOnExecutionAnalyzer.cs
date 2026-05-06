@@ -200,6 +200,11 @@ namespace Kuker.Analyzers.Rules
                 return true;
             }
 
+            if (IsFromDbSet(expression, context, compilationSymbolsModel))
+            {
+                return true;
+            }
+
             return type is INamedTypeSymbol named &&
                 SymbolEqualityComparer.Default.Equals(named.OriginalDefinition, compilationSymbolsModel.DbSetSymbol);
         }
@@ -280,6 +285,26 @@ namespace Kuker.Analyzers.Rules
             }
 
             return builder.ToImmutable();
+        }
+
+        private static bool IsFromDbSet(ExpressionSyntax expression, SyntaxNodeAnalysisContext context, CompilationSymbolsModel model)
+        {
+            while (expression is InvocationExpressionSyntax invocation)
+            {
+                if (invocation.Expression is MemberAccessExpressionSyntax member)
+                {
+                    expression = member.Expression;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            ITypeSymbol type = context.SemanticModel.GetTypeInfo(expression).Type;
+
+            return type is INamedTypeSymbol named &&
+                   SymbolEqualityComparer.Default.Equals(named.OriginalDefinition, model.DbSetSymbol);
         }
 
         /// <summary>

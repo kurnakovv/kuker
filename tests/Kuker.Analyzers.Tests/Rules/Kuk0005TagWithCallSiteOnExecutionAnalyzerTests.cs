@@ -391,6 +391,22 @@ public class Kuk0005TagWithCallSiteOnExecutionAnalyzerTests
             c => _appDbContext.Users.Count(u => u.Id == c.Id) > 0
         );
         """, 13, 54, 15, 2)]
+    [InlineData("var customFuncOK = MyFunc(() => _appDbContext.Users.TagWithCallSite().ToArray());", 0, 0, 0, 0)]
+    [InlineData("var customFuncViolation = MyFunc(() => _appDbContext.Users.ToArray());", 13, 52, 13, 81)]
+    [InlineData("""
+        var customFuncWithSubqueriesOK = MyFuncCompany(
+            () => _appDbContext.Companies.TagWithCallSite()
+                      .Where(c => _appDbContext.Users.Any(u => u.CompanyId == c.Id && u.Name == "John"))
+                      .ToArray()
+        );
+        """, 0, 0, 0, 0)]
+    [InlineData("""
+        var customFuncWithSubqueriesViolation = MyFuncCompany(
+            () => _appDbContext.Companies
+                      .Where(c => _appDbContext.Users.Any(u => u.CompanyId == c.Id && u.Name == "John"))
+                      .ToArray()
+        );
+        """, 14, 11, 16, 25)]
 #pragma warning restore RCS0053,SA1117 // Fix formatting of a list
     public async Task RunAsync(string inputQuery, int startLine, int startColumn, int endLine, int endColumn)
     {
@@ -420,6 +436,16 @@ public class Kuk0005TagWithCallSiteOnExecutionAnalyzerTests
                 private IQueryable<User> GetUserQuery()
                 {
                     return _appDbContext.Users.TagWithCallSite();
+                }
+
+                private User[] MyFunc(Func<User[]> queryFunc)
+                {
+                    return queryFunc();
+                }
+
+                private Company[] MyFuncCompany(Func<Company[]> queryFunc)
+                {
+                    return queryFunc();
                 }
             }
 
