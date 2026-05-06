@@ -37,6 +37,46 @@ namespace Kuker.Analyzers.Rules
             helpLinkUri: "https://github.com/kurnakovv/kuker/wiki/KUK0005"
         );
 
+        private static readonly ImmutableHashSet<string> s_queryOperatorMethods =
+            ImmutableHashSet.Create(
+                "Where",
+                "Select",
+                "SelectMany",
+                "OrderBy",
+                "OrderByDescending",
+                "ThenBy",
+                "ThenByDescending",
+                "GroupBy",
+                "Join",
+                "GroupJoin",
+                "SkipWhile",
+                "TakeWhile"
+            );
+
+        private static readonly ImmutableHashSet<string> s_queryPredicateMethods =
+            ImmutableHashSet.Create(
+                "Any",
+                "All",
+                "Count",
+                "LongCount",
+                "First",
+                "FirstOrDefault",
+                "Single",
+                "SingleOrDefault",
+                "Last",
+                "LastOrDefault",
+                "Contains",
+                "Sum",
+                "Min",
+                "Max",
+                "Average"
+            );
+
+        private static readonly ImmutableHashSet<string> s_queryLambdaMethodNames =
+            s_queryOperatorMethods
+                .Union(s_queryPredicateMethods)
+                .Union(CreateAsyncVariants(s_queryPredicateMethods));
+
         private static readonly ImmutableHashSet<string> s_executingMethods = CreateExecutingMethods();
 
         /// <summary>
@@ -211,38 +251,54 @@ namespace Kuker.Analyzers.Rules
         private static bool IsInsideQueryableExpression(SyntaxNode node)
         {
             return node.Ancestors().Any(x =>
-                x is LambdaExpressionSyntax ||
-                x is QueryClauseSyntax
+                x is QueryClauseSyntax ||
+                (x is LambdaExpressionSyntax lambda && IsQueryOperatorLambda(lambda))
             );
         }
 
+        private static bool IsQueryOperatorLambda(LambdaExpressionSyntax lambda)
+        {
+            if (!(lambda.Parent is ArgumentSyntax argument) ||
+                !(argument.Parent is BaseArgumentListSyntax) ||
+                !(argument.Parent?.Parent is InvocationExpressionSyntax invocation))
+            {
+                return false;
+            }
+            string methodName;
+            if (invocation.Expression is MemberAccessExpressionSyntax memberAccess)
+            {
+                methodName = memberAccess.Name.Identifier.ValueText;
+            }
+            else
+            {
+                methodName = null;
+            }
+            return methodName != null && s_queryLambdaMethodNames.Contains(methodName);
+        }
+
+        private static ImmutableHashSet<string> CreateAsyncVariants(IEnumerable<string> methods)
+        {
+            ImmutableHashSet<string>.Builder builder = ImmutableHashSet.CreateBuilder<string>();
+
+            foreach (string method in methods)
+            {
+                builder.Add(method + "Async");
+            }
+
+            return builder.ToImmutable();
+        }
+
+        /// <summary>
+        /// https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.entityframeworkqueryableextensions methods.
+        /// </summary>
         private static ImmutableHashSet<string> CreateExecutingMethods()
         {
-            // https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.entityframeworkqueryableextensions
-            HashSet<string> baseMethods = new HashSet<string>()
+            HashSet<string> baseMethods = new HashSet<string>
             {
                 "ToArray",
                 "ToList",
                 "ToDictionary",
                 "ToHashSet",
-
-                "First",
-                "FirstOrDefault",
-                "Single",
-                "SingleOrDefault",
-                "Last",
-                "LastOrDefault",
-
-                "Any",
-                "All",
-
-                "Count",
-                "LongCount",
-
-                "Sum",
-                "Min",
-                "Max",
-                "Average",
 
                 "ExecuteUpdate",
                 "ExecuteDelete",
@@ -251,17 +307,23 @@ namespace Kuker.Analyzers.Rules
                 "AsAsyncEnumerable",
 
                 "Load",
-                "Contains",
                 "ForEachAsync",
             };
 
-            return baseMethods
-                .Concat(
-                    baseMethods
-                        .Where(x => x != "AsEnumerable" && x != "AsAsyncEnumerable" && x != "ForEachAsync")
-                        .Select(x => x + "Async")
-                )
-                .ToImmutableHashSet();
+            baseMethods.UnionWith(s_queryPredicateMethods);
+            baseMethods.UnionWith(CreateAsyncVariants(s_queryPredicateMethods));
+
+            foreach (string method in baseMethods.ToArray())
+            {
+                if (method != "AsEnumerable" &&
+                    method != "AsAsyncEnumerable" &&
+                    !method.EndsWith("Async"))
+                {
+                    baseMethods.Add(method + "Async");
+                }
+            }
+
+            return baseMethods.ToImmutableHashSet();
         }
     }
 

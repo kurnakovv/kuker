@@ -122,6 +122,8 @@ public class Kuk0005TagWithCallSiteOnExecutionAnalyzerTests
     [InlineData("var containsAsyncViolation = await _appDbContext.Users.ContainsAsync(new User());", 13, 48, 13, 93)]
     [InlineData("await _appDbContext.Users.TagWithCallSite().ForEachAsync(x => { });", 0, 0, 0, 0)]
     [InlineData("await _appDbContext.Users.ForEachAsync(x => { });", 13, 19, 13, 61)]
+    [InlineData("var taskRunLambda = await Task.Run(() => _appDbContext.Users.TagWithCallSite().ToList());", 0, 0, 0, 0)]
+    [InlineData("var taskRunLambdaViolation = await Task.Run(() => _appDbContext.Users.ToList());", 13, 63, 13, 91)]
     [InlineData("""
        await _appDbContext.Users
           .Where(x => x.Id == 1)
@@ -249,6 +251,146 @@ public class Kuk0005TagWithCallSiteOnExecutionAnalyzerTests
            .Where(u => _appDbContext.Companies.Any(c => c.Id == u.CompanyId))
            .ExecuteUpdateAsync(s => s.SetProperty(x => x.Age, 30));
        """, 0, 0, 0, 0)]
+    [InlineData("""
+        var singleOrDefaultWithLambdaOK = await _appDbContext.Companies.TagWithCallSite().SingleOrDefaultAsync(
+            c => _appDbContext.Users.Any(u => u.CompanyId == c.Id)
+        );
+        """, 0, 0, 0, 0)]
+    [InlineData("""
+        var singleOrDefaultWithLambdaViolation = await _appDbContext.Companies.SingleOrDefaultAsync(
+            c => _appDbContext.Users.Any(u => u.CompanyId == c.Id)
+        );
+        """, 13, 60, 15, 2)]
+    [InlineData("""
+        var singleOrDefaultSyncWithLambdaOK = _appDbContext.Companies.TagWithCallSite().SingleOrDefault(
+            c => _appDbContext.Users.Any(u => u.CompanyId == c.Id)
+        );
+        """, 0, 0, 0, 0)]
+    [InlineData("""
+        var singleOrDefaultSyncWithLambdaViolation = _appDbContext.Companies.SingleOrDefault(
+            c => _appDbContext.Users.Any(u => u.CompanyId == c.Id)
+        );
+        """, 13, 58, 15, 2)]
+    [InlineData("""
+        var firstOrDefaultWithLambdaOK = await _appDbContext.Companies.TagWithCallSite().FirstOrDefaultAsync(
+            c => _appDbContext.Users.Any(u => u.CompanyId == c.Id)
+        );
+        """, 0, 0, 0, 0)]
+    [InlineData("""
+        var firstOrDefaultWithLambdaViolation = await _appDbContext.Companies.FirstOrDefaultAsync(
+            c => _appDbContext.Users.Any(u => u.CompanyId == c.Id)
+        );
+        """, 13, 59, 15, 2)]
+    [InlineData("""
+        var firstWithLambdaOK = await _appDbContext.Companies.TagWithCallSite().FirstAsync(
+            c => _appDbContext.Users.Any(u => u.CompanyId == c.Id)
+        );
+        """, 0, 0, 0, 0)]
+    [InlineData("""
+        var firstWithLambdaViolation = await _appDbContext.Companies.FirstAsync(
+            c => _appDbContext.Users.Any(u => u.CompanyId == c.Id)
+        );
+        """, 13, 50, 15, 2)]
+    [InlineData("""
+        var singleWithLambdaOK = await _appDbContext.Companies.TagWithCallSite().SingleAsync(
+            c => _appDbContext.Users.Any(u => u.CompanyId == c.Id)
+        );
+        """, 0, 0, 0, 0)]
+    [InlineData("""
+        var singleWithLambdaViolation = await _appDbContext.Companies.SingleAsync(
+            c => _appDbContext.Users.Any(u => u.CompanyId == c.Id)
+        );
+        """, 13, 51, 15, 2)]
+    [InlineData("""
+        var lastWithLambdaOK = await _appDbContext.Companies.TagWithCallSite().LastOrDefaultAsync(
+            c => _appDbContext.Users.Any(u => u.CompanyId == c.Id)
+        );
+        """, 0, 0, 0, 0)]
+    [InlineData("""
+        var lastWithLambdaViolation = await _appDbContext.Companies.LastOrDefaultAsync(
+            c => _appDbContext.Users.Any(u => u.CompanyId == c.Id)
+        );
+        """, 13, 49, 15, 2)]
+    [InlineData("""
+        var anyWithLambdaOK = await _appDbContext.Companies.TagWithCallSite().AnyAsync(
+            c => _appDbContext.Users.Any(u => u.CompanyId == c.Id)
+        );
+        """, 0, 0, 0, 0)]
+    [InlineData("""
+        var anyWithLambdaViolation = await _appDbContext.Companies.AnyAsync(
+            c => _appDbContext.Users.Any(u => u.CompanyId == c.Id)
+        );
+        """, 13, 48, 15, 2)]
+    [InlineData("""
+        var allWithLambdaOK = await _appDbContext.Companies.TagWithCallSite().AllAsync(
+            c => _appDbContext.Users.Any(u => u.CompanyId == c.Id)
+        );
+        """, 0, 0, 0, 0)]
+    [InlineData("""
+        var allWithLambdaViolation = await _appDbContext.Companies.AllAsync(
+            c => _appDbContext.Users.Any(u => u.CompanyId == c.Id)
+        );
+        """, 13, 48, 15, 2)]
+    [InlineData("""
+        var countWithLambdaOK = await _appDbContext.Companies.TagWithCallSite().CountAsync(
+            c => _appDbContext.Users.Any(u => u.CompanyId == c.Id)
+        );
+        """, 0, 0, 0, 0)]
+    [InlineData("""
+        var countWithLambdaViolation = await _appDbContext.Companies.CountAsync(
+            c => _appDbContext.Users.Any(u => u.CompanyId == c.Id)
+        );
+        """, 13, 50, 15, 2)]
+    [InlineData("""
+        var maxWithLambdaOK = await _appDbContext.Companies.TagWithCallSite().MaxAsync(
+            c => _appDbContext.Users.Any(u => u.CompanyId == c.Id) ? c.Id : 10
+        );
+        """, 0, 0, 0, 0)]
+    [InlineData("""
+        var maxWithLambdaViolation = await _appDbContext.Companies.MaxAsync(
+            c => _appDbContext.Users.Any(u => u.CompanyId == c.Id) ? c.Id : 10
+        );
+        """, 13, 48, 15, 2)]
+    [InlineData("""
+        var minWithLambdaOK = await _appDbContext.Companies.TagWithCallSite().MinAsync(
+            c => _appDbContext.Users.Any(u => u.CompanyId == c.Id) ? c.Id : 10
+        );
+        """, 0, 0, 0, 0)]
+    [InlineData("""
+        var minWithLambdaViolation = await _appDbContext.Companies.MinAsync(
+            c => _appDbContext.Users.Any(u => u.CompanyId == c.Id) ? c.Id : 10
+        );
+        """, 13, 48, 15, 2)]
+    [InlineData("""
+        var sumWithLambdaOK = await _appDbContext.Companies.TagWithCallSite().SumAsync(
+            c => _appDbContext.Users.Any(u => u.CompanyId == c.Id) ? c.Id : 10
+        );
+        """, 0, 0, 0, 0)]
+    [InlineData("""
+        var sumWithLambdaViolation = await _appDbContext.Companies.SumAsync(
+            c => _appDbContext.Users.Any(u => u.CompanyId == c.Id) ? c.Id : 10
+        );
+        """, 13, 48, 15, 2)]
+    [InlineData("""
+        var avgWithLambdaOK = await _appDbContext.Companies.TagWithCallSite().AverageAsync(
+            c => _appDbContext.Users.Any(u => u.CompanyId == c.Id) ? c.Id : 10
+        );
+        """, 0, 0, 0, 0)]
+    [InlineData("""
+        var avgWithLambdaViolation = await _appDbContext.Companies.AverageAsync(
+            c => _appDbContext.Users.Any(u => u.CompanyId == c.Id) ? c.Id : 10
+        );
+        """, 13, 48, 15, 2)]
+    [InlineData("""
+        var longCountWithLambdaOK = await _appDbContext.Companies.TagWithCallSite().LongCountAsync(
+            c => _appDbContext.Users.Count(u => u.Id == c.Id) > 0
+        );
+        """, 0, 0, 0, 0)]
+    [InlineData("""
+        var longCountWithLambdaViolation = await _appDbContext.Companies.LongCountAsync(
+            c => _appDbContext.Users.Count(u => u.Id == c.Id) > 0
+        );
+        """, 13, 54, 15, 2)]
 #pragma warning restore RCS0053,SA1117 // Fix formatting of a list
     public async Task RunAsync(string inputQuery, int startLine, int startColumn, int endLine, int endColumn)
     {
