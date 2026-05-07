@@ -317,6 +317,7 @@ namespace Kuker.Analyzers.Rules
             }
             return symbolInfo.CandidateSymbols.OfType<IMethodSymbol>().FirstOrDefault();
         }
+
         private static bool IsQueryableOperatorMethod(IMethodSymbol methodSymbol, CompilationSymbolsModel model)
         {
             INamedTypeSymbol containingType = methodSymbol.ContainingType;
@@ -326,6 +327,7 @@ namespace Kuker.Analyzers.Rules
                     SymbolEqualityComparer.Default.Equals(containingType, model.EfExtensionsSymbol)
                 );
         }
+
         private static ExpressionSyntax GetQuerySourceExpression(
             InvocationExpressionSyntax invocation,
             IMethodSymbol methodSymbol
