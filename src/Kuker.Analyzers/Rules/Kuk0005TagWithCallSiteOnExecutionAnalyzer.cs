@@ -204,18 +204,22 @@ namespace Kuker.Analyzers.Rules
                 SymbolEqualityComparer.Default.Equals(named.OriginalDefinition, compilationSymbolsModel.DbSetSymbol);
         }
 
-        private static bool ImplementsIQueryable(ITypeSymbol type, CompilationSymbolsModel model)
+        private static bool ImplementsIQueryable(
+            ITypeSymbol type,
+            CompilationSymbolsModel compilationSymbolsModel
+        )
         {
             if (type == null)
             {
                 return false;
             }
-            if (SymbolEqualityComparer.Default.Equals(type.OriginalDefinition, model.IQueryableSymbol))
+            if (SymbolEqualityComparer.Default.Equals(type.OriginalDefinition, compilationSymbolsModel.IQueryableSymbol))
             {
                 return true;
             }
             return type.AllInterfaces.Any(i =>
-                SymbolEqualityComparer.Default.Equals(i.OriginalDefinition, model.IQueryableSymbol));
+                SymbolEqualityComparer.Default.Equals(i.OriginalDefinition, compilationSymbolsModel.IQueryableSymbol)
+            );
         }
 
         private static bool HasTagWithCallSiteInChain(
