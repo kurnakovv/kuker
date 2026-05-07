@@ -642,12 +642,12 @@ public class Kuk0005TagWithCallSiteOnExecutionAnalyzerTests
             {
                 void Test(TestDbContext db, List<int> ids)
                 {
-                    var resultOK = ids.Select(id =>
+                    var resultOK = Enumerable.Select(ids, id =>
                     {
                         return db.Users.TagWithCallSite().ToList();
                     });
 
-                    var resultViolation = ids.Select(id =>
+                    var resultViolation = Enumerable.Select(ids, id =>
                     {
                         return db.Users.ToList();
                     });
