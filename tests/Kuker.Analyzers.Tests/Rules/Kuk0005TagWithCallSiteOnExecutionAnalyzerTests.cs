@@ -427,6 +427,52 @@ public class Kuk0005TagWithCallSiteOnExecutionAnalyzerTests
             _appDbContext.Users.Any(u => _appDbContext.Companies.Any(c => c.Id == u.Id) && u.Id == id)
         ).ToArray();
         """, 14, 5, 14, 95)]
+    [InlineData("""
+        // Execution inside execute (subquery) OK
+        IQueryable<User> baseQuery = GetUserQuery();
+
+        UserSummary[] result = await baseQuery.TagWithCallSite()
+            .Select(u => new UserSummary
+            {
+                Id = u.Id,
+                Name = u.Name,
+
+                CompanyName = _appDbContext.Companies
+                    .Where(c => c.Id == u.CompanyId)
+                    .Select(c => c.Name)
+                    .FirstOrDefault(),
+
+                RelatedUsers = _appDbContext.Users
+                    .Where(x => x.CompanyId == u.CompanyId)
+                    .OrderBy(x => x.Name)
+                    .Select(x => x.Name)
+                    .ToArray(),
+            })
+            .ToArrayAsync();
+        """, 0, 0, 0, 0)]
+    [InlineData("""
+        // Execution inside execute (subquery) violation
+        IQueryable<User> baseQuery = GetUserQuery();
+
+        UserSummary[] result = await baseQuery
+            .Select(u => new UserSummary
+            {
+                Id = u.Id,
+                Name = u.Name,
+
+                CompanyName = _appDbContext.Companies
+                    .Where(c => c.Id == u.CompanyId)
+                    .Select(c => c.Name)
+                    .FirstOrDefault(),
+
+                RelatedUsers = _appDbContext.Users
+                    .Where(x => x.CompanyId == u.CompanyId)
+                    .OrderBy(x => x.Name)
+                    .Select(x => x.Name)
+                    .ToArray(),
+            })
+            .ToArrayAsync();
+        """, 16, 30, 33, 20)]
 #pragma warning restore RCS0053,SA1117 // Fix formatting of a list
     public async Task RunAsync(string inputQuery, int startLine, int startColumn, int endLine, int endColumn)
     {
@@ -482,6 +528,17 @@ public class Kuk0005TagWithCallSiteOnExecutionAnalyzerTests
             {
                 public long Id { get; set; }
                 public string Name { get; set; }
+            }
+
+            public class UserSummary
+            {
+                public long Id { get; set; }
+
+                public string Name { get; set; }
+
+                public string CompanyName { get; set; }
+
+                public string[] RelatedUsers { get; set; }
             }
         
             public class AppDbContext : DbContext

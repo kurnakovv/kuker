@@ -269,31 +269,36 @@ namespace Kuker.Analyzers.Rules
             {
                 return false;
             }
+
             IMethodSymbol methodSymbol = GetInvocationMethodSymbol(invocation, context);
+
             if (methodSymbol == null)
             {
                 return false;
             }
+
             IMethodSymbol originalMethod = methodSymbol.ReducedFrom ?? methodSymbol;
+
             if (!s_queryLambdaMethodNames.Contains(originalMethod.Name))
             {
                 return false;
             }
+
             if (!IsQueryableOperatorMethod(originalMethod, model))
             {
                 return false;
             }
+
             ExpressionSyntax sourceExpression = GetQuerySourceExpression(invocation, originalMethod);
+
             if (sourceExpression == null)
             {
                 return false;
             }
+
             ITypeSymbol sourceType = context.SemanticModel.GetTypeInfo(sourceExpression).Type;
-            if (!ImplementsIQueryable(sourceType, model))
-            {
-                return false;
-            }
-            return IsFromDbSet(sourceExpression, context, model);
+
+            return ImplementsIQueryable(sourceType, model);
         }
 
         private static IMethodSymbol GetInvocationMethodSymbol(
