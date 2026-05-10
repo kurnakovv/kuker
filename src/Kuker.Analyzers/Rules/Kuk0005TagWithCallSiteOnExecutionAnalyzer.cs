@@ -37,6 +37,46 @@ namespace Kuker.Analyzers.Rules
             helpLinkUri: "https://github.com/kurnakovv/kuker/wiki/KUK0005"
         );
 
+        private static readonly ImmutableHashSet<string> s_queryOperatorMethods =
+            ImmutableHashSet.Create(
+                "Where",
+                "Select",
+                "SelectMany",
+                "OrderBy",
+                "OrderByDescending",
+                "ThenBy",
+                "ThenByDescending",
+                "GroupBy",
+                "Join",
+                "GroupJoin",
+                "SkipWhile",
+                "TakeWhile"
+            );
+
+        private static readonly ImmutableHashSet<string> s_queryPredicateMethods =
+            ImmutableHashSet.Create(
+                "Any",
+                "All",
+                "Count",
+                "LongCount",
+                "First",
+                "FirstOrDefault",
+                "Single",
+                "SingleOrDefault",
+                "Last",
+                "LastOrDefault",
+                "Contains",
+                "Sum",
+                "Min",
+                "Max",
+                "Average"
+            );
+
+        private static readonly ImmutableHashSet<string> s_queryLambdaMethodNames =
+            s_queryOperatorMethods
+                .Union(s_queryPredicateMethods)
+                .Union(CreateAsyncVariants(s_queryPredicateMethods));
+
         private static readonly ImmutableHashSet<string> s_executingMethods = CreateExecutingMethods();
 
         /// <summary>
@@ -104,6 +144,11 @@ namespace Kuker.Analyzers.Rules
                 return;
             }
 
+            if (IsInsideQueryableExpression(invocation, context, compilationSymbolsModel))
+            {
+                return;
+            }
+
             Diagnostic diagnostic = Diagnostic.Create(
                 s_rule,
                 invocation.GetLocation(),
@@ -139,11 +184,6 @@ namespace Kuker.Analyzers.Rules
 
             ITypeSymbol type = context.SemanticModel.GetTypeInfo(expression).Type;
 
-            if (type == null)
-            {
-                return false;
-            }
-
             if (!ImplementsIQueryable(type, compilationSymbolsModel))
             {
                 return false;
@@ -151,6 +191,11 @@ namespace Kuker.Analyzers.Rules
 
             if (type.ContainingNamespace.ToDisplayString()
                 .StartsWith("Microsoft.EntityFrameworkCore"))
+            {
+                return true;
+            }
+
+            if (IsFromDbSet(expression, context, compilationSymbolsModel))
             {
                 return true;
             }
@@ -164,13 +209,14 @@ namespace Kuker.Analyzers.Rules
             CompilationSymbolsModel compilationSymbolsModel
         )
         {
-            if (type is INamedTypeSymbol named &&
-                SymbolEqualityComparer.Default.Equals(named.OriginalDefinition, compilationSymbolsModel.IQueryableSymbol)
-            )
+            if (type == null)
+            {
+                return false;
+            }
+            if (SymbolEqualityComparer.Default.Equals(type.OriginalDefinition, compilationSymbolsModel.IQueryableSymbol))
             {
                 return true;
             }
-
             return type.AllInterfaces.Any(i =>
                 SymbolEqualityComparer.Default.Equals(i.OriginalDefinition, compilationSymbolsModel.IQueryableSymbol)
             );
@@ -203,33 +249,141 @@ namespace Kuker.Analyzers.Rules
             return false;
         }
 
+        private static bool IsInsideQueryableExpression(
+            SyntaxNode node,
+            SyntaxNodeAnalysisContext context,
+            CompilationSymbolsModel model
+        )
+        {
+            return node.Ancestors().Any(x =>
+                x is QueryClauseSyntax ||
+                (x is LambdaExpressionSyntax lambda && IsQueryOperatorLambda(lambda, context, model))
+            );
+        }
+
+        private static bool IsQueryOperatorLambda(
+            LambdaExpressionSyntax lambda,
+            SyntaxNodeAnalysisContext context,
+            CompilationSymbolsModel model
+        )
+        {
+            if (!(lambda.Parent is ArgumentSyntax argument) ||
+                !(argument.Parent is BaseArgumentListSyntax argumentList) ||
+                !(argumentList.Parent is InvocationExpressionSyntax invocation))
+            {
+                return false;
+            }
+
+            IMethodSymbol methodSymbol = GetInvocationMethodSymbol(invocation, context);
+
+            if (methodSymbol == null)
+            {
+                return false;
+            }
+
+            IMethodSymbol originalMethod = methodSymbol.ReducedFrom ?? methodSymbol;
+
+            if (!s_queryLambdaMethodNames.Contains(originalMethod.Name))
+            {
+                return false;
+            }
+
+            if (!IsQueryableOperatorMethod(originalMethod, model))
+            {
+                return false;
+            }
+
+            ExpressionSyntax sourceExpression = GetQuerySourceExpression(invocation, originalMethod);
+
+            if (sourceExpression == null)
+            {
+                return false;
+            }
+
+            ITypeSymbol sourceType = context.SemanticModel.GetTypeInfo(sourceExpression).Type;
+
+            return ImplementsIQueryable(sourceType, model);
+        }
+
+        private static IMethodSymbol GetInvocationMethodSymbol(
+            InvocationExpressionSyntax invocation,
+            SyntaxNodeAnalysisContext context
+        )
+        {
+            SymbolInfo symbolInfo = context.SemanticModel.GetSymbolInfo(invocation);
+            if (symbolInfo.Symbol is IMethodSymbol methodSymbol)
+            {
+                return methodSymbol;
+            }
+            return symbolInfo.CandidateSymbols.OfType<IMethodSymbol>().FirstOrDefault();
+        }
+
+        private static bool IsQueryableOperatorMethod(IMethodSymbol methodSymbol, CompilationSymbolsModel model)
+        {
+            INamedTypeSymbol containingType = methodSymbol.ContainingType;
+            return containingType != null &&
+                (
+                    containingType.ToDisplayString() == "System.Linq.Queryable" ||
+                    SymbolEqualityComparer.Default.Equals(containingType, model.EfExtensionsSymbol)
+                );
+        }
+
+        private static ExpressionSyntax GetQuerySourceExpression(
+            InvocationExpressionSyntax invocation,
+            IMethodSymbol methodSymbol
+        )
+        {
+            if (methodSymbol.IsExtensionMethod &&
+                invocation.Expression is MemberAccessExpressionSyntax memberAccess)
+            {
+                return memberAccess.Expression;
+            }
+            return invocation.ArgumentList.Arguments.FirstOrDefault()?.Expression;
+        }
+
+        private static ImmutableHashSet<string> CreateAsyncVariants(IEnumerable<string> methods)
+        {
+            ImmutableHashSet<string>.Builder builder = ImmutableHashSet.CreateBuilder<string>();
+
+            foreach (string method in methods)
+            {
+                builder.Add(method + "Async");
+            }
+
+            return builder.ToImmutable();
+        }
+
+        private static bool IsFromDbSet(ExpressionSyntax expression, SyntaxNodeAnalysisContext context, CompilationSymbolsModel model)
+        {
+            while (expression is InvocationExpressionSyntax invocation)
+            {
+                if (invocation.Expression is MemberAccessExpressionSyntax member)
+                {
+                    expression = member.Expression;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            ITypeSymbol type = context.SemanticModel.GetTypeInfo(expression).Type;
+
+            return type is INamedTypeSymbol named &&
+                   SymbolEqualityComparer.Default.Equals(named.OriginalDefinition, model.DbSetSymbol);
+        }
+
+        /// <summary>
+        /// https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.entityframeworkqueryableextensions methods.
+        /// </summary>
         private static ImmutableHashSet<string> CreateExecutingMethods()
         {
-            // https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.entityframeworkqueryableextensions
-            HashSet<string> baseMethods = new HashSet<string>()
+            HashSet<string> baseMethods = new HashSet<string>
             {
                 "ToArray",
                 "ToList",
                 "ToDictionary",
                 "ToHashSet",
-
-                "First",
-                "FirstOrDefault",
-                "Single",
-                "SingleOrDefault",
-                "Last",
-                "LastOrDefault",
-
-                "Any",
-                "All",
-
-                "Count",
-                "LongCount",
-
-                "Sum",
-                "Min",
-                "Max",
-                "Average",
 
                 "ExecuteUpdate",
                 "ExecuteDelete",
@@ -238,17 +392,23 @@ namespace Kuker.Analyzers.Rules
                 "AsAsyncEnumerable",
 
                 "Load",
-                "ContainsAsync",
                 "ForEachAsync",
             };
 
-            return baseMethods
-                .Concat(
-                    baseMethods
-                        .Where(x => x != "AsEnumerable" && x != "AsAsyncEnumerable" && x != "ContainsAsync" && x != "ForEachAsync")
-                        .Select(x => x + "Async")
-                )
-                .ToImmutableHashSet();
+            baseMethods.UnionWith(s_queryPredicateMethods);
+            baseMethods.UnionWith(CreateAsyncVariants(s_queryPredicateMethods));
+
+            foreach (string method in baseMethods.ToArray())
+            {
+                if (method != "AsEnumerable" &&
+                    method != "AsAsyncEnumerable" &&
+                    !method.EndsWith("Async"))
+                {
+                    baseMethods.Add(method + "Async");
+                }
+            }
+
+            return baseMethods.ToImmutableHashSet();
         }
     }
 
