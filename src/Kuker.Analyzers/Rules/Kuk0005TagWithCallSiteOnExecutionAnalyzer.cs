@@ -189,8 +189,9 @@ namespace Kuker.Analyzers.Rules
                 return false;
             }
 
-            if (type.ContainingNamespace.ToDisplayString()
-                .StartsWith("Microsoft.EntityFrameworkCore"))
+            if (type.ContainingNamespace?.ToDisplayString()
+                .StartsWith("Microsoft.EntityFrameworkCore") == true
+            )
             {
                 return true;
             }
