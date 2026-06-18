@@ -498,7 +498,7 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
             "GetAnchorColumn",
             BindingFlags.NonPublic | BindingFlags.Static)!;
 
-        int result = (int)method.Invoke(null, new object[] { lineText })!;
+        int result = (int)method.Invoke(null, [lineText])!;
 
         Assert.Equal(expected, result);
     }
