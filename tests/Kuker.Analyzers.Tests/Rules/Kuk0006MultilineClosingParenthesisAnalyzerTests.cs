@@ -11,9 +11,9 @@ namespace Kuker.Analyzers.Tests.Rules;
 
 public class Kuk0006MultilineClosingParenthesisAnalyzerTests
 {
-#pragma warning disable SA1118 // Parameter should not span multiple lines
+#pragma warning disable RCS0053, SA1117 // Parameter should not span multiple lines
     [Theory]
-    [InlineData("NoReportOnSingleLineInvocation", "var result = Foo(1, 2, 3);", false)]
+    [InlineData("NoReportOnSingleLineInvocation", "var result = Foo(1, 2, 3);", 0, 0, 0, 0)]
     [InlineData(
         "NoReportOnValidMultilineInvocation",
         """
@@ -21,8 +21,7 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
             1,
             2
         );
-        """,
-        false
+        """, 0, 0, 0, 0
     )]
     [InlineData(
         "ReportWhenClosingParenthesisIsNotOnOwnLine",
@@ -30,8 +29,7 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
         var result = Foo(
             1,
             2);
-        """,
-        true
+        """, 11, 6, 11, 7
     )]
     [InlineData(
         "ReportWhenClosingParenthesisIsMisaligned",
@@ -40,8 +38,7 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
             1,
             2
           );
-        """,
-        true
+        """, 12, 3, 12, 4
     )]
     [InlineData(
         "NoReportOnFluentInvocationWithAlignedClosingParenthesis",
@@ -51,8 +48,7 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
                 x => x > 0
             )
             .ToArray();
-        """,
-        false
+        """, 0, 0, 0, 0
     )]
     [InlineData(
         "ReportOnFluentInvocationWhenClosingParenthesisIsMisaligned",
@@ -62,8 +58,7 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
                 x => x > 0
               )
             .ToArray();
-        """,
-        true
+        """, 12, 7, 12, 8
     )]
     [InlineData(
         "ReportOnFluentInvocationWhenClosingParenthesisIsOnSameLine",
@@ -72,8 +67,7 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
             .Where(
                 x => x > 0)
             .ToArray();
-        """,
-        true
+        """, 11, 19, 11, 20
     )]
     [InlineData(
         "NoReportOnIndentedMultilineInvocationAfterAssignment",
@@ -83,8 +77,7 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
                 1,
                 2
             );
-        """,
-        false
+        """, 0, 0, 0, 0
     )]
     [InlineData(
         "NoReportOnNestedMultilineInvocations",
@@ -99,8 +92,7 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
                 4
             )
         );
-        """,
-        false
+        """, 0, 0, 0, 0
     )]
     [InlineData(
         "NoReportOnMultilineInvocationBeforeCommaInArgumentList",
@@ -112,8 +104,7 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
             ),
             3
         );
-        """,
-        false
+        """, 0, 0, 0, 0
     )]
     [InlineData(
         "NoReportOnMultiLineFluentChainWithSeveralAlignedClosings",
@@ -126,8 +117,7 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
                 x => x + 1
             )
             .ToArray();
-        """,
-        false
+        """, 0, 0, 0, 0
     )]
     [InlineData(
         "NoReportOnMultilineReturnInvocation",
@@ -136,8 +126,7 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
             1,
             2
         );
-        """,
-        false
+        """, 0, 0, 0, 0
     )]
     [InlineData(
         "ReportOnMultilineReturnInvocationWhenClosingParenthesisIsOnSameLine",
@@ -145,8 +134,7 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
         return Foo(
             1,
             2);
-        """,
-        true
+        """, 11, 6, 11, 7
     )]
     [InlineData(
         "ReportOnMultilineReturnInvocationWhenClosingParenthesisIsMisaligned",
@@ -155,8 +143,7 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
             1,
             2
           );
-        """,
-        true
+        """, 12, 3, 12, 4
     )]
     [InlineData(
         "NoReportOnNestedMultilineReturnInvocations",
@@ -171,8 +158,7 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
                 4
             )
         );
-        """,
-        false
+        """, 0, 0, 0, 0
     )]
     [InlineData(
         "NoReportOnMultilineFluentChainInReturn",
@@ -185,8 +171,7 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
                 x => x + 1
             )
             .ToArray();
-        """,
-        false
+        """, 0, 0, 0, 0
     )]
     [InlineData(
         "ReportOnMultilineFluentChainInReturnWhenClosingParenthesisIsOnSameLine",
@@ -198,8 +183,7 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
                 x => x + 1
             )
             .ToArray();
-        """,
-        true
+        """, 11, 19, 11, 20
     )]
     [InlineData(
         "NoReportOnMultilineInvocationInIfCondition",
@@ -210,8 +194,7 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
         ))
         {
         }
-        """,
-        false
+        """, 0, 0, 0, 0
     )]
     [InlineData(
         "NoReportOnMultilineInvocationInIfConditionWithTrailingComment",
@@ -222,8 +205,7 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
         )) // trailing comment
         {
         }
-        """,
-        false
+        """, 0, 0, 0, 0
     )]
     [InlineData(
         "ReportOnMultilineInvocationInIfConditionWithTrailingComment",
@@ -234,8 +216,7 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
           )) // trailing comment
         {
         }
-        """,
-        true
+        """, 12, 3, 12, 4
     )]
     [InlineData(
         "NoReportWhenClosingParenthesisHasTrailingExpression",
@@ -244,8 +225,7 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
             1,
             2
         ) + 1;
-        """,
-        false
+        """, 0, 0, 0, 0
     )]
     [InlineData(
         "NoReportOnMultilineReturnInvocationInsideIf",
@@ -260,8 +240,7 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
                 2
             );
         }
-        """,
-        false
+        """, 0, 0, 0, 0
     )]
     [InlineData(
         "ReportOnMultilineReturnInvocationInsideIf",
@@ -275,8 +254,7 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
                 1,
                 2);
         }
-        """,
-        true
+        """, 16, 10, 16, 11
     )]
     [InlineData(
         "ReportOnMultilineInvocationInIfConditionWhenClosingParenthesisIsOnSameLine",
@@ -286,8 +264,7 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
             2))
         {
         }
-        """,
-        true
+        """, 11, 6, 11, 7
     )]
     [InlineData(
         "NoReportOnMultilineInvocationInLambdaReturnValue",
@@ -296,8 +273,7 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
             1,
             2
         );
-        """,
-        false
+        """, 0, 0, 0, 0
     )]
     [InlineData(
         "ReportOnMultilineInvocationInLambdaReturnValueWhenClosingParenthesisIsOnSameLine",
@@ -305,8 +281,7 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
         Func<int> get = () => Foo(
             1,
             2);
-        """,
-        true
+        """, 11, 6, 11, 7
     )]
     [InlineData(
         "NoReportOnMultilineInvocationInWhileCondition",
@@ -317,8 +292,7 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
         ))
         {
         }
-        """,
-        false
+        """, 0, 0, 0, 0
     )]
     [InlineData(
         "ReportOnMultilineInvocationInWhileConditionWhenClosingParenthesisIsOnSameLine",
@@ -328,8 +302,7 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
             2))
         {
         }
-        """,
-        true
+        """, 11, 6, 11, 7
     )]
     [InlineData(
         "NoReportWhenClosingParenthesisHasTrailingComment",
@@ -338,8 +311,7 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
             1,
             2
         ); // trailing comment
-        """,
-        false
+        """, 0, 0, 0, 0
     )]
     [InlineData(
         "NoReportWhenClosingParenthesisHasTrailingCommentOnSameLine",
@@ -349,8 +321,7 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
             2
         ) // trailing comment
         ;
-        """,
-        false
+        """, 0, 0, 0, 0
     )]
     [InlineData(
         "ReportOnNestedMultilineInvocationWhenInnerClosingParenthesisIsMisaligned",
@@ -365,8 +336,7 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
                 4
               )
         );
-        """,
-        true
+        """, 17, 7, 17, 8
     )]
     [InlineData(
         "ReportOnMultiLineFluentChainWhenClosingParenthesisIsMisaligned",
@@ -379,8 +349,7 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
                 x => x + 1
             )
             .ToArray();
-        """,
-        true
+        """, 12, 7, 12, 8
     )]
     [InlineData(
         "ReportOnMultiLineFluentChainWhenClosingParenthesisIsOnSameLine",
@@ -392,22 +361,20 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
                 x => x + 1
             )
             .ToArray();
-        """,
-        true
+        """, 11, 19, 11, 20
     )]
     [InlineData(
-        "test1",
+        "ReportOnSimpleInvocationWhenClosingParenthesisIsOnSameLine",
         """
         int a = 12;
         int b = 13;
 
         a.Equals(
             b);
-        """,
-        true
+        """, 13, 6, 13, 7
     )]
     [InlineData(
-        "test2",
+        "ReportOnSimpleInvocationWhenClosingParenthesisIsShiftedTooFarRight",
         """
         int a = 12;
         int b = 13;
@@ -415,11 +382,10 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
                 a.Equals(
                     b
         );
-        """,
-        true
+        """, 14, 1, 14, 2
     )]
     [InlineData(
-        "test3",
+        "NoReportOnSimpleInvocationWithAlignedClosingParenthesis",
         """
         int a = 12;
         int b = 13;
@@ -427,11 +393,10 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
         a.Equals(
             b
         );
-        """,
-        false
+        """, 0, 0, 0, 0
     )]
 #pragma warning restore SA1118 // Parameter should not span multiple lines
-    public async Task RunAsync(string name, string invocationCode, bool expectDiagnostic)
+    public async Task RunAsync(string name, string invocationCode, int startLine, int startColumn, int endLine, int endColumn)
     {
         string testCode = """
             using System;
@@ -473,11 +438,12 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         };
 
-        if (expectDiagnostic)
+        if (!(startLine == 0 && startColumn == 0 && endLine == 0 && endColumn == 0))
         {
-            test.ExpectedDiagnostics.Add(
-                new DiagnosticResult("KUK0006", DiagnosticSeverity.Warning)
-            );
+            DiagnosticResult expected = new DiagnosticResult("KUK0006", DiagnosticSeverity.Warning)
+                .WithSpan(startLine, startColumn, endLine, endColumn);
+
+            test.ExpectedDiagnostics.Add(expected);
         }
 
         await test.RunAsync();

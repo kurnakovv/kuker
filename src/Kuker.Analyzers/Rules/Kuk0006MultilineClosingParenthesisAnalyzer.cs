@@ -101,7 +101,7 @@ namespace Kuker.Analyzers.Rules
         {
             Diagnostic diagnostic = Diagnostic.Create(
                 s_rule,
-                Location.None
+                closeParen.GetLocation()
             );
 
             context.ReportDiagnostic(diagnostic);
