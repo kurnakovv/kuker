@@ -22,7 +22,7 @@ namespace Kuker.Analyzers.Rules
         private static readonly LocalizableString s_title = "Incorrect multiline closing parenthesis placement";
         private static readonly LocalizableString s_messageFormat =
             "Closing parenthesis of a multiline construct must be on a separate line and aligned " +
-            "with the first non-whitespace character of the opening line.";
+            "with the first non-whitespace character of the opening line. Expected location Line:{0}, Character:{1}.";
 
         private static readonly LocalizableString s_description =
             "For multiline method invocations, the closing parenthesis must be on its own line " +
@@ -85,7 +85,10 @@ namespace Kuker.Analyzers.Rules
             }
 
             string closeLineText = closeLine.ToString();
-            string trailingText = closeLineText.Substring(closeParen.Span.End - closeLine.Start).TrimStart();
+            int closeColumnInLine = closeParen.SpanStart - closeLine.Start;
+            bool closeParenHasCodeOnTheLeft =
+                closeColumnInLine > 0 &&
+                !string.IsNullOrWhiteSpace(closeLineText.Substring(0, closeColumnInLine));
 
             string openLineText = openLine.ToString();
             int anchorColumn = GetAnchorColumn(openLineText);
@@ -93,15 +96,22 @@ namespace Kuker.Analyzers.Rules
 
             if (closeColumn != anchorColumn)
             {
-                ReportDiagnostic(context, closeParen);
+                int expectedLineNumber = closeParenHasCodeOnTheLeft
+                    ? closeLine.LineNumber + 2
+                    : closeLine.LineNumber + 1;
+                int expectedCharacter = anchorColumn + 1;
+
+                ReportDiagnostic(context, closeParen, expectedLineNumber, expectedCharacter);
             }
         }
 
-        private static void ReportDiagnostic(SyntaxNodeAnalysisContext context, SyntaxToken closeParen)
+        private static void ReportDiagnostic(SyntaxNodeAnalysisContext context, SyntaxToken closeParen, int expectedLineNumber, int expectedCharacter)
         {
             Diagnostic diagnostic = Diagnostic.Create(
                 s_rule,
-                closeParen.GetLocation()
+                closeParen.GetLocation(),
+                expectedLineNumber,
+                expectedCharacter
             );
 
             context.ReportDiagnostic(diagnostic);

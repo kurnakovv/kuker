@@ -2,6 +2,7 @@
 // This file is licensed under the MIT License.
 // See the LICENSE file in the project root for full license information.
 
+using System.Reflection;
 using Kuker.Analyzers.Rules;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Testing;
@@ -447,5 +448,58 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
         }
 
         await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task NoReportWhenClosingParenthesisIsMissingAsync()
+    {
+        string testCode = """
+            using System;
+            using System.Linq;
+
+            public class TestClass
+            {
+                public object M1()
+                {
+                    // NoReportWhenClosingParenthesisIsMissing
+                    var result = Foo(
+                        1,
+                        2
+                    return 1;
+                }
+
+                private static int Foo(params int[] args)
+                {
+                    return args.Sum();
+                }
+            }
+            """;
+
+        CSharpAnalyzerTest<Kuk0006MultilineClosingParenthesisAnalyzer, DefaultVerifier> test = new()
+        {
+            TestCode = testCode,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        };
+
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerError("CS1002").WithSpan(11, 14, 11, 14));
+        test.ExpectedDiagnostics.Add(DiagnosticResult.CompilerError("CS1026").WithSpan(11, 14, 11, 14));
+
+        await test.RunAsync();
+    }
+
+    [Theory]
+    [InlineData("", 0)]
+    [InlineData("   ", 0)]
+    [InlineData("\t\t", 0)]
+    [InlineData("    Foo", 4)]
+    public void GetAnchorColumnReturnsExpectedColumn(string lineText, int expected)
+    {
+        MethodInfo method = typeof(Kuk0006MultilineClosingParenthesisAnalyzer).GetMethod(
+            "GetAnchorColumn",
+            BindingFlags.NonPublic | BindingFlags.Static)!;
+
+        int result = (int)method.Invoke(null, new object[] { lineText })!;
+
+        Assert.Equal(expected, result);
     }
 }
