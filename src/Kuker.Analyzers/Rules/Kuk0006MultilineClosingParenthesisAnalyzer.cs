@@ -6,7 +6,9 @@ using System.Collections.Immutable;
 using Kuker.Analyzers.Constants;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Kuker.Analyzers.Rules
 {
@@ -59,7 +61,63 @@ namespace Kuker.Analyzers.Rules
 
         private static void AnalyzeInvocation(SyntaxNodeAnalysisContext context)
         {
-            return;
+            if (!(context.Node is InvocationExpressionSyntax invocation))
+            {
+                return;
+            }
+
+            ArgumentListSyntax argumentList = invocation.ArgumentList;
+            SyntaxToken openParen = argumentList.OpenParenToken;
+            SyntaxToken closeParen = argumentList.CloseParenToken;
+
+            if (openParen.IsMissing || closeParen.IsMissing)
+            {
+                return;
+            }
+
+            SourceText text = invocation.SyntaxTree.GetText(context.CancellationToken);
+            TextLine openLine = text.Lines.GetLineFromPosition(openParen.SpanStart);
+            TextLine closeLine = text.Lines.GetLineFromPosition(closeParen.SpanStart);
+
+            if (openLine.LineNumber == closeLine.LineNumber)
+            {
+                return;
+            }
+
+            string closeLineText = closeLine.ToString();
+            string trailingText = closeLineText.Substring(closeParen.Span.End - closeLine.Start).TrimStart();
+
+            string openLineText = openLine.ToString();
+            int anchorColumn = GetAnchorColumn(openLineText);
+            int closeColumn = closeParen.GetLocation().GetLineSpan().StartLinePosition.Character;
+
+            if (closeColumn != anchorColumn)
+            {
+                ReportDiagnostic(context, closeParen);
+            }
+        }
+
+        private static void ReportDiagnostic(SyntaxNodeAnalysisContext context, SyntaxToken closeParen)
+        {
+            Diagnostic diagnostic = Diagnostic.Create(
+                s_rule,
+                Location.None
+            );
+
+            context.ReportDiagnostic(diagnostic);
+        }
+
+        private static int GetAnchorColumn(string lineText)
+        {
+            for (int index = 0; index < lineText.Length; index++)
+            {
+                if (!char.IsWhiteSpace(lineText[index]))
+                {
+                    return index;
+                }
+            }
+
+            return 0;
         }
     }
 }

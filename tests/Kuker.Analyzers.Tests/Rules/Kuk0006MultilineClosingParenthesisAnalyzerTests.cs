@@ -49,7 +49,7 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
         var result = Values()
             .Where(
                 x => x > 0
-             )
+            )
             .ToArray();
         """,
         false
@@ -98,6 +98,19 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
                 3,
                 4
             )
+        );
+        """,
+        false
+    )]
+    [InlineData(
+        "NoReportOnMultilineInvocationBeforeCommaInArgumentList",
+        """
+        var result = Foo(
+            Bar(
+                1,
+                2
+            ),
+            3
         );
         """,
         false
@@ -197,6 +210,40 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
         ))
         {
         }
+        """,
+        false
+    )]
+    [InlineData(
+        "NoReportOnMultilineInvocationInIfConditionWithTrailingComment",
+        """
+        if (BoolFoo(
+            1,
+            2
+        )) // trailing comment
+        {
+        }
+        """,
+        false
+    )]
+    [InlineData(
+        "ReportOnMultilineInvocationInIfConditionWithTrailingComment",
+        """
+        if (BoolFoo(
+            1,
+            2
+          )) // trailing comment
+        {
+        }
+        """,
+        true
+    )]
+    [InlineData(
+        "NoReportWhenClosingParenthesisHasTrailingExpression",
+        """
+        var result = Foo(
+            1,
+            2
+        ) + 1;
         """,
         false
     )]
@@ -348,6 +395,41 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
         """,
         true
     )]
+    [InlineData(
+        "test1",
+        """
+        int a = 12;
+        int b = 13;
+
+        a.Equals(
+            b);
+        """,
+        true
+    )]
+    [InlineData(
+        "test2",
+        """
+        int a = 12;
+        int b = 13;
+
+                a.Equals(
+                    b
+        );
+        """,
+        true
+    )]
+    [InlineData(
+        "test3",
+        """
+        int a = 12;
+        int b = 13;
+
+        a.Equals(
+            b
+        );
+        """,
+        false
+    )]
 #pragma warning restore SA1118 // Parameter should not span multiple lines
     public async Task RunAsync(string name, string invocationCode, bool expectDiagnostic)
     {
@@ -364,6 +446,11 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
                 }
 
                 private static int Foo(params int[] args)
+                {
+                    return args.Sum();
+                }
+
+                private static int Bar(params int[] args)
                 {
                     return args.Sum();
                 }
