@@ -371,6 +371,72 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
         """, 0, 0, 0, 0
     )]
     [InlineData(
+        "NoReportOnInvocationWithCollectionExpressionArgument",
+        """
+        var result = Foo([
+            1,
+            2
+        ]);
+        """, 0, 0, 0, 0
+    )]
+    [InlineData(
+        "NoReportOnFluentInvocationWithCollectionExpressionArgument",
+        """
+        var result = Values()
+            .Select(
+                x => Foo([
+                    x,
+                    x + 1
+                ])
+            )
+            .ToArray();
+        """, 0, 0, 0, 0
+    )]
+    [InlineData(
+        "NoReportOnNestedInvocationWithCollectionExpressionArgument",
+        """
+        var result = Foo(
+            Bar([
+                1,
+                2
+            ]),
+            3
+        );
+        """, 0, 0, 0, 0
+    )]
+    [InlineData(
+        "ReportOnInvocationWithCollectionExpressionArgument",
+        """
+        var result = Foo([
+            1,
+            2]);
+        """, 11, 7, 11, 8
+    )]
+    [InlineData(
+        "ReportOnFluentInvocationWithCollectionExpressionArgument",
+        """
+        var result = Values()
+            .Select(
+                x => Foo([
+                    x,
+                    x + 1
+           ])
+            )
+            .ToArray();
+        """, 14, 5, 14, 6
+    )]
+    [InlineData(
+        "ReportOnNestedInvocationWithCollectionExpressionArgument",
+        """
+        var result = Foo(
+            Bar([
+                1,
+                2      ]),
+            3
+        );
+        """, 12, 17, 12, 18
+    )]
+    [InlineData(
         "ReportOnFluentInvocationWithBlockLambdaArgument",
         """
         var result = Values()

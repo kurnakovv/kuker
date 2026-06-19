@@ -84,20 +84,16 @@ namespace Kuker.Analyzers.Rules
                 return;
             }
 
-            string closeLineText = closeLine.ToString();
-            int closeColumnInLine = closeParen.SpanStart - closeLine.Start;
-            bool closeParenHasCodeOnTheLeft =
-                closeColumnInLine > 0 &&
-                !string.IsNullOrWhiteSpace(closeLineText.Substring(0, closeColumnInLine));
-
             string openLineText = openLine.ToString();
             int anchorColumn = GetAnchorColumn(openLineText);
             int closeColumn = closeParen.GetLocation().GetLineSpan().StartLinePosition.Character;
 
-            if (closeColumn != anchorColumn)
+            if (anchorColumn != closeColumn)
             {
                 SyntaxToken previousToken = closeParen.GetPreviousToken();
-                if (previousToken.IsKind(SyntaxKind.CloseBraceToken))
+                if (previousToken.IsKind(SyntaxKind.CloseBraceToken) ||
+                    previousToken.IsKind(SyntaxKind.CloseBracketToken)
+                )
                 {
                     int previousTokenLine = text.Lines.GetLineFromPosition(previousToken.SpanStart).LineNumber;
                     int previousTokenColumn = previousToken.GetLocation().GetLineSpan().StartLinePosition.Character;
@@ -106,6 +102,12 @@ namespace Kuker.Analyzers.Rules
                         return;
                     }
                 }
+
+                string closeLineText = closeLine.ToString();
+                int closeColumnInLine = closeParen.SpanStart - closeLine.Start;
+                bool closeParenHasCodeOnTheLeft =
+                    closeColumnInLine > 0 &&
+                    !string.IsNullOrWhiteSpace(closeLineText.Substring(0, closeColumnInLine));
 
                 int expectedLineNumber = closeParenHasCodeOnTheLeft
                     ? closeLine.LineNumber + 2
