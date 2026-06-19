@@ -325,6 +325,119 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
         """, 0, 0, 0, 0
     )]
     [InlineData(
+        "NoReportOnFluentInvocationWithBlockLambdaArgument",
+        """
+        var result = Values()
+            .Select(x =>
+            {
+                var computed = Foo(
+                    x,
+                    x + 1
+                );
+
+                return computed;
+            })
+            .ToArray();
+        """, 0, 0, 0, 0
+    )]
+    [InlineData(
+        "NoReportOnFluentInvocationWithAnonymousObjectInitializerArgument",
+        """
+        var result = Values()
+            .Select(x => new
+            {
+                Original = x,
+                Computed = Foo(
+                    x,
+                    x + 1
+                ),
+            })
+            .ToArray();
+        """, 0, 0, 0, 0
+    )]
+    [InlineData(
+        "NoReportOnInvocationWithAnonymousObjectInitializerArgument",
+        """
+        global::System.Collections.Generic.List<object> items = [];
+
+        items.Add(new
+        {
+            Value = 1,
+            Computed = Foo(
+                1,
+                2
+            ),
+        });
+        """, 0, 0, 0, 0
+    )]
+    [InlineData(
+        "ReportOnFluentInvocationWithBlockLambdaArgument",
+        """
+        var result = Values()
+            .Select(x =>
+            {
+                var computed = Foo(
+                    x,
+                    x + 1
+                );
+
+                return computed;})
+            .ToArray();
+        """, 17, 26, 17, 27
+    )]
+    [InlineData(
+        "ReportOnFluentInvocationWithAnonymousObjectInitializerArgument",
+        """
+        var result = Values()
+            .Select(x => new
+            {
+                Original = x,
+                Computed = Foo(
+                    x,
+                    x + 1
+                )})
+            .ToArray();
+        """, 16, 11, 16, 12
+    )]
+    [InlineData(
+        "ReportOnInvocationWithAnonymousObjectInitializerArgument",
+        """
+        global::System.Collections.Generic.List<object> items = [];
+
+        items.Add(new
+        {
+            Value = 1,
+            Computed = Foo(
+                1,
+                2
+            )       });
+        """, 17, 14, 17, 15
+    )]
+    [InlineData(
+        "ReportOnInvocationInBlockLambdaWhenClosingParenthesisIsOnSameLine",
+        """
+        Func<int, int> map = x =>
+        {
+            var computed = Foo(
+                x,
+                x + 1);
+
+            return computed;
+        };
+        """, 13, 14, 13, 15
+    )]
+    [InlineData(
+        "ReportOnInvocationInAnonymousObjectInitializerWhenClosingParenthesisIsOnSameLine",
+        """
+        var item = new
+        {
+            Value = Foo(
+                1,
+                2),
+        };
+        """, 13, 10, 13, 11
+    )]
+    [InlineData(
         "ReportOnNestedMultilineInvocationWhenInnerClosingParenthesisIsMisaligned",
         """
         var result = Foo(
