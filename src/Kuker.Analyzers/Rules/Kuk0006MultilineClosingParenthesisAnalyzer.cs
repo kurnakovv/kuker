@@ -96,6 +96,17 @@ namespace Kuker.Analyzers.Rules
 
             if (closeColumn != anchorColumn)
             {
+                SyntaxToken previousToken = closeParen.GetPreviousToken();
+                if (previousToken.IsKind(SyntaxKind.CloseBraceToken))
+                {
+                    int previousTokenLine = text.Lines.GetLineFromPosition(previousToken.SpanStart).LineNumber;
+                    int previousTokenColumn = previousToken.GetLocation().GetLineSpan().StartLinePosition.Character;
+                    if (previousTokenLine == closeLine.LineNumber && previousTokenColumn == anchorColumn)
+                    {
+                        return;
+                    }
+                }
+
                 int expectedLineNumber = closeParenHasCodeOnTheLeft
                     ? closeLine.LineNumber + 2
                     : closeLine.LineNumber + 1;
