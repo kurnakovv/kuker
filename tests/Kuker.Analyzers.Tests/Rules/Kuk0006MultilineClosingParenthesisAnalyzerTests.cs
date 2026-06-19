@@ -371,6 +371,52 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
         """, 0, 0, 0, 0
     )]
     [InlineData(
+        "NoReportOnInvocationWithObjectCreationArgumentAndMultipleNamedArguments1",
+        """
+        global::System.Collections.Generic.List<Item> items = [];
+
+        items.Add(new Item(
+            id: 1,
+            name: "One"
+        ));
+        """, 0, 0, 0, 0
+    )]
+    [InlineData(
+        "NoReportOnInvocationWithObjectCreationArgumentAndMultipleNamedArguments2",
+        """
+        global::System.Collections.Generic.List<Item> items = [];
+
+        items.Add(
+            new Item(
+                id: 1,
+                name: "One"
+            )
+        );
+        """, 0, 0, 0, 0
+    )]
+    [InlineData(
+        "ReportOnInvocationWithObjectCreationArgumentAndMultipleNamedArguments1",
+        """
+        global::System.Collections.Generic.List<Item> items = [];
+
+        items.Add(new Item(
+            id: 1,
+            name: "One"));
+        """, 13, 17, 13, 18
+    )]
+    [InlineData(
+        "ReportOnInvocationWithObjectCreationArgumentAndMultipleNamedArguments2",
+        """
+        global::System.Collections.Generic.List<Item> items = [];
+
+        items.Add(
+            new Item(
+                id: 1,
+                name: "One"
+            ));
+        """, 15, 6, 15, 7
+    )]
+    [InlineData(
         "NoReportOnInvocationWithCollectionExpressionArgument",
         """
         var result = Foo([
@@ -608,6 +654,18 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
                 private static int[] Values()
                 {
                     return [1, 2, 3];
+                }
+
+                private sealed class Item
+                {
+                    public Item(int id, string name)
+                    {
+                        Id = id;
+                        Name = name;
+                    }
+
+                    public int Id { get; }
+                    public string Name { get; }
                 }
             }
             """.Replace("{%invocationCode%}", "// " + name + "\n" + invocationCode, StringComparison.Ordinal);

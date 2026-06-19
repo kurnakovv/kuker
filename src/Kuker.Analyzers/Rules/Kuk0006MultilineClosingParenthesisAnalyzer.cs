@@ -92,7 +92,8 @@ namespace Kuker.Analyzers.Rules
             {
                 SyntaxToken previousToken = closeParen.GetPreviousToken();
                 if (previousToken.IsKind(SyntaxKind.CloseBraceToken) ||
-                    previousToken.IsKind(SyntaxKind.CloseBracketToken)
+                    previousToken.IsKind(SyntaxKind.CloseBracketToken) ||
+                    previousToken.IsKind(SyntaxKind.CloseParenToken)
                 )
                 {
                     int previousTokenLine = text.Lines.GetLineFromPosition(previousToken.SpanStart).LineNumber;
