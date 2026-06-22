@@ -184,13 +184,19 @@ namespace Kuker.Analyzers.Rules
 
             ITypeSymbol type = context.SemanticModel.GetTypeInfo(expression).Type;
 
+            if (type == null)
+            {
+                return false;
+            }
+
             if (!ImplementsIQueryable(type, compilationSymbolsModel))
             {
                 return false;
             }
 
-            if (type.ContainingNamespace.ToDisplayString()
-                .StartsWith("Microsoft.EntityFrameworkCore"))
+            if (type.ContainingNamespace?.ToDisplayString()
+                .StartsWith("Microsoft.EntityFrameworkCore") == true
+            )
             {
                 return true;
             }
@@ -209,10 +215,6 @@ namespace Kuker.Analyzers.Rules
             CompilationSymbolsModel compilationSymbolsModel
         )
         {
-            if (type == null)
-            {
-                return false;
-            }
             if (SymbolEqualityComparer.Default.Equals(type.OriginalDefinition, compilationSymbolsModel.IQueryableSymbol))
             {
                 return true;
