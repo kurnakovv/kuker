@@ -98,7 +98,7 @@
     <None Include="..\Kuker.CodeFixes\bin\$(Configuration)\netstandard2.0\Kuker.CodeFixes.pdb" Pack="true" PackagePath="analyzers/dotnet/cs" Condition="Exists('..\Kuker.CodeFixes\bin\$(Configuration)\netstandard2.0\Kuker.CodeFixes.pdb')" />
   </ItemGroup>
 
-  <Target Name="BuildCodeFixesAssembly" BeforeTargets="GenerateNuspec">
+  <Target Name="BuildCodeFixesAssembly" BeforeTargets="GenerateNuspec" Condition="'$(NoBuild)' != 'true'">
     <MSBuild Projects="..\Kuker.CodeFixes\Kuker.CodeFixes.csproj" Targets="Build" Properties="Configuration=$(Configuration)" />
   </Target>
 
