@@ -94,7 +94,12 @@
 
   <ItemGroup>
     <None Include="$(OutputPath)$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" />
+    <None Include="..\Kuker.CodeFixes\bin\$(Configuration)\netstandard2.0\Kuker.CodeFixes.dll" Pack="true" PackagePath="analyzers/dotnet/cs" />
   </ItemGroup>
+
+  <Target Name="BuildCodeFixesAssembly" BeforeTargets="GenerateNuspec">
+    <MSBuild Projects="..\Kuker.CodeFixes\Kuker.CodeFixes.csproj" Targets="Build" Properties="Configuration=$(Configuration)" />
+  </Target>
 
   <Target Name="PrepareReleaseNotesNugetOrg" BeforeTargets="GenerateNuspec" Condition="$(IS_DEPLOY_NUGET_ORG_ACTION) == 'true'">
     <PropertyGroup>
