@@ -95,6 +95,7 @@
   <ItemGroup>
     <None Include="$(OutputPath)$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" />
     <None Include="..\Kuker.CodeFixes\bin\$(Configuration)\netstandard2.0\Kuker.CodeFixes.dll" Pack="true" PackagePath="analyzers/dotnet/cs" />
+    <None Include="..\Kuker.CodeFixes\bin\$(Configuration)\netstandard2.0\Kuker.CodeFixes.pdb" Pack="true" PackagePath="analyzers/dotnet/cs" />
   </ItemGroup>
 
   <Target Name="BuildCodeFixesAssembly" BeforeTargets="GenerateNuspec">
