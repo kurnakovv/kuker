@@ -133,12 +133,9 @@ namespace Kuker.CodeFixes.CodeFixProviders
 
         private static string GetNewLine(SourceText text)
         {
-            foreach (TextLine line in text.Lines)
+            foreach (TextLine line in text.Lines.Where(line => line.EndIncludingLineBreak > line.End))
             {
-                if (line.EndIncludingLineBreak > line.End)
-                {
-                    return text.ToString(TextSpan.FromBounds(line.End, line.EndIncludingLineBreak));
-                }
+                return text.ToString(TextSpan.FromBounds(line.End, line.EndIncludingLineBreak));
             }
 
             return "\r\n";
