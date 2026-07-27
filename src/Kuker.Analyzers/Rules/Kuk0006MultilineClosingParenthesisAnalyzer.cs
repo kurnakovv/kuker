@@ -107,12 +107,10 @@ namespace Kuker.Analyzers.Rules
                 }
             }
 
-            bool closeParenHasCodeOnTheLeft =
-                MultilineClosingParenthesisPlacementHelper.IsCodeOnTheLeft(text, closeParen);
-
-            int expectedLineNumber = closeParenHasCodeOnTheLeft
+            int expectedLineNumber = MultilineClosingParenthesisPlacementHelper.IsCodeOnTheLeft(text, closeParen)
                 ? closeLine.LineNumber + 2
                 : closeLine.LineNumber + 1;
+
             int expectedCharacter = anchorColumn + 1;
 
             ReportDiagnostic(context, closeParen, expectedLineNumber, expectedCharacter);

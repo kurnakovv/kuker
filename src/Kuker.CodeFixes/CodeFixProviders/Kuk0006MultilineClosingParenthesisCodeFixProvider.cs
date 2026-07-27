@@ -90,9 +90,8 @@ namespace Kuker.CodeFixes.CodeFixProviders
 
             int anchorColumn = MultilineClosingParenthesisPlacementHelper.GetAnchorColumn(text, openParen);
             string indentation = new string(' ', anchorColumn);
-            bool shouldInsertLineBreak = MultilineClosingParenthesisPlacementHelper.IsCodeOnTheLeft(text, closeParen);
 
-            SyntaxTriviaList newLeadingTrivia = shouldInsertLineBreak
+            SyntaxTriviaList newLeadingTrivia = MultilineClosingParenthesisPlacementHelper.IsCodeOnTheLeft(text, closeParen)
                 ? SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(GetNewLine(text)), SyntaxFactory.Whitespace(indentation))
                 : SyntaxFactory.TriviaList(SyntaxFactory.Whitespace(indentation));
 
