@@ -129,4 +129,120 @@ public class Kuk0006MultilineClosingParenthesisCodeFixProviderTests
 
         await test.RunAsync();
     }
+
+    [Fact]
+    public async Task CodeFixPreservesTrailingCommentAfterSemicolonAsync()
+    {
+        string testCode = """
+            using System;
+            using System.Linq;
+
+            public class TestClass
+            {
+                public object M1()
+                {
+                    var result = Foo(
+                        1,
+                        2{|#0:)|}; // Keep this comment
+                    return 1;
+                }
+
+                private static int Foo(params int[] args)
+                {
+                    return args.Sum();
+                }
+            }
+            """;
+
+        string fixedCode = """
+            using System;
+            using System.Linq;
+
+            public class TestClass
+            {
+                public object M1()
+                {
+                    var result = Foo(
+                        1,
+                        2
+                    ); // Keep this comment
+                    return 1;
+                }
+
+                private static int Foo(params int[] args)
+                {
+                    return args.Sum();
+                }
+            }
+            """;
+
+        CSharpCodeFixTest<Kuk0006MultilineClosingParenthesisAnalyzer, Kuk0006MultilineClosingParenthesisCodeFixProvider, DefaultVerifier> test = new()
+        {
+            TestCode = testCode,
+            FixedCode = fixedCode,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        };
+
+        test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0006, DiagnosticSeverity.Warning).WithLocation(0));
+
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task CodeFixPreservesTrailingMemberAccessAfterClosingParenthesisAsync()
+    {
+        string testCode = """
+            using System;
+            using System.Linq;
+
+            public class TestClass
+            {
+                public object M1()
+                {
+                    var result = Foo(
+                        1,
+                        2{|#0:)|}.ToString();
+                    return result;
+                }
+
+                private static int Foo(params int[] args)
+                {
+                    return args.Sum();
+                }
+            }
+            """;
+
+        string fixedCode = """
+            using System;
+            using System.Linq;
+
+            public class TestClass
+            {
+                public object M1()
+                {
+                    var result = Foo(
+                        1,
+                        2
+                    ).ToString();
+                    return result;
+                }
+
+                private static int Foo(params int[] args)
+                {
+                    return args.Sum();
+                }
+            }
+            """;
+
+        CSharpCodeFixTest<Kuk0006MultilineClosingParenthesisAnalyzer, Kuk0006MultilineClosingParenthesisCodeFixProvider, DefaultVerifier> test = new()
+        {
+            TestCode = testCode,
+            FixedCode = fixedCode,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        };
+
+        test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0006, DiagnosticSeverity.Warning).WithLocation(0));
+
+        await test.RunAsync();
+    }
 }
