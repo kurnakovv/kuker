@@ -8,6 +8,7 @@
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <IsPackable>true</IsPackable>
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <DevelopmentDependency>true</DevelopmentDependency>
     <PackageId>kurnakovv.kuker</PackageId>
     <Authors>kurnakovv</Authors>
@@ -94,6 +95,8 @@
 
   <ItemGroup>
     <None Include="$(OutputPath)$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" />
+    <None Include="..\Kuker.Core\bin\$(Configuration)\netstandard2.0\Kuker.Core.dll" Pack="true" PackagePath="analyzers/dotnet/cs" />
+    <None Include="..\Kuker.Core\bin\$(Configuration)\netstandard2.0\Kuker.Core.pdb" Pack="true" PackagePath="analyzers/dotnet/cs" Condition="Exists('..\Kuker.Core\bin\$(Configuration)\netstandard2.0\Kuker.Core.pdb')" />
     <None Include="..\Kuker.CodeFixes\bin\$(Configuration)\netstandard2.0\Kuker.CodeFixes.dll" Pack="true" PackagePath="analyzers/dotnet/cs" />
     <None Include="..\Kuker.CodeFixes\bin\$(Configuration)\netstandard2.0\Kuker.CodeFixes.pdb" Pack="true" PackagePath="analyzers/dotnet/cs" Condition="Exists('..\Kuker.CodeFixes\bin\$(Configuration)\netstandard2.0\Kuker.CodeFixes.pdb')" />
   </ItemGroup>
