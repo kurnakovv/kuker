@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using Kuker.Analyzers.Constants;
+using Kuker.Core.Contants;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -20,14 +21,13 @@ namespace Kuker.Analyzers.Rules
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class Kuk0002FileNameMismatchAnalyzer : DiagnosticAnalyzer
     {
-        private const string DIAGNOSTIC_ID = "KUK0002";
         private static readonly LocalizableString s_title = "File name should match the type name";
         private static readonly LocalizableString s_messageFormat = "The file name should match the name of one of the public or internal types: '{0}'";
         private static readonly LocalizableString s_description =
             "The file name must match the name of at least one of the public or internal types (class, interface, struct, enum, etc.) it contains.";
 
         private static readonly DiagnosticDescriptor s_rule = new DiagnosticDescriptor(
-            DIAGNOSTIC_ID,
+            DiagnosticIdContant.KUK0002,
             s_title,
             s_messageFormat,
             CategoryConstant.ALL_RULES,

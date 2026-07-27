@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using Kuker.Analyzers.Constants;
+using Kuker.Core.Contants;
 using Kuker.Core.Formatting;
 using Kuker.Core.Models;
 using Microsoft.CodeAnalysis;
@@ -20,7 +21,6 @@ namespace Kuker.Analyzers.Rules
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class Kuk0006MultilineClosingParenthesisAnalyzer : DiagnosticAnalyzer
     {
-        private const string DIAGNOSTIC_ID = "KUK0006";
         private static readonly LocalizableString s_title = "Incorrect multiline closing parenthesis placement";
         private static readonly LocalizableString s_messageFormat =
             "Closing parenthesis of a multiline construct must be on a separate line and aligned " +
@@ -31,7 +31,7 @@ namespace Kuker.Analyzers.Rules
             "and aligned with the first non-whitespace character of the opening line.";
 
         private static readonly DiagnosticDescriptor s_rule = new DiagnosticDescriptor(
-            id: DIAGNOSTIC_ID,
+            id: DiagnosticIdContant.KUK0006,
             title: s_title,
             messageFormat: s_messageFormat,
             category: CategoryConstant.ALL_RULES,

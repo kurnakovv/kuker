@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Kuker.CodeFixes\Kuker.CodeFixes.csproj" />
+    <ProjectReference Include="..\..\src\Kuker.Core\Kuker.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>

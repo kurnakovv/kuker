@@ -1,8 +1,9 @@
-﻿// Copyright (c) 2026 kurnakovv
+// Copyright (c) 2026 kurnakovv
 // This file is licensed under the MIT License.
 // See the LICENSE file in the project root for full license information.
 
 using Kuker.Analyzers.Rules;
+using Kuker.Core.Contants;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Testing;
@@ -31,7 +32,7 @@ public class Kuk0002FileNameMismatchAnalyzerTests
             public class InvalidName { }
         ";
 
-        DiagnosticResult expected = new DiagnosticResult("KUK0002", DiagnosticSeverity.Warning)
+        DiagnosticResult expected = new DiagnosticResult(DiagnosticIdContant.KUK0002, DiagnosticSeverity.Warning)
             .WithSpan("MyClass.cs", 2, 13, 3, 9)
             .WithArguments("InvalidName");
 
@@ -52,7 +53,7 @@ public class Kuk0002FileNameMismatchAnalyzerTests
             }
         ";
 
-        DiagnosticResult expected = new DiagnosticResult("KUK0002", DiagnosticSeverity.Warning)
+        DiagnosticResult expected = new DiagnosticResult(DiagnosticIdContant.KUK0002, DiagnosticSeverity.Warning)
             .WithSpan("MyClass.cs", 2, 13, 6, 9)
             .WithArguments("InvalidName");
 
@@ -72,7 +73,7 @@ public class Kuk0002FileNameMismatchAnalyzerTests
             public class InvalidName { }
         ";
 
-        DiagnosticResult expected = new DiagnosticResult("KUK0002", DiagnosticSeverity.Warning)
+        DiagnosticResult expected = new DiagnosticResult(DiagnosticIdContant.KUK0002, DiagnosticSeverity.Warning)
             .WithSpan("MyClass.cs", 2, 13, 5, 9)
             .WithArguments("InvalidName");
 
@@ -95,7 +96,7 @@ public class Kuk0002FileNameMismatchAnalyzerTests
             }
         ";
 
-        DiagnosticResult expected = new DiagnosticResult("KUK0002", DiagnosticSeverity.Warning)
+        DiagnosticResult expected = new DiagnosticResult(DiagnosticIdContant.KUK0002, DiagnosticSeverity.Warning)
             .WithSpan("MyClass.cs", 2, 13, 8, 9)
             .WithArguments("InvalidName1, InvalidName2, InvalidName3");
 
@@ -147,35 +148,35 @@ public class Kuk0002FileNameMismatchAnalyzerTests
             {invalidRecordStructTestCode}
         ";
 
-        DiagnosticResult expectedClass = new DiagnosticResult("KUK0002", DiagnosticSeverity.Warning)
+        DiagnosticResult expectedClass = new DiagnosticResult(DiagnosticIdContant.KUK0002, DiagnosticSeverity.Warning)
             .WithSpan("MyClass.cs", 1, 1, 1, 30)
             .WithArguments("InvalidClass");
 
-        DiagnosticResult expectedInterface = new DiagnosticResult("KUK0002", DiagnosticSeverity.Warning)
+        DiagnosticResult expectedInterface = new DiagnosticResult(DiagnosticIdContant.KUK0002, DiagnosticSeverity.Warning)
             .WithSpan("IMyInterface.cs", 1, 1, 1, 39)
             .WithArguments("IInvalidInterface");
 
-        DiagnosticResult expectedEnum = new DiagnosticResult("KUK0002", DiagnosticSeverity.Warning)
+        DiagnosticResult expectedEnum = new DiagnosticResult(DiagnosticIdContant.KUK0002, DiagnosticSeverity.Warning)
             .WithSpan("MyEnum.cs", 1, 1, 1, 28)
             .WithArguments("InvalidEnum");
 
-        DiagnosticResult expectedStruct = new DiagnosticResult("KUK0002", DiagnosticSeverity.Warning)
+        DiagnosticResult expectedStruct = new DiagnosticResult(DiagnosticIdContant.KUK0002, DiagnosticSeverity.Warning)
             .WithSpan("MyStruct.cs", 1, 1, 1, 32)
             .WithArguments("InvalidStruct");
 
-        DiagnosticResult expectedRecord = new DiagnosticResult("KUK0002", DiagnosticSeverity.Warning)
+        DiagnosticResult expectedRecord = new DiagnosticResult(DiagnosticIdContant.KUK0002, DiagnosticSeverity.Warning)
             .WithSpan("MyRecord.cs", 1, 1, 1, 32)
             .WithArguments("InvalidRecord");
 
-        DiagnosticResult expectedRecordClass = new DiagnosticResult("KUK0002", DiagnosticSeverity.Warning)
+        DiagnosticResult expectedRecordClass = new DiagnosticResult(DiagnosticIdContant.KUK0002, DiagnosticSeverity.Warning)
             .WithSpan("MyRecordClass.cs", 1, 1, 1, 43)
             .WithArguments("InvalidRecordClass");
 
-        DiagnosticResult expectedRecordStruct = new DiagnosticResult("KUK0002", DiagnosticSeverity.Warning)
+        DiagnosticResult expectedRecordStruct = new DiagnosticResult(DiagnosticIdContant.KUK0002, DiagnosticSeverity.Warning)
             .WithSpan("MyRecordStruct.cs", 1, 1, 1, 45)
             .WithArguments("InvalidRecordStruct");
 
-        DiagnosticResult expectedAllTypes = new DiagnosticResult("KUK0002", DiagnosticSeverity.Warning)
+        DiagnosticResult expectedAllTypes = new DiagnosticResult(DiagnosticIdContant.KUK0002, DiagnosticSeverity.Warning)
             .WithSpan("AllTypes.cs", 2, 13, 11, 9)
             .WithArguments("InvalidClass, IInvalidInterface, InvalidEnum, InvalidStruct, InvalidRecord, InvalidRecordClass, InvalidRecordStruct");
 
@@ -264,15 +265,15 @@ public class Kuk0002FileNameMismatchAnalyzerTests
             {invalidInternalWithKeywordTestCode}
         ";
 
-        DiagnosticResult expectedInternal = new DiagnosticResult("KUK0002", DiagnosticSeverity.Warning)
+        DiagnosticResult expectedInternal = new DiagnosticResult(DiagnosticIdContant.KUK0002, DiagnosticSeverity.Warning)
             .WithSpan("MyInternalClass.cs", 1, 1, 1, 26)
             .WithArguments("InvalidInternal");
 
-        DiagnosticResult expectedInternalWithKeyword = new DiagnosticResult("KUK0002", DiagnosticSeverity.Warning)
+        DiagnosticResult expectedInternalWithKeyword = new DiagnosticResult(DiagnosticIdContant.KUK0002, DiagnosticSeverity.Warning)
             .WithSpan("MyInternalClassWithKeyword.cs", 1, 1, 1, 46)
             .WithArguments("InvalidInternalWithKeyword");
 
-        DiagnosticResult expectedAllTypes = new DiagnosticResult("KUK0002", DiagnosticSeverity.Warning)
+        DiagnosticResult expectedAllTypes = new DiagnosticResult(DiagnosticIdContant.KUK0002, DiagnosticSeverity.Warning)
             .WithSpan("AllTypes.cs", 2, 13, 6, 9)
             .WithArguments("InvalidInternal, InvalidInternalWithKeyword");
 
@@ -325,7 +326,7 @@ public class Kuk0002FileNameMismatchAnalyzerTests
             }
         ";
 
-        DiagnosticResult expected = new DiagnosticResult("KUK0002", DiagnosticSeverity.Warning)
+        DiagnosticResult expected = new DiagnosticResult(DiagnosticIdContant.KUK0002, DiagnosticSeverity.Warning)
             .WithSpan("MyClass.cs", 2, 13, 9, 9)
             .WithArguments("InvalidName");
 

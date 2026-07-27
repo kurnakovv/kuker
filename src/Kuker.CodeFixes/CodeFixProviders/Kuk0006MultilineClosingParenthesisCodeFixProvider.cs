@@ -7,6 +7,7 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Kuker.Core.Contants;
 using Kuker.Core.Formatting;
 using Kuker.Core.Models;
 using Microsoft.CodeAnalysis;
@@ -24,13 +25,12 @@ namespace Kuker.CodeFixes.CodeFixProviders
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(Kuk0006MultilineClosingParenthesisCodeFixProvider)), Shared]
     public class Kuk0006MultilineClosingParenthesisCodeFixProvider : CodeFixProvider
     {
-        private const string DIAGNOSTIC_ID = "KUK0006";
         private const string TITLE = "Align closing parenthesis";
 
         /// <summary>
         /// FixableDiagnosticIds.
         /// </summary>
-        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(DIAGNOSTIC_ID);
+        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(DiagnosticIdContant.KUK0006);
 
         /// <summary>
         /// GetFixAllProvider.

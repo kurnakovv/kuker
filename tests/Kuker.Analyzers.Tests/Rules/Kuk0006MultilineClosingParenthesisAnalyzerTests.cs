@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for full license information.
 
 using Kuker.Analyzers.Rules;
+using Kuker.Core.Contants;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Testing;
@@ -677,7 +678,7 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
 
         if (!(startLine == 0 && startColumn == 0 && endLine == 0 && endColumn == 0))
         {
-            DiagnosticResult expected = new DiagnosticResult("KUK0006", DiagnosticSeverity.Warning)
+            DiagnosticResult expected = new DiagnosticResult(DiagnosticIdContant.KUK0006, DiagnosticSeverity.Warning)
                 .WithSpan(startLine, startColumn, endLine, endColumn);
 
             test.ExpectedDiagnostics.Add(expected);

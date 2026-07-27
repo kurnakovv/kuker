@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Kuker.Analyzers.Constants;
+using Kuker.Core.Contants;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -19,7 +20,6 @@ namespace Kuker.Analyzers.Rules
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class Kuk0005TagWithCallSiteOnExecutionAnalyzer : DiagnosticAnalyzer
     {
-        private const string DIAGNOSTIC_ID = "KUK0005";
         private static readonly LocalizableString s_title = "Require .TagWithCallSite() on EF Core query execution";
         private static readonly LocalizableString s_messageFormat = "Use .TagWithCallSite() for '{0}' method";
         private static readonly LocalizableString s_description =
@@ -27,7 +27,7 @@ namespace Kuker.Analyzers.Rules
             "This helps improve observability, debugging, and tracing of generated SQL by including call site information.";
 
         private static readonly DiagnosticDescriptor s_rule = new DiagnosticDescriptor(
-            id: DIAGNOSTIC_ID,
+            id: DiagnosticIdContant.KUK0005,
             title: s_title,
             messageFormat: s_messageFormat,
             category: CategoryConstant.ALL_RULES,
