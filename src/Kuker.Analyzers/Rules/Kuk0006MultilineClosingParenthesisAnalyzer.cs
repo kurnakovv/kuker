@@ -88,32 +88,34 @@ namespace Kuker.Analyzers.Rules
             int anchorColumn = MultilineClosingParenthesisPlacementHelper.GetAnchorColumn(text, openParen);
             int closeColumn = closeParen.GetLocation().GetLineSpan().StartLinePosition.Character;
 
-            if (anchorColumn != closeColumn)
+            if (anchorColumn == closeColumn)
             {
-                SyntaxToken previousToken = closeParen.GetPreviousToken();
-                if (previousToken.IsKind(SyntaxKind.CloseBraceToken) ||
-                    previousToken.IsKind(SyntaxKind.CloseBracketToken) ||
-                    previousToken.IsKind(SyntaxKind.CloseParenToken)
-                )
-                {
-                    int previousTokenLine = text.Lines.GetLineFromPosition(previousToken.SpanStart).LineNumber;
-                    int previousTokenColumn = previousToken.GetLocation().GetLineSpan().StartLinePosition.Character;
-                    if (previousTokenLine == closeLine.LineNumber && previousTokenColumn == anchorColumn)
-                    {
-                        return;
-                    }
-                }
-
-                bool closeParenHasCodeOnTheLeft =
-                    MultilineClosingParenthesisPlacementHelper.IsCodeOnTheLeft(text, closeParen);
-
-                int expectedLineNumber = closeParenHasCodeOnTheLeft
-                    ? closeLine.LineNumber + 2
-                    : closeLine.LineNumber + 1;
-                int expectedCharacter = anchorColumn + 1;
-
-                ReportDiagnostic(context, closeParen, expectedLineNumber, expectedCharacter);
+                return;
             }
+
+            SyntaxToken previousToken = closeParen.GetPreviousToken();
+            if (previousToken.IsKind(SyntaxKind.CloseBraceToken) ||
+                previousToken.IsKind(SyntaxKind.CloseBracketToken) ||
+                previousToken.IsKind(SyntaxKind.CloseParenToken)
+            )
+            {
+                int previousTokenLine = text.Lines.GetLineFromPosition(previousToken.SpanStart).LineNumber;
+                int previousTokenColumn = previousToken.GetLocation().GetLineSpan().StartLinePosition.Character;
+                if (previousTokenLine == closeLine.LineNumber && previousTokenColumn == anchorColumn)
+                {
+                    return;
+                }
+            }
+
+            bool closeParenHasCodeOnTheLeft =
+                MultilineClosingParenthesisPlacementHelper.IsCodeOnTheLeft(text, closeParen);
+
+            int expectedLineNumber = closeParenHasCodeOnTheLeft
+                ? closeLine.LineNumber + 2
+                : closeLine.LineNumber + 1;
+            int expectedCharacter = anchorColumn + 1;
+
+            ReportDiagnostic(context, closeParen, expectedLineNumber, expectedCharacter);
         }
 
         private static void ReportDiagnostic(SyntaxNodeAnalysisContext context, SyntaxToken closeParen, int expectedLineNumber, int expectedCharacter)
