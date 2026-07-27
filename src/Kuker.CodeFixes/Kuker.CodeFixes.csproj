@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Kuker.Analyzers\Kuker.Analyzers.csproj" />
+    <ProjectReference Include="..\Kuker.Core\Kuker.Core.csproj" />
   </ItemGroup>
 
 </Project>

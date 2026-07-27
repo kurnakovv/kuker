@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using Kuker.Analyzers.Constants;
+using Kuker.Core.Formatting;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -84,8 +85,7 @@ namespace Kuker.Analyzers.Rules
                 return;
             }
 
-            string openLineText = openLine.ToString();
-            int anchorColumn = GetAnchorColumn(openLineText);
+            int anchorColumn = MultilineClosingParenthesisPlacementHelper.GetAnchorColumn(text, openParen);
             int closeColumn = closeParen.GetLocation().GetLineSpan().StartLinePosition.Character;
 
             if (anchorColumn != closeColumn)
@@ -104,11 +104,8 @@ namespace Kuker.Analyzers.Rules
                     }
                 }
 
-                string closeLineText = closeLine.ToString();
-                int closeColumnInLine = closeParen.SpanStart - closeLine.Start;
                 bool closeParenHasCodeOnTheLeft =
-                    closeColumnInLine > 0 &&
-                    !string.IsNullOrWhiteSpace(closeLineText.Substring(0, closeColumnInLine));
+                    MultilineClosingParenthesisPlacementHelper.IsCodeOnTheLeft(text, closeParen);
 
                 int expectedLineNumber = closeParenHasCodeOnTheLeft
                     ? closeLine.LineNumber + 2
@@ -129,19 +126,6 @@ namespace Kuker.Analyzers.Rules
             );
 
             context.ReportDiagnostic(diagnostic);
-        }
-
-        private static int GetAnchorColumn(string lineText)
-        {
-            for (int index = 0; index < lineText.Length; index++)
-            {
-                if (!char.IsWhiteSpace(lineText[index]))
-                {
-                    return index;
-                }
-            }
-
-            return 0;
         }
     }
 }

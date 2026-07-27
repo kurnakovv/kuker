@@ -7,6 +7,7 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Kuker.Core.Formatting;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -87,9 +88,9 @@ namespace Kuker.CodeFixes.CodeFixProviders
             SourceText text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             SyntaxToken openParen = invocation.ArgumentList.OpenParenToken;
 
-            int anchorColumn = GetAnchorColumn(text, openParen);
+            int anchorColumn = MultilineClosingParenthesisPlacementHelper.GetAnchorColumn(text, openParen);
             string indentation = new string(' ', anchorColumn);
-            bool shouldInsertLineBreak = IsCodeOnTheLeft(closeParen, text);
+            bool shouldInsertLineBreak = MultilineClosingParenthesisPlacementHelper.IsCodeOnTheLeft(text, closeParen);
 
             SyntaxTriviaList newLeadingTrivia = shouldInsertLineBreak
                 ? SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(GetNewLine(text)), SyntaxFactory.Whitespace(indentation))
@@ -99,36 +100,6 @@ namespace Kuker.CodeFixes.CodeFixProviders
             SyntaxNode newRoot = root.ReplaceToken(closeParen, newCloseParen);
 
             return document.WithSyntaxRoot(newRoot);
-        }
-
-        private static int GetAnchorColumn(SourceText text, SyntaxToken openParen)
-        {
-            TextLine openLine = text.Lines.GetLineFromPosition(openParen.SpanStart);
-            string openLineText = openLine.ToString();
-
-            for (int index = 0; index < openLineText.Length; index++)
-            {
-                if (!char.IsWhiteSpace(openLineText[index]))
-                {
-                    return index;
-                }
-            }
-
-            return 0;
-        }
-
-        private static bool IsCodeOnTheLeft(SyntaxToken closeParen, SourceText text)
-        {
-            TextLine closeLine = text.Lines.GetLineFromPosition(closeParen.SpanStart);
-            string closeLineText = closeLine.ToString();
-            int closeColumnInLine = closeParen.SpanStart - closeLine.Start;
-
-            if (closeColumnInLine <= 0)
-            {
-                return false;
-            }
-
-            return !string.IsNullOrWhiteSpace(closeLineText.Substring(0, closeColumnInLine));
         }
 
         private static string GetNewLine(SourceText text)
