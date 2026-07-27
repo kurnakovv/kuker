@@ -621,7 +621,7 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
         );
         """, 0, 0, 0, 0
     )]
-#pragma warning restore SA1118 // Parameter should not span multiple lines
+#pragma warning restore RCS0053, SA1117 // Parameter should not span multiple lines
     public async Task RunAsync(string name, string invocationCode, int startLine, int startColumn, int endLine, int endColumn)
     {
         string testCode = """
