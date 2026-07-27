@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Kuker.Core.Formatting;
+using Kuker.Core.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -88,12 +89,11 @@ namespace Kuker.CodeFixes.CodeFixProviders
             SourceText text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             SyntaxToken openParen = invocation.ArgumentList.OpenParenToken;
 
-            int anchorColumn = MultilineClosingParenthesisPlacementHelper.GetAnchorColumn(text, openParen);
-            string indentation = new string(' ', anchorColumn);
+            MultilineClosingParenthesisPlacement placement = MultilineClosingParenthesisPlacementHelper.GetPlacement(text, openParen, closeParen);
 
-            SyntaxTriviaList newLeadingTrivia = MultilineClosingParenthesisPlacementHelper.IsCodeOnTheLeft(text, closeParen)
-                ? SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(GetNewLine(text)), SyntaxFactory.Whitespace(indentation))
-                : SyntaxFactory.TriviaList(SyntaxFactory.Whitespace(indentation));
+            SyntaxTriviaList newLeadingTrivia = placement.HasCodeOnTheLeft
+                ? SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(GetNewLine(text)), SyntaxFactory.Whitespace(placement.Indentation))
+                : SyntaxFactory.TriviaList(SyntaxFactory.Whitespace(placement.Indentation));
 
             SyntaxToken newCloseParen = closeParen.WithLeadingTrivia(newLeadingTrivia);
             SyntaxNode newRoot = root.ReplaceToken(closeParen, newCloseParen);

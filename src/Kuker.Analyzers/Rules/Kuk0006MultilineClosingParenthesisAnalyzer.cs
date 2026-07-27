@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using Kuker.Analyzers.Constants;
 using Kuker.Core.Formatting;
+using Kuker.Core.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -85,10 +86,10 @@ namespace Kuker.Analyzers.Rules
                 return;
             }
 
-            int anchorColumn = MultilineClosingParenthesisPlacementHelper.GetAnchorColumn(text, openParen);
+            MultilineClosingParenthesisPlacement placement = MultilineClosingParenthesisPlacementHelper.GetPlacement(text, openParen, closeParen);
             int closeColumn = closeParen.GetLocation().GetLineSpan().StartLinePosition.Character;
 
-            if (anchorColumn == closeColumn)
+            if (placement.AnchorColumn == closeColumn)
             {
                 return;
             }
@@ -101,19 +102,13 @@ namespace Kuker.Analyzers.Rules
             {
                 int previousTokenLine = text.Lines.GetLineFromPosition(previousToken.SpanStart).LineNumber;
                 int previousTokenColumn = previousToken.GetLocation().GetLineSpan().StartLinePosition.Character;
-                if (previousTokenLine == closeLine.LineNumber && previousTokenColumn == anchorColumn)
+                if (previousTokenLine == closeLine.LineNumber && previousTokenColumn == placement.AnchorColumn)
                 {
                     return;
                 }
             }
 
-            int expectedLineNumber = MultilineClosingParenthesisPlacementHelper.IsCodeOnTheLeft(text, closeParen)
-                ? closeLine.LineNumber + 2
-                : closeLine.LineNumber + 1;
-
-            int expectedCharacter = anchorColumn + 1;
-
-            ReportDiagnostic(context, closeParen, expectedLineNumber, expectedCharacter);
+            ReportDiagnostic(context, closeParen, placement.ExpectedLineNumber, placement.ExpectedCharacter);
         }
 
         private static void ReportDiagnostic(SyntaxNodeAnalysisContext context, SyntaxToken closeParen, int expectedLineNumber, int expectedCharacter)
