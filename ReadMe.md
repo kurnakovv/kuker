@@ -84,6 +84,7 @@ dotnet_diagnostic.KUK0002.severity = warning # File name mismatch | https://gith
 dotnet_diagnostic.KUK0003.severity = warning # Min/Max (Async) and MinBy/MaxBy may throw InvalidOperationException on empty sequences | https://github.com/kurnakovv/kuker/wiki/KUK0003
 dotnet_diagnostic.KUK0004.severity = warning # Avoid primary constructor | https://github.com/kurnakovv/kuker/wiki/KUK0004
 dotnet_diagnostic.KUK0005.severity = warning # .TagWithCallSite() on EF Core query execution | https://github.com/kurnakovv/kuker/wiki/KUK0005
+dotnet_diagnostic.KUK0006.severity = warning # Incorrect multiline closing parenthesis placement | https://github.com/kurnakovv/kuker/wiki/KUK0006
 
 dotnet_diagnostic.KUK0001.excluded_methods = Foo,Bar # Optional | Ignore selected methods
 
