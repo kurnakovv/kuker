@@ -3,8 +3,8 @@
 // See the LICENSE file in the project root for full license information.
 
 using Kuker.Analyzers.Rules;
-using Kuker.Core.Contants;
 using Kuker.CodeFixes.CodeFixProviders;
+using Kuker.Core.Contants;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Testing;
