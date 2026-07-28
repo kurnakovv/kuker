@@ -23,6 +23,16 @@ public class Kuk0005TagWithCallSiteOnExecutionCodeFixProviderTests
         "var users = await _appDbContext.Users.TagWithCallSite().ToListAsync();"
     )]
     [InlineData(
+        "CodeFixAddsTagWithCallSiteAfterQueryMethod",
+        "var users = await {|#0:_appDbContext.MyQueryMethod().ToListAsync()|};",
+        "var users = await _appDbContext.MyQueryMethod().TagWithCallSite().ToListAsync();"
+    )]
+    [InlineData(
+        "CodeFixAddsTagWithCallSiteAfterTwoQueryMethods",
+        "var users = await {|#0:_appDbContext.MyQueryMethod().MySecondQueryMethod().ToListAsync()|};",
+        "var users = await _appDbContext.MyQueryMethod().MySecondQueryMethod().TagWithCallSite().ToListAsync();"
+    )]
+    [InlineData(
         "CodeFixAddsTagWithCallSiteInsideNestedAwait",
         "var users = await Task.Run(() => {|#0:_appDbContext.Users.ToListAsync()|});",
         "var users = await Task.Run(() => _appDbContext.Users.TagWithCallSite().ToListAsync());"
@@ -196,6 +206,19 @@ public class Kuk0005TagWithCallSiteOnExecutionCodeFixProviderTests
                 }
 
                 public DbSet<User> Users { get; set; }
+
+                public IQueryable<User> MyQueryMethod()
+                {
+                    return Users.Where(x => x.Id > 0);
+                }
+            }
+
+            public static class UserQueryExtensions
+            {
+                public static IQueryable<User> MySecondQueryMethod(this IQueryable<User> query)
+                {
+                    return query.Where(x => x.Id > 1);
+                }
             }
             """;
 

@@ -80,8 +80,14 @@ namespace Kuker.CodeFixes.CodeFixProviders
                 return document;
             }
 
+            SemanticModel semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            if (semanticModel == null)
+            {
+                return document;
+            }
+
             ExpressionSyntax sourceExpression = invocationMemberAccess.Expression;
-            ExpressionSyntax insertionTarget = GetInsertionTarget(sourceExpression);
+            ExpressionSyntax insertionTarget = GetInsertionTarget(sourceExpression, semanticModel, cancellationToken);
 
             bool isInlineStyle = IsInlineStyle(document, invocation.SyntaxTree);
             string insertion = BuildTagInsertion(sourceExpression, isInlineStyle);
@@ -110,17 +116,36 @@ namespace Kuker.CodeFixes.CodeFixProviders
             return ".TagWithCallSite()";
         }
 
-        private static ExpressionSyntax GetInsertionTarget(ExpressionSyntax sourceExpression)
+        private static ExpressionSyntax GetInsertionTarget(ExpressionSyntax sourceExpression, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             ExpressionSyntax current = sourceExpression;
 
             while (current is InvocationExpressionSyntax currentInvocation
-                && currentInvocation.Expression is MemberAccessExpressionSyntax currentMemberAccess)
+                && currentInvocation.Expression is MemberAccessExpressionSyntax currentMemberAccess
+                && CanUnwrapInvocation(currentInvocation, semanticModel, cancellationToken))
             {
                 current = currentMemberAccess.Expression;
             }
 
             return current;
+        }
+
+        private static bool CanUnwrapInvocation(InvocationExpressionSyntax invocation, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(invocation, cancellationToken);
+            IMethodSymbol methodSymbol = symbolInfo.Symbol as IMethodSymbol
+                ?? symbolInfo.CandidateSymbols.OfType<IMethodSymbol>().FirstOrDefault();
+
+            if (methodSymbol == null)
+            {
+                return false;
+            }
+
+            IMethodSymbol originalMethod = methodSymbol.ReducedFrom ?? methodSymbol;
+            string containingType = originalMethod.ContainingType?.ToDisplayString();
+
+            return containingType == "System.Linq.Queryable"
+                || containingType == "Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions";
         }
 
         private static bool TryGetMultilineContinuationPrefix(ExpressionSyntax sourceExpression, out string continuationPrefix)
