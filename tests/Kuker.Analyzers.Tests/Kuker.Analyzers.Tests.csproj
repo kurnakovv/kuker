@@ -9,7 +9,6 @@
 
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.4" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.XUnit" Version="1.1.2" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.11" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageReference Include="xunit" Version="2.9.3" />
@@ -21,7 +20,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Kuker.Analyzers\Kuker.Analyzers.csproj" />
-    <ProjectReference Include="..\..\src\Kuker.Core\Kuker.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
