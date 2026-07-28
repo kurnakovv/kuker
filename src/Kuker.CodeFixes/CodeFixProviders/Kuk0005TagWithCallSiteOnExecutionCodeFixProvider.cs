@@ -97,7 +97,7 @@ namespace Kuker.CodeFixes.CodeFixProviders
             AnalyzerConfigOptions options = document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
 
             return options.TryGetValue(CODE_FIX_STYLE_OPTION, out string style)
-                && string.Equals(style?.Trim(), STYLE_INLINE, StringComparison.OrdinalIgnoreCase);
+                && string.Equals(style.Trim(), STYLE_INLINE, StringComparison.OrdinalIgnoreCase);
         }
 
         private static string BuildTagInsertion(ExpressionSyntax sourceExpression, bool isInlineStyle)
