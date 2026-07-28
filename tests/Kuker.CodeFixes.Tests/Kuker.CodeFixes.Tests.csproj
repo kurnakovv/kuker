@@ -17,7 +17,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Kuker.CodeFixes\Kuker.CodeFixes.csproj" />
-    <ProjectReference Include="..\..\src\Kuker.Core\Kuker.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
