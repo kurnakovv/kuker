@@ -50,6 +50,10 @@ namespace Kuker.CodeFixes.CodeFixProviders
         {
             Diagnostic diagnostic = context.Diagnostics.First();
             SyntaxNode root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+            if (root == null)
+            {
+                return;
+            }
 
             SyntaxToken closeParen = root.FindToken(diagnostic.Location.SourceSpan.Start);
             if (!closeParen.IsKind(SyntaxKind.CloseParenToken))
@@ -60,21 +64,15 @@ namespace Kuker.CodeFixes.CodeFixProviders
             context.RegisterCodeFix(
                 CodeAction.Create(
                     title: TITLE,
-                    createChangedDocument: token => AlignClosingParenthesisAsync(context.Document, closeParen, token),
+                    createChangedDocument: token => AlignClosingParenthesisAsync(root, context.Document, closeParen, token),
                     equivalenceKey: TITLE
                 ),
                 diagnostic
             );
         }
 
-        private static async Task<Document> AlignClosingParenthesisAsync(Document document, SyntaxToken closeParen, CancellationToken cancellationToken)
+        private static async Task<Document> AlignClosingParenthesisAsync(SyntaxNode root, Document document, SyntaxToken closeParen, CancellationToken cancellationToken)
         {
-            SyntaxNode root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            if (root == null)
-            {
-                return document;
-            }
-
             InvocationExpressionSyntax invocation = closeParen.Parent?.FirstAncestorOrSelf<InvocationExpressionSyntax>();
 
             if (invocation == null)
