@@ -50,10 +50,6 @@ namespace Kuker.CodeFixes.CodeFixProviders
         {
             Diagnostic diagnostic = context.Diagnostics.First();
             SyntaxNode root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-            if (root == null)
-            {
-                return;
-            }
 
             SyntaxToken closeParen = root.FindToken(diagnostic.Location.SourceSpan.Start);
             if (!closeParen.IsKind(SyntaxKind.CloseParenToken))
