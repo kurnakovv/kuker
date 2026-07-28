@@ -13,56 +13,85 @@ namespace Kuker.CodeFixes.Tests.CodeFixProviders;
 
 public class Kuk0006MultilineClosingParenthesisCodeFixProviderTests
 {
-    [Fact]
-    public async Task CodeFixMovesClosingParenthesisToOwnLineAsync()
+#pragma warning disable RCS0053, SA1117 // Parameter should not span multiple lines
+    [Theory]
+    [InlineData(
+        "CodeFixMovesClosingParenthesisToOwnLineAsync",
+        """
+        var result = Foo(
+            1,
+            2{|#0:)|};
+        return 1;
+        """,
+        """
+        var result = Foo(
+            1,
+            2
+        );
+        return 1;
+        """
+    )]
+    [InlineData(
+        "CodeFixAlignsClosingParenthesisAsync",
+        """
+        var result = Foo(
+            1,
+            2
+          {|#0:)|};
+        return 1;
+        """,
+        """
+        var result = Foo(
+            1,
+            2
+        );
+        return 1;
+        """
+    )]
+    [InlineData(
+        "CodeFixPreservesTrailingCommentAfterSemicolonAsync",
+        """
+        var result = Foo(
+            1,
+            2{|#0:)|}; // Keep this comment
+        return 1;
+        """,
+        """
+        var result = Foo(
+            1,
+            2
+        ); // Keep this comment
+        return 1;
+        """
+    )]
+    [InlineData(
+        "CodeFixPreservesTrailingMemberAccessAfterClosingParenthesisAsync",
+        """
+        var result = Foo(
+            1,
+            2{|#0:)|}.ToString();
+        return result;
+        """,
+        """
+        var result = Foo(
+            1,
+            2
+        ).ToString();
+        return result;
+        """
+    )]
+#pragma warning restore RCS0053, SA1117 // Parameter should not span multiple lines
+    public async Task CodeFixAppliesExpectedChangeAsync(string name, string testCode, string fixedCode)
     {
-        string testCode = """
-            using System;
-            using System.Linq;
+        _ = name;
 
-            public class TestClass
-            {
-                public object M1()
-                {
-                    var result = Foo(
-                        1,
-                        2{|#0:)|};
-                    return 1;
-                }
-
-                private static int Foo(params int[] args)
-                {
-                    return args.Sum();
-                }
-            }
-            """;
-
-        string fixedCode = """
-            using System;
-            using System.Linq;
-
-            public class TestClass
-            {
-                public object M1()
-                {
-                    var result = Foo(
-                        1,
-                        2
-                    );
-                    return 1;
-                }
-
-                private static int Foo(params int[] args)
-                {
-                    return args.Sum();
-                }
-            }
-            """;
+        string wrappedTestCode = WrapCode(testCode);
+        string wrappedFixedCode = WrapCode(fixedCode);
 
         CSharpCodeFixTest<Kuk0006MultilineClosingParenthesisAnalyzer, Kuk0006MultilineClosingParenthesisCodeFixProvider, DefaultVerifier> test = new()
         {
-            TestCode = testCode,
-            FixedCode = fixedCode,
+            TestCode = wrappedTestCode,
+            FixedCode = wrappedFixedCode,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         };
 
@@ -71,10 +100,12 @@ public class Kuk0006MultilineClosingParenthesisCodeFixProviderTests
         await test.RunAsync();
     }
 
-    [Fact]
-    public async Task CodeFixAlignsClosingParenthesisAsync()
+    private static string WrapCode(string code)
     {
-        string testCode = """
+        string normalizedCode = code.ReplaceLineEndings(Environment.NewLine).Trim('\r', '\n');
+        string indentedCode = normalizedCode.Replace(Environment.NewLine, $"{Environment.NewLine}        ", StringComparison.Ordinal);
+
+        string template = """
             using System;
             using System.Linq;
 
@@ -82,11 +113,7 @@ public class Kuk0006MultilineClosingParenthesisCodeFixProviderTests
             {
                 public object M1()
                 {
-                    var result = Foo(
-                        1,
-                        2
-                      {|#0:)|};
-                    return 1;
+                    __CODE__
                 }
 
                 private static int Foo(params int[] args)
@@ -96,153 +123,6 @@ public class Kuk0006MultilineClosingParenthesisCodeFixProviderTests
             }
             """;
 
-        string fixedCode = """
-            using System;
-            using System.Linq;
-
-            public class TestClass
-            {
-                public object M1()
-                {
-                    var result = Foo(
-                        1,
-                        2
-                    );
-                    return 1;
-                }
-
-                private static int Foo(params int[] args)
-                {
-                    return args.Sum();
-                }
-            }
-            """;
-
-        CSharpCodeFixTest<Kuk0006MultilineClosingParenthesisAnalyzer, Kuk0006MultilineClosingParenthesisCodeFixProvider, DefaultVerifier> test = new()
-        {
-            TestCode = testCode,
-            FixedCode = fixedCode,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
-        };
-
-        test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0006, DiagnosticSeverity.Warning).WithLocation(0));
-
-        await test.RunAsync();
-    }
-
-    [Fact]
-    public async Task CodeFixPreservesTrailingCommentAfterSemicolonAsync()
-    {
-        string testCode = """
-            using System;
-            using System.Linq;
-
-            public class TestClass
-            {
-                public object M1()
-                {
-                    var result = Foo(
-                        1,
-                        2{|#0:)|}; // Keep this comment
-                    return 1;
-                }
-
-                private static int Foo(params int[] args)
-                {
-                    return args.Sum();
-                }
-            }
-            """;
-
-        string fixedCode = """
-            using System;
-            using System.Linq;
-
-            public class TestClass
-            {
-                public object M1()
-                {
-                    var result = Foo(
-                        1,
-                        2
-                    ); // Keep this comment
-                    return 1;
-                }
-
-                private static int Foo(params int[] args)
-                {
-                    return args.Sum();
-                }
-            }
-            """;
-
-        CSharpCodeFixTest<Kuk0006MultilineClosingParenthesisAnalyzer, Kuk0006MultilineClosingParenthesisCodeFixProvider, DefaultVerifier> test = new()
-        {
-            TestCode = testCode,
-            FixedCode = fixedCode,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
-        };
-
-        test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0006, DiagnosticSeverity.Warning).WithLocation(0));
-
-        await test.RunAsync();
-    }
-
-    [Fact]
-    public async Task CodeFixPreservesTrailingMemberAccessAfterClosingParenthesisAsync()
-    {
-        string testCode = """
-            using System;
-            using System.Linq;
-
-            public class TestClass
-            {
-                public object M1()
-                {
-                    var result = Foo(
-                        1,
-                        2{|#0:)|}.ToString();
-                    return result;
-                }
-
-                private static int Foo(params int[] args)
-                {
-                    return args.Sum();
-                }
-            }
-            """;
-
-        string fixedCode = """
-            using System;
-            using System.Linq;
-
-            public class TestClass
-            {
-                public object M1()
-                {
-                    var result = Foo(
-                        1,
-                        2
-                    ).ToString();
-                    return result;
-                }
-
-                private static int Foo(params int[] args)
-                {
-                    return args.Sum();
-                }
-            }
-            """;
-
-        CSharpCodeFixTest<Kuk0006MultilineClosingParenthesisAnalyzer, Kuk0006MultilineClosingParenthesisCodeFixProvider, DefaultVerifier> test = new()
-        {
-            TestCode = testCode,
-            FixedCode = fixedCode,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
-        };
-
-        test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0006, DiagnosticSeverity.Warning).WithLocation(0));
-
-        await test.RunAsync();
+        return template.Replace("__CODE__", indentedCode, StringComparison.Ordinal);
     }
 }
