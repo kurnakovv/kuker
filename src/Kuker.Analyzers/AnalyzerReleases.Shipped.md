@@ -23,3 +23,11 @@ Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 KUK0004 | KukerAllRules | Warning | Kuk0004AvoidPrimaryConstructorAnalyzer [Documentation](https://github.com/kurnakovv/kuker/wiki/KUK0004)
 KUK0005 | KukerAllRules | Warning | Kuk0005TagWithCallSiteOnExecutionAnalyzer [Documentation](https://github.com/kurnakovv/kuker/wiki/KUK0005)
+
+## Release 0.4.0
+
+### New Rules
+
+Rule ID | Category | Severity | Notes
+--------|----------|----------|-------
+KUK0006 | KukerAllRules | Warning | Kuk0006MultilineClosingParenthesisAnalyzer [Documentation](https://github.com/kurnakovv/kuker/wiki/KUK0006)

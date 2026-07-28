@@ -1,0 +1,128 @@
+// Copyright (c) 2026 kurnakovv
+// This file is licensed under the MIT License.
+// See the LICENSE file in the project root for full license information.
+
+using Kuker.Analyzers.Rules;
+using Kuker.CodeFixes.CodeFixProviders;
+using Kuker.Core.Contants;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Testing;
+using Microsoft.CodeAnalysis.Testing;
+
+namespace Kuker.CodeFixes.Tests.CodeFixProviders;
+
+public class Kuk0006MultilineClosingParenthesisCodeFixProviderTests
+{
+#pragma warning disable RCS0053, SA1117 // Parameter should not span multiple lines
+    [Theory]
+    [InlineData(
+        "CodeFixMovesClosingParenthesisToOwnLineAsync",
+        """
+        var result = Foo(
+            1,
+            2{|#0:)|};
+        return 1;
+        """,
+        """
+        var result = Foo(
+            1,
+            2
+        );
+        return 1;
+        """
+    )]
+    [InlineData(
+        "CodeFixAlignsClosingParenthesisAsync",
+        """
+        var result = Foo(
+            1,
+            2
+          {|#0:)|};
+        return 1;
+        """,
+        """
+        var result = Foo(
+            1,
+            2
+        );
+        return 1;
+        """
+    )]
+    [InlineData(
+        "CodeFixPreservesTrailingCommentAfterSemicolonAsync",
+        """
+        var result = Foo(
+            1,
+            2{|#0:)|}; // Keep this comment
+        return 1;
+        """,
+        """
+        var result = Foo(
+            1,
+            2
+        ); // Keep this comment
+        return 1;
+        """
+    )]
+    [InlineData(
+        "CodeFixPreservesTrailingMemberAccessAfterClosingParenthesisAsync",
+        """
+        var result = Foo(
+            1,
+            2{|#0:)|}.ToString();
+        return result;
+        """,
+        """
+        var result = Foo(
+            1,
+            2
+        ).ToString();
+        return result;
+        """
+    )]
+#pragma warning restore RCS0053, SA1117 // Parameter should not span multiple lines
+    public async Task CodeFixAppliesExpectedChangeAsync(string name, string testCode, string fixedCode)
+    {
+        _ = name;
+
+        string wrappedTestCode = WrapCode(testCode);
+        string wrappedFixedCode = WrapCode(fixedCode);
+
+        CSharpCodeFixTest<Kuk0006MultilineClosingParenthesisAnalyzer, Kuk0006MultilineClosingParenthesisCodeFixProvider, DefaultVerifier> test = new()
+        {
+            TestCode = wrappedTestCode,
+            FixedCode = wrappedFixedCode,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        };
+
+        test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0006, DiagnosticSeverity.Warning).WithLocation(0));
+
+        await test.RunAsync();
+    }
+
+    private static string WrapCode(string code)
+    {
+        string normalizedCode = code.ReplaceLineEndings(Environment.NewLine).Trim('\r', '\n');
+        string indentedCode = normalizedCode.Replace(Environment.NewLine, $"{Environment.NewLine}        ", StringComparison.Ordinal);
+
+        string template = """
+            using System;
+            using System.Linq;
+
+            public class TestClass
+            {
+                public object M1()
+                {
+                    __CODE__
+                }
+
+                private static int Foo(params int[] args)
+                {
+                    return args.Sum();
+                }
+            }
+            """;
+
+        return template.Replace("__CODE__", indentedCode, StringComparison.Ordinal);
+    }
+}

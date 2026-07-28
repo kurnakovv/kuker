@@ -1,8 +1,9 @@
-﻿// Copyright (c) 2026 kurnakovv
+// Copyright (c) 2026 kurnakovv
 // This file is licensed under the MIT License.
 // See the LICENSE file in the project root for full license information.
 
 using Kuker.Analyzers.Rules;
+using Kuker.Core.Contants;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Testing;
@@ -46,7 +47,7 @@ public class Kuk0004AvoidPrimaryConstructorAnalyzerTests
             }
 """;
 
-        DiagnosticResult expected = new DiagnosticResult("KUK0004", DiagnosticSeverity.Warning)
+        DiagnosticResult expected = new DiagnosticResult(DiagnosticIdContant.KUK0004, DiagnosticSeverity.Warning)
             .WithSpan(2, 26, 2, 38);
 
         await new CSharpAnalyzerTest<Kuk0004AvoidPrimaryConstructorAnalyzer, DefaultVerifier>
@@ -78,7 +79,7 @@ public class Kuk0004AvoidPrimaryConstructorAnalyzerTests
             }
 """;
 
-        DiagnosticResult expected = new DiagnosticResult("KUK0004", DiagnosticSeverity.Warning)
+        DiagnosticResult expected = new DiagnosticResult(DiagnosticIdContant.KUK0004, DiagnosticSeverity.Warning)
             .WithSpan(1, 27, 1, 36);
 
         await new CSharpAnalyzerTest<Kuk0004AvoidPrimaryConstructorAnalyzer, DefaultVerifier>

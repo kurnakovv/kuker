@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -8,6 +8,7 @@
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <IsPackable>true</IsPackable>
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <DevelopmentDependency>true</DevelopmentDependency>
     <PackageId>kurnakovv.kuker</PackageId>
     <Authors>kurnakovv</Authors>
@@ -50,9 +51,7 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" />
   </ItemGroup>
 
-  <ItemGroup
-    Condition="'$(IS_DEPLOY_NUGET_ORG_ACTION_PREVIEW)' != 'true' And '$(IS_DEPLOY_NUGET_GH_PACKAGE_ACTION_PREVIEW)' != 'true' And '$(IS_DEPLOY_NUGET_FOR_PR)' != 'true'"
-  >
+  <ItemGroup Condition="'$(IS_DEPLOY_NUGET_ORG_ACTION_PREVIEW)' != 'true' And '$(IS_DEPLOY_NUGET_GH_PACKAGE_ACTION_PREVIEW)' != 'true' And '$(IS_DEPLOY_NUGET_FOR_PR)' != 'true'">
     <PackageReference Include="MinVer" Version="6.1.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -95,8 +94,20 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="$(OutputPath)$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" />
+    <None Include="$(OutputPath)$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Condition="Exists('$(OutputPath)$(AssemblyName).dll')" />
+    <None Include="..\Kuker.Core\bin\$(Configuration)\netstandard2.0\Kuker.Core.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Condition="Exists('..\Kuker.Core\bin\$(Configuration)\netstandard2.0\Kuker.Core.dll')" />
+    <None Include="..\Kuker.Core\bin\$(Configuration)\netstandard2.0\Kuker.Core.pdb" Pack="true" PackagePath="analyzers/dotnet/cs" Condition="Exists('..\Kuker.Core\bin\$(Configuration)\netstandard2.0\Kuker.Core.pdb')" />
+    <None Include="..\Kuker.CodeFixes\bin\$(Configuration)\netstandard2.0\Kuker.CodeFixes.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Condition="Exists('..\Kuker.CodeFixes\bin\$(Configuration)\netstandard2.0\Kuker.CodeFixes.dll')" />
+    <None Include="..\Kuker.CodeFixes\bin\$(Configuration)\netstandard2.0\Kuker.CodeFixes.pdb" Pack="true" PackagePath="analyzers/dotnet/cs" Condition="Exists('..\Kuker.CodeFixes\bin\$(Configuration)\netstandard2.0\Kuker.CodeFixes.pdb')" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Kuker.Core\Kuker.Core.csproj" />
+  </ItemGroup>
+
+  <Target Name="BuildCodeFixesAssembly" BeforeTargets="GenerateNuspec" Condition="'$(NoBuild)' != 'true'">
+    <MSBuild Projects="..\Kuker.CodeFixes\Kuker.CodeFixes.csproj" Targets="Build" Properties="Configuration=$(Configuration)" />
+  </Target>
 
   <Target Name="PrepareReleaseNotesNugetOrg" BeforeTargets="GenerateNuspec" Condition="$(IS_DEPLOY_NUGET_ORG_ACTION) == 'true'">
     <PropertyGroup>
