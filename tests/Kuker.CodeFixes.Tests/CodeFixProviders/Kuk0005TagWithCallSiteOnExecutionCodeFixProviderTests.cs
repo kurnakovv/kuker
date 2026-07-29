@@ -73,6 +73,18 @@ public class Kuk0005TagWithCallSiteOnExecutionCodeFixProviderTests
             .FirstOrDefaultAsync();
         """
     )]
+    [InlineData(
+        "CodeFixAddsTagWithCallSiteForMultilineWhereArgument",
+        """
+        var users = await {|#0:_appDbContext.Users.Where(
+            x => x.Id > 0).ToListAsync()|};
+        """,
+        """
+        var users = await _appDbContext.Users
+            .TagWithCallSite().Where(
+            x => x.Id > 0).ToListAsync();
+        """
+    )]
     public async Task CodeFixAppliesExpectedChangeAsync(string name, string testCode, string fixedCode)
     {
         _ = name;
