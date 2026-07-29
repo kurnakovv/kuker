@@ -130,6 +130,19 @@ public class Kuk0005TagWithCallSiteOnExecutionCodeFixProviderTests
             .FirstOrDefaultAsync();
         """
     )]
+    [InlineData(
+        "CodeFixAppliesNewlineStyleForSplitSourceAndExecution",
+        "newline",
+        """
+        var user = await {|#0:_appDbContext.Users
+            .FirstOrDefaultAsync(x => x.Id > 0)|};
+        """,
+        """
+        var user = await _appDbContext.Users
+            .TagWithCallSite()
+            .FirstOrDefaultAsync(x => x.Id > 0);
+        """
+    )]
     public async Task CodeFixAppliesConfiguredStyleFromEditorConfigAsync(string name, string codeFixStyle, string testCode, string fixedCode)
     {
         _ = name;

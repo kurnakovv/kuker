@@ -90,7 +90,7 @@ namespace Kuker.CodeFixes.CodeFixProviders
             ExpressionSyntax insertionTarget = GetInsertionTarget(sourceExpression, semanticModel, cancellationToken);
 
             bool isInlineStyle = IsInlineStyle(document, invocation.SyntaxTree);
-            string insertion = BuildTagInsertion(sourceExpression, isInlineStyle);
+            string insertion = BuildTagInsertion(sourceExpression, insertionTarget, isInlineStyle);
 
             SourceText sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             TextChange change = new TextChange(new TextSpan(insertionTarget.Span.End, 0), insertion);
@@ -106,9 +106,9 @@ namespace Kuker.CodeFixes.CodeFixProviders
                 && string.Equals(style.Trim(), STYLE_INLINE, StringComparison.OrdinalIgnoreCase);
         }
 
-        private static string BuildTagInsertion(ExpressionSyntax sourceExpression, bool isInlineStyle)
+        private static string BuildTagInsertion(ExpressionSyntax sourceExpression, ExpressionSyntax insertionTarget, bool isInlineStyle)
         {
-            if (!isInlineStyle && TryGetMultilineContinuationPrefix(sourceExpression, out string continuationPrefix))
+            if (!isInlineStyle && TryGetMultilineContinuationPrefix(insertionTarget, sourceExpression, out string continuationPrefix))
             {
                 return continuationPrefix + ".TagWithCallSite()";
             }
@@ -148,8 +148,32 @@ namespace Kuker.CodeFixes.CodeFixProviders
                 || containingType == "Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions";
         }
 
-        private static bool TryGetMultilineContinuationPrefix(ExpressionSyntax sourceExpression, out string continuationPrefix)
+        private static bool TryGetMultilineContinuationPrefix(ExpressionSyntax insertionTarget, ExpressionSyntax sourceExpression, out string continuationPrefix)
         {
+            if (insertionTarget.Parent is MemberAccessExpressionSyntax nextMemberAccess
+                && nextMemberAccess.Expression == insertionTarget)
+            {
+                string parentLeadingTrivia = nextMemberAccess.OperatorToken.LeadingTrivia.ToFullString();
+                if (parentLeadingTrivia.IndexOf('\n') >= 0)
+                {
+                    continuationPrefix = parentLeadingTrivia;
+                    return true;
+                }
+
+                string trailingTrivia = insertionTarget.GetTrailingTrivia().ToFullString();
+                int trailingNewLineIndex = trailingTrivia.LastIndexOf('\n');
+                if (trailingNewLineIndex >= 0)
+                {
+                    int trailingLineBreakStart = trailingNewLineIndex > 0 && trailingTrivia[trailingNewLineIndex - 1] == '\r'
+                        ? trailingNewLineIndex - 1
+                        : trailingNewLineIndex;
+
+                    string trailingLineBreak = trailingTrivia.Substring(trailingLineBreakStart, trailingNewLineIndex - trailingLineBreakStart + 1);
+                    continuationPrefix = trailingLineBreak + parentLeadingTrivia;
+                    return true;
+                }
+            }
+
             string sourceText = sourceExpression.ToFullString();
             int newLineIndex = sourceText.IndexOf('\n');
             if (newLineIndex < 0)
