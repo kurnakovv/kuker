@@ -85,6 +85,47 @@ public class Kuk0005TagWithCallSiteOnExecutionCodeFixProviderTests
             x => x.Id > 0).ToListAsync();
         """
     )]
+    [InlineData(
+        "CodeFixAddsTagWithCallSiteBeforeAsNoTracking",
+        "var users = await {|#0:_appDbContext.Users.AsNoTracking().ToListAsync()|};",
+        "var users = await _appDbContext.Users.TagWithCallSite().AsNoTracking().ToListAsync();"
+    )]
+    [InlineData(
+        "CodeFixAddsTagWithCallSiteWhenConfigureAwaitUsed",
+        "var users = await {|#0:_appDbContext.Users.ToListAsync()|}.ConfigureAwait(false);",
+        "var users = await _appDbContext.Users.TagWithCallSite().ToListAsync().ConfigureAwait(false);"
+    )]
+    [InlineData(
+        "CodeFixAddsTagWithCallSiteForToListAsyncWithCancellationToken",
+        "var users = await {|#0:_appDbContext.Users.ToListAsync(default)|};",
+        "var users = await _appDbContext.Users.TagWithCallSite().ToListAsync(default);"
+    )]
+    [InlineData(
+        "CodeFixAddsTagWithCallSiteForFirstOrDefaultAsyncWithPredicateAndCancellationToken",
+        "var user = await {|#0:_appDbContext.Users.FirstOrDefaultAsync(x => x.Id > 0, default)|};",
+        "var user = await _appDbContext.Users.TagWithCallSite().FirstOrDefaultAsync(x => x.Id > 0, default);"
+    )]
+    [InlineData(
+        "CodeFixAddsTagWithCallSiteForConditionalSourceExpression",
+        "var users = await {|#0:(true ? _appDbContext.Users : _appDbContext.Users.Where(x => x.Id > 0)).ToListAsync()|};",
+        "var users = await (true ? _appDbContext.Users : _appDbContext.Users.Where(x => x.Id > 0)).TagWithCallSite().ToListAsync();"
+    )]
+    [InlineData(
+        "CodeFixPreservesCommentTriviaInMultilineChain",
+        """
+        var users = await {|#0:_appDbContext.Users
+            // keep comment
+            .Where(x => x.Id > 0)
+            .ToListAsync()|};
+        """,
+        """
+        var users = await _appDbContext.Users
+            .TagWithCallSite()
+            // keep comment
+            .Where(x => x.Id > 0)
+            .ToListAsync();
+        """
+    )]
     public async Task CodeFixAppliesExpectedChangeAsync(string name, string testCode, string fixedCode)
     {
         _ = name;
@@ -98,6 +139,39 @@ public class Kuk0005TagWithCallSiteOnExecutionCodeFixProviderTests
         };
 
         test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0005, DiagnosticSeverity.Warning).WithLocation(0));
+
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task CodeFixFixAllInDocumentAppliesToAllDiagnosticsAsync()
+    {
+        string testCode = WrapCode(
+            """
+            var users = await {|#0:_appDbContext.Users.ToListAsync()|};
+            var userId = await {|#1:_appDbContext.Users.Where(x => x.Id > 0).Select(x => x.Id).FirstOrDefaultAsync()|};
+            """
+        );
+
+        string fixedCode = WrapCode(
+            """
+            var users = await _appDbContext.Users.TagWithCallSite().ToListAsync();
+            var userId = await _appDbContext.Users.TagWithCallSite().Where(x => x.Id > 0).Select(x => x.Id).FirstOrDefaultAsync();
+            """
+        );
+
+        CSharpCodeFixTest<Kuk0005TagWithCallSiteOnExecutionAnalyzer, Kuk0005TagWithCallSiteOnExecutionCodeFixProvider, DefaultVerifier> test = new()
+        {
+            TestCode = testCode,
+            FixedCode = fixedCode,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+            CodeActionEquivalenceKey = "Add .TagWithCallSite()",
+            NumberOfFixAllIterations = 1,
+            TestState = { AdditionalReferences = { _portableExecutableReference }, },
+        };
+
+        test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0005, DiagnosticSeverity.Warning).WithLocation(0));
+        test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0005, DiagnosticSeverity.Warning).WithLocation(1));
 
         await test.RunAsync();
     }
