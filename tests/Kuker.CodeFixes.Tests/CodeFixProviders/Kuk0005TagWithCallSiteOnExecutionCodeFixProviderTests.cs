@@ -170,6 +170,37 @@ public class Kuk0005TagWithCallSiteOnExecutionCodeFixProviderTests
         await test.RunAsync();
     }
 
+    [Theory]
+    [InlineData("foobar")]
+    [InlineData("INVALID")]
+    public async Task CodeFixDoesNotApplyWhenStyleOptionIsInvalidAsync(string invalidStyle)
+    {
+        string testCode = WrapCode("var users = await {|#0:_appDbContext.Users.ToListAsync()|};");
+
+        CSharpCodeFixTest<Kuk0005TagWithCallSiteOnExecutionAnalyzer, Kuk0005TagWithCallSiteOnExecutionCodeFixProvider, DefaultVerifier> test = new()
+        {
+            TestCode = testCode,
+            FixedCode = testCode,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+            TestState = { AdditionalReferences = { _portableExecutableReference }, },
+        };
+
+        test.TestState.AnalyzerConfigFiles.Add((
+            "/.editorconfig",
+            $"""
+            root = true
+
+            [*.cs]
+            dotnet_diagnostic.KUK0005.code_fix_style = {invalidStyle}
+            """
+        ));
+
+        test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0005, DiagnosticSeverity.Warning).WithLocation(0));
+        test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0005, DiagnosticSeverity.Warning).WithLocation(0).WithArguments(invalidStyle));
+
+        await test.RunAsync();
+    }
+
     private static string WrapCode(string code)
     {
         string normalizedCode = code.ReplaceLineEndings(Environment.NewLine).Trim('\r', '\n');

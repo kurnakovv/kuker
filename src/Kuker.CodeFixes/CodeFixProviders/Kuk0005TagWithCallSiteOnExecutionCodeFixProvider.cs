@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Kuker.Core.Contants;
+using Kuker.Core.Options;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -24,9 +25,7 @@ namespace Kuker.CodeFixes.CodeFixProviders
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(Kuk0005TagWithCallSiteOnExecutionCodeFixProvider)), Shared]
     public class Kuk0005TagWithCallSiteOnExecutionCodeFixProvider : CodeFixProvider
     {
-        private const string TITLE = "Add TagWithCallSite()";
-        private const string CODE_FIX_STYLE_OPTION = "dotnet_diagnostic.KUK0005.code_fix_style";
-        private const string STYLE_INLINE = "inline";
+        private const string TITLE = "Add .TagWithCallSite()";
 
         /// <summary>
         /// FixableDiagnosticIds.
@@ -61,17 +60,29 @@ namespace Kuker.CodeFixes.CodeFixProviders
                 return;
             }
 
+            AnalyzerConfigOptions configOptions = context.Document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(invocation.SyntaxTree);
+            if (configOptions.TryGetValue(Kuk0005CodeFixStyleOption.KEY, out string configValue)
+                && !Kuk0005CodeFixStyleOption.IsValid(configValue))
+            {
+                return;
+            }
+
             context.RegisterCodeFix(
                 CodeAction.Create(
                     title: TITLE,
-                    createChangedDocument: token => AddTagWithCallSiteAsync(context.Document, invocation, token),
+                    createChangedDocument: token => AddTagWithCallSiteAsync(context.Document, invocation, configValue, token),
                     equivalenceKey: TITLE
                 ),
                 diagnostic
             );
         }
 
-        private static async Task<Document> AddTagWithCallSiteAsync(Document document, InvocationExpressionSyntax invocation, CancellationToken cancellationToken)
+        private static async Task<Document> AddTagWithCallSiteAsync(
+            Document document,
+            InvocationExpressionSyntax invocation,
+            string configValue,
+            CancellationToken cancellationToken
+        )
         {
             if (!(invocation.Expression is MemberAccessExpressionSyntax invocationMemberAccess))
             {
@@ -87,8 +98,7 @@ namespace Kuker.CodeFixes.CodeFixProviders
             ExpressionSyntax sourceExpression = invocationMemberAccess.Expression;
             ExpressionSyntax insertionTarget = GetInsertionTarget(sourceExpression, semanticModel, cancellationToken);
 
-            bool isInlineStyle = IsInlineStyle(document, invocation.SyntaxTree);
-            string insertion = BuildTagInsertion(sourceExpression, insertionTarget, isInlineStyle);
+            string insertion = BuildTagInsertion(sourceExpression, insertionTarget, configValue);
 
             SourceText sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             TextChange change = new TextChange(new TextSpan(insertionTarget.Span.End, 0), insertion);
@@ -96,17 +106,14 @@ namespace Kuker.CodeFixes.CodeFixProviders
             return document.WithText(sourceText.WithChanges(change));
         }
 
-        private static bool IsInlineStyle(Document document, SyntaxTree syntaxTree)
+        private static string BuildTagInsertion(
+            ExpressionSyntax sourceExpression,
+            ExpressionSyntax insertionTarget,
+            string configValue
+        )
         {
-            AnalyzerConfigOptions options = document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
-
-            return options.TryGetValue(CODE_FIX_STYLE_OPTION, out string style)
-                && string.Equals(style.Trim(), STYLE_INLINE, StringComparison.OrdinalIgnoreCase);
-        }
-
-        private static string BuildTagInsertion(ExpressionSyntax sourceExpression, ExpressionSyntax insertionTarget, bool isInlineStyle)
-        {
-            if (!isInlineStyle && TryGetMultilineContinuationPrefix(insertionTarget, sourceExpression, out string continuationPrefix))
+            if (!string.Equals(configValue.Trim(), Kuk0005CodeFixStyleOption.INLINE, StringComparison.OrdinalIgnoreCase)
+                && TryGetMultilineContinuationPrefix(insertionTarget, sourceExpression, out string continuationPrefix))
             {
                 return continuationPrefix + ".TagWithCallSite()";
             }
