@@ -64,17 +64,15 @@ namespace Kuker.CodeFixes.CodeFixProviders
             context.RegisterCodeFix(
                 CodeAction.Create(
                     title: TITLE,
-                    createChangedDocument: token => AddTagWithCallSiteAsync(context.Document, root, invocation, token),
+                    createChangedDocument: token => AddTagWithCallSiteAsync(context.Document, invocation, token),
                     equivalenceKey: TITLE
                 ),
                 diagnostic
             );
         }
 
-        private static async Task<Document> AddTagWithCallSiteAsync(Document document, SyntaxNode root, InvocationExpressionSyntax invocation, CancellationToken cancellationToken)
+        private static async Task<Document> AddTagWithCallSiteAsync(Document document, InvocationExpressionSyntax invocation, CancellationToken cancellationToken)
         {
-            _ = root;
-
             if (!(invocation.Expression is MemberAccessExpressionSyntax invocationMemberAccess))
             {
                 return document;
