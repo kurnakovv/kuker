@@ -112,7 +112,7 @@ namespace Kuker.CodeFixes.CodeFixProviders
             string configValue
         )
         {
-            if (!string.Equals(configValue.Trim(), Kuk0005CodeFixStyleOption.INLINE, StringComparison.OrdinalIgnoreCase)
+            if (!string.Equals(configValue?.Trim(), Kuk0005CodeFixStyleOption.INLINE, StringComparison.OrdinalIgnoreCase)
                 && TryGetMultilineContinuationPrefix(insertionTarget, sourceExpression, out string continuationPrefix))
             {
                 return continuationPrefix + ".TagWithCallSite()";
