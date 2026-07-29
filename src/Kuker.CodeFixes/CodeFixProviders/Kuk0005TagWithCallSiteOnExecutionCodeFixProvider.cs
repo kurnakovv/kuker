@@ -161,7 +161,12 @@ namespace Kuker.CodeFixes.CodeFixProviders
                 string parentLeadingTrivia = nextMemberAccess.OperatorToken.LeadingTrivia.ToFullString();
                 if (parentLeadingTrivia.IndexOf('\n') >= 0)
                 {
-                    continuationPrefix = parentLeadingTrivia;
+                    int parentNewLineIndex = parentLeadingTrivia.LastIndexOf('\n');
+                    int parentLineBreakStart = parentNewLineIndex > 0 && parentLeadingTrivia[parentNewLineIndex - 1] == '\r'
+                        ? parentNewLineIndex - 1
+                        : parentNewLineIndex;
+
+                    continuationPrefix = parentLeadingTrivia.Substring(parentLineBreakStart);
                     return true;
                 }
 

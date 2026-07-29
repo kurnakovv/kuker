@@ -33,7 +33,12 @@ public class Kuk0005TagWithCallSiteOnExecutionCodeFixProviderTests
         "var users = await _appDbContext.MyQueryMethod().MySecondQueryMethod().TagWithCallSite().ToListAsync();"
     )]
     [InlineData(
-        "CodeFixAddsTagWithCallSiteInsideNestedAwait",
+        "CodeFixAddsTagWithCallSiteAfterCustomExtensionBoundary",
+        "var users = await {|#0:_appDbContext.Users.Where(x => x.Id > 0).MySecondQueryMethod().ToListAsync()|};",
+        "var users = await _appDbContext.Users.Where(x => x.Id > 0).MySecondQueryMethod().TagWithCallSite().ToListAsync();"
+    )]
+    [InlineData(
+        "CodeFixAddsTagWithCallSiteInsideNestedAwait", 
         "var users = await Task.Run(() => {|#0:_appDbContext.Users.ToListAsync()|});",
         "var users = await Task.Run(() => _appDbContext.Users.TagWithCallSite().ToListAsync());"
     )]
@@ -176,9 +181,49 @@ public class Kuk0005TagWithCallSiteOnExecutionCodeFixProviderTests
         await test.RunAsync();
     }
 
+    [Fact]
+    public async Task CodeFixFixAllInDocumentAppliesToMixedChainShapesAsync()
+    {
+        string testCode = WrapCode(
+            """
+            var users = await {|#0:_appDbContext.Users.ToListAsync()|};
+            var trackedUsers = await {|#1:_appDbContext.Users.AsNoTracking().ToListAsync()|};
+            var conditionalUsers = await {|#2:(true ? _appDbContext.Users : _appDbContext.Users.Where(x => x.Id > 0)).ToListAsync()|};
+            var branchUsers = true ? await {|#3:_appDbContext.Users.ToListAsync()|} : await {|#4:_appDbContext.Users.Where(x => x.Id > 0).ToListAsync()|};
+            """
+        );
+
+        string fixedCode = WrapCode(
+            """
+            var users = await _appDbContext.Users.TagWithCallSite().ToListAsync();
+            var trackedUsers = await _appDbContext.Users.TagWithCallSite().AsNoTracking().ToListAsync();
+            var conditionalUsers = await (true ? _appDbContext.Users : _appDbContext.Users.Where(x => x.Id > 0)).TagWithCallSite().ToListAsync();
+            var branchUsers = true ? await _appDbContext.Users.TagWithCallSite().ToListAsync() : await _appDbContext.Users.TagWithCallSite().Where(x => x.Id > 0).ToListAsync();
+            """
+        );
+
+        CSharpCodeFixTest<Kuk0005TagWithCallSiteOnExecutionAnalyzer, Kuk0005TagWithCallSiteOnExecutionCodeFixProvider, DefaultVerifier> test = new()
+        {
+            TestCode = testCode,
+            FixedCode = fixedCode,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+            CodeActionEquivalenceKey = "Add .TagWithCallSite()",
+            NumberOfFixAllIterations = 1,
+            TestState = { AdditionalReferences = { _portableExecutableReference }, },
+        };
+
+        test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0005, DiagnosticSeverity.Warning).WithLocation(0));
+        test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0005, DiagnosticSeverity.Warning).WithLocation(1));
+        test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0005, DiagnosticSeverity.Warning).WithLocation(2));
+        test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0005, DiagnosticSeverity.Warning).WithLocation(3));
+        test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0005, DiagnosticSeverity.Warning).WithLocation(4));
+
+        await test.RunAsync();
+    }
+
     [Theory]
     [InlineData(
-        "CodeFixAppliesInlineStyleFromEditorConfig",
+        "CodeFixAppliesInlineStyleFromEditorConfig", 
         "inline",
         """
         var userId = await {|#0:_appDbContext.Users
