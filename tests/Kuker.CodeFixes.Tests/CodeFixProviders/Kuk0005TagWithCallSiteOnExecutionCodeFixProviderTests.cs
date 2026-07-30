@@ -38,7 +38,7 @@ public class Kuk0005TagWithCallSiteOnExecutionCodeFixProviderTests
         "var users = await _appDbContext.Users.Where(x => x.Id > 0).MySecondQueryMethod().TagWithCallSite().ToListAsync();"
     )]
     [InlineData(
-        "CodeFixAddsTagWithCallSiteInsideNestedAwait", 
+        "CodeFixAddsTagWithCallSiteInsideNestedAwait",
         "var users = await Task.Run(() => {|#0:_appDbContext.Users.ToListAsync()|});",
         "var users = await Task.Run(() => _appDbContext.Users.TagWithCallSite().ToListAsync());"
     )]
@@ -223,7 +223,7 @@ public class Kuk0005TagWithCallSiteOnExecutionCodeFixProviderTests
 
     [Theory]
     [InlineData(
-        "CodeFixAppliesInlineStyleFromEditorConfig", 
+        "CodeFixAppliesInlineStyleFromEditorConfig",
         "inline",
         """
         var userId = await {|#0:_appDbContext.Users
