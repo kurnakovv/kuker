@@ -17,9 +17,9 @@ What version are you using? For example: `v0.2.1`.
 ## Minimal reproducible example
 Provide a small code sample to help us debug.
 
-```csharp
-Console.WriteLine("This fails");
-```
+~~~csharp
+// <paste minimal repro here>
+~~~
 
 ## Expect to see
 Please enter what you expect to see after following the instructions.
