@@ -8,6 +8,8 @@ labels: security
 ## Description
 Please enter an explicit description of your issue.
 
+> If this report contains sensitive details (secrets, exploit steps, etc.), please avoid posting them publicly. See docs/SECURITY.md for preferred reporting options.
+
 ## Line(s)
 Please provide the code or link to the code that has the problem.
 
