@@ -336,7 +336,7 @@ namespace Kuker.Analyzers.Rules
                     ExpressionSyntax condition = statement.Condition;
 
                     if (IsNegativeCheck(condition, collectionExpression, semanticModel) &&
-                        IsExitStatement(statement.Statement)
+                        IsExitStatement(statement.Statement, invocation)
                     )
                     {
                         return true;
@@ -490,15 +490,58 @@ namespace Kuker.Analyzers.Rules
             return false;
         }
 
-        private static bool IsExitStatement(StatementSyntax statement)
+        private static bool IsExitStatement(
+            StatementSyntax statement,
+            InvocationExpressionSyntax invocation
+        )
         {
             if (statement is BlockSyntax block)
             {
-                return block.Statements.Any(IsExitStatement);
+                return block.Statements.Any(x => IsExitStatement(x, invocation));
             }
 
-            return statement is ReturnStatementSyntax ||
-                   statement is ThrowStatementSyntax;
+            if (statement is ReturnStatementSyntax ||
+                statement is ThrowStatementSyntax
+            )
+            {
+                return true;
+            }
+
+            if (statement is ContinueStatementSyntax continueStatement)
+            {
+                StatementSyntax containingLoop = continueStatement
+                    .Ancestors()
+                    .OfType<StatementSyntax>()
+                    .FirstOrDefault(IsLoopStatement);
+
+                return containingLoop?.Span.Contains(invocation.Span) == true;
+            }
+
+            if (statement is BreakStatementSyntax breakStatement)
+            {
+                StatementSyntax breakTarget = breakStatement
+                    .Ancestors()
+                    .OfType<StatementSyntax>()
+                    .FirstOrDefault(IsBreakableStatement);
+
+                return IsLoopStatement(breakTarget) && breakTarget?.Span.Contains(invocation.Span) == true;
+            }
+
+            return false;
+        }
+
+        private static bool IsLoopStatement(StatementSyntax statement)
+        {
+            return statement is WhileStatementSyntax ||
+                   statement is DoStatementSyntax ||
+                   statement is ForStatementSyntax ||
+                   statement is CommonForEachStatementSyntax;
+        }
+
+        private static bool IsBreakableStatement(StatementSyntax statement)
+        {
+            return IsLoopStatement(statement) ||
+                   statement is SwitchStatementSyntax;
         }
 
         private static bool IsCountAccess(
