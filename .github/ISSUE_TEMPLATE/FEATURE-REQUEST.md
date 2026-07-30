@@ -11,9 +11,9 @@ Please enter an explicit description of your issue.
 ## Minimal reproducible example
 Provide a small code sample to help us debug.
 
-```csharp
-Console.WriteLine("This fails");
-```
+~~~csharp
+// <paste minimal repro here>
+~~~
 
 ## Expect to see
 Please enter what you expect to see.
