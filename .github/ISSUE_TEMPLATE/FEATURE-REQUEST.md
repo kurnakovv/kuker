@@ -19,7 +19,7 @@ Console.WriteLine("This fails");
 Please enter what you expect to see.
 
 ## For what
-Please enter why did you create this issue.
+Please explain why you created this issue.
 
 ## AI usage
 - [ ] Did not use AI when creating this issue
