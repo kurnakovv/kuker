@@ -172,7 +172,7 @@ namespace Kuker.Analyzers.Rules
                 Diagnostic configDiagnostic = Diagnostic.Create(
                     s_invalidConfigRule,
                     invocation.GetLocation(),
-                    configValue
+                    configValue.Trim()
                 );
 
                 context.ReportDiagnostic(configDiagnostic);

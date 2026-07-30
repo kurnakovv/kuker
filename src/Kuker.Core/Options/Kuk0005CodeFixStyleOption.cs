@@ -34,7 +34,7 @@ namespace Kuker.Core.Options
         /// <returns><see langword="true"/> if <paramref name="value"/> is valid; otherwise <see langword="false"/>.</returns>
         public static bool IsValid(string value)
         {
-            if (string.IsNullOrEmpty(value))
+            if (string.IsNullOrWhiteSpace(value))
             {
                 return true;
             }
