@@ -87,6 +87,7 @@ dotnet_diagnostic.KUK0005.severity = warning # .TagWithCallSite() on EF Core que
 dotnet_diagnostic.KUK0006.severity = warning # Incorrect multiline closing parenthesis placement | https://github.com/kurnakovv/kuker/wiki/KUK0006
 
 dotnet_diagnostic.KUK0001.excluded_methods = Foo,Bar # Optional | Ignore selected methods
+dotnet_diagnostic.KUK0005.code_fix_style = newline # "newline" keeps the query chain formatting; "inline" puts .TagWithCallSite() on the same line
 
 # ...
 ```

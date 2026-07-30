@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Kuker.Analyzers.Constants;
 using Kuker.Core.Contants;
+using Kuker.Core.Options;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -34,6 +35,21 @@ namespace Kuker.Analyzers.Rules
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: s_description,
+            helpLinkUri: "https://github.com/kurnakovv/kuker/wiki/KUK0005"
+        );
+
+        private static readonly LocalizableString s_invalidConfigTitle = "Invalid KUK0005 code fix style option";
+        private static readonly LocalizableString s_invalidConfigMessageFormat =
+            "Invalid value '{0}' for option '" + Kuk0005CodeFixStyleOption.KEY + "'. Expected '" + Kuk0005CodeFixStyleOption.INLINE + "' or '" + Kuk0005CodeFixStyleOption.NEWLINE + "'.";
+
+        private static readonly DiagnosticDescriptor s_invalidConfigRule = new DiagnosticDescriptor(
+            id: DiagnosticIdContant.KUK0005,
+            title: s_invalidConfigTitle,
+            messageFormat: s_invalidConfigMessageFormat,
+            category: CategoryConstant.ALL_RULES,
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            description: s_invalidConfigMessageFormat,
             helpLinkUri: "https://github.com/kurnakovv/kuker/wiki/KUK0005"
         );
 
@@ -82,7 +98,7 @@ namespace Kuker.Analyzers.Rules
         /// <summary>
         /// SupportedDiagnostics.
         /// </summary>
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_rule);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_rule, s_invalidConfigRule);
 
         /// <summary>
         /// Initialize.
@@ -146,6 +162,20 @@ namespace Kuker.Analyzers.Rules
 
             if (IsInsideQueryableExpression(invocation, context, compilationSymbolsModel))
             {
+                return;
+            }
+
+            AnalyzerConfigOptions options = context.Options.AnalyzerConfigOptionsProvider.GetOptions(invocation.SyntaxTree);
+            if (options.TryGetValue(Kuk0005CodeFixStyleOption.KEY, out string configValue)
+                && !Kuk0005CodeFixStyleOption.IsValid(configValue))
+            {
+                Diagnostic configDiagnostic = Diagnostic.Create(
+                    s_invalidConfigRule,
+                    invocation.GetLocation(),
+                    configValue.Trim()
+                );
+
+                context.ReportDiagnostic(configDiagnostic);
                 return;
             }
 
