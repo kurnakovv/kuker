@@ -1159,10 +1159,364 @@ public class Kuk0003MinMaxOnEmptySequenceAnalyzerTests
        {
            throw new Exception();
        }
-       
+
        var result = myNumbers.Max(x => x);
-       
+
        """, 0, 0, 0, 0)]
+
+    [InlineData("""
+       // Any check for .Max(); guard clause (continue) in while
+
+       while (true)
+       {
+           if (!myNumbers.Any())
+           {
+               continue;
+           }
+
+           var result = myNumbers.Max();
+       }
+
+       """, 0, 0, 0, 0)]
+
+    [InlineData("""
+       // Any check for .Max(x => x); guard clause (continue) in while
+
+       while (true)
+       {
+           if (!myNumbers.Any())
+           {
+               continue;
+           }
+
+           var result = myNumbers.Max(x => x);
+       }
+
+       """, 0, 0, 0, 0)]
+
+    [InlineData("""
+       // Count check for .Max(); guard clause (continue) in while
+
+       while (true)
+       {
+           if (myNumbers.Count == 0)
+           {
+               continue;
+           }
+
+           var result = myNumbers.Max();
+       }
+
+       """, 0, 0, 0, 0)]
+
+    [InlineData("""
+       // Any check for .Max(); guard clause (continue) in for
+
+       for (;;)
+       {
+           if (!myNumbers.Any())
+           {
+               continue;
+           }
+
+           var result = myNumbers.Max();
+       }
+
+       """, 0, 0, 0, 0)]
+
+    [InlineData("""
+       // Any check for .Max(); guard clause (continue) in foreach
+
+       foreach (var _ in new[] { 1 })
+       {
+           if (!myNumbers.Any())
+           {
+               continue;
+           }
+
+           var result = myNumbers.Max();
+       }
+
+       """, 0, 0, 0, 0)]
+
+    [InlineData("""
+       // Any check for .Max(); nested if condition does not guarantee continue -> violation
+
+       bool isSome = false;
+
+       while (true)
+       {
+           if (!myNumbers.Any())
+           {
+               if (isSome)
+               {
+                   continue;
+               }
+           }
+
+           var result = myNumbers.Max();
+       }
+
+       """, 25, 18, 25, 33)]
+
+    [InlineData("""
+       // Any check for .Max(); guard clause (continue) violation in while
+
+       while (true)
+       {
+           if (myNumbers.Any())
+           {
+               continue;
+           }
+
+           var result = myNumbers.Max();
+       }
+
+       """, 20, 18, 20, 33)]
+
+    [InlineData("""
+       // Any check for .Max(); guard clause (continue) in do/while
+
+       do
+       {
+           if (!myNumbers.Any())
+           {
+               continue;
+           }
+
+           var result = myNumbers.Max();
+       }
+       while (true);
+
+       """, 0, 0, 0, 0)]
+
+    [InlineData("""
+       // Any check for .Max(); guard clause (continue) violation in do/while
+
+       do
+       {
+           if (myNumbers.Any())
+           {
+               continue;
+           }
+
+           var result = myNumbers.Max();
+       }
+       while (true);
+
+       """, 20, 18, 20, 33)]
+
+    [InlineData("""
+       // Continue in nested inner loop does not guard outer Max
+
+       while (true)
+       {
+           if (!myNumbers.Any())
+           {
+               foreach (var _ in new[] { 1 })
+               {
+                   continue;
+               }
+           }
+
+           var result = myNumbers.Max();
+       }
+
+       """, 23, 18, 23, 33)]
+
+    [InlineData("""
+       // Any check in while without continue -> violation
+
+       while (true)
+       {
+           if (!myNumbers.Any())
+           {
+               Console.WriteLine();
+           }
+
+           var result = myNumbers.Max();
+       }
+
+       """, 20, 18, 20, 33)]
+
+    [InlineData("""
+       // Any check for .Max(); guard clause (break) in while
+
+       while (true)
+       {
+           if (!myNumbers.Any())
+           {
+               break;
+           }
+
+           var result = myNumbers.Max();
+       }
+
+       """, 0, 0, 0, 0)]
+
+    [InlineData("""
+       // Any check for .Max(x => x); guard clause (break) in while
+
+       while (true)
+       {
+           if (!myNumbers.Any())
+           {
+               break;
+           }
+
+           var result = myNumbers.Max(x => x);
+       }
+
+       """, 0, 0, 0, 0)]
+
+    [InlineData("""
+       // Count check for .Max(); guard clause (break) in while
+
+       while (true)
+       {
+           if (myNumbers.Count == 0)
+           {
+               break;
+           }
+
+           var result = myNumbers.Max();
+       }
+
+       """, 0, 0, 0, 0)]
+
+    [InlineData("""
+       // Any check for .Max(); guard clause (break) in for
+
+       for (;;)
+       {
+           if (!myNumbers.Any())
+           {
+               break;
+           }
+
+           var result = myNumbers.Max();
+       }
+
+       """, 0, 0, 0, 0)]
+
+    [InlineData("""
+       // Any check for .Max(); guard clause (break) in foreach
+
+       foreach (var _ in new[] { 1 })
+       {
+           if (!myNumbers.Any())
+           {
+               break;
+           }
+
+           var result = myNumbers.Max();
+       }
+
+       """, 0, 0, 0, 0)]
+
+    [InlineData("""
+       // Any check for .Max(); nested if condition does not guarantee break -> violation
+
+       bool isSome = false;
+
+       while (true)
+       {
+           if (!myNumbers.Any())
+           {
+               if (isSome)
+               {
+                   break;
+               }
+           }
+
+           var result = myNumbers.Max();
+       }
+
+       """, 25, 18, 25, 33)]
+
+    [InlineData("""
+       // Any check for .Max(); guard clause (break) violation in while
+
+       while (true)
+       {
+           if (myNumbers.Any())
+           {
+               break;
+           }
+
+           var result = myNumbers.Max();
+       }
+
+       """, 20, 18, 20, 33)]
+
+    [InlineData("""
+       // Any check for .Max(); guard clause (break) in do/while
+
+       do
+       {
+           if (!myNumbers.Any())
+           {
+               break;
+           }
+
+           var result = myNumbers.Max();
+       }
+       while (true);
+
+       """, 0, 0, 0, 0)]
+
+    [InlineData("""
+       // Any check for .Max(); guard clause (break) violation in do/while
+
+       do
+       {
+           if (myNumbers.Any())
+           {
+               break;
+           }
+
+           var result = myNumbers.Max();
+       }
+       while (true);
+
+       """, 20, 18, 20, 33)]
+
+    [InlineData("""
+       // Break in nested inner loop does not guard outer Max
+
+       while (true)
+       {
+           if (!myNumbers.Any())
+           {
+               foreach (var _ in new[] { 1 })
+               {
+                   break;
+               }
+           }
+
+           var result = myNumbers.Max();
+       }
+
+       """, 23, 18, 23, 33)]
+
+    [InlineData("""
+       // Any check for .Max(); break in switch -> violation
+
+       while (true)
+       {
+           if (!myNumbers.Any())
+           {
+               switch (1)
+               {
+                   case 1:
+                       break;
+               }
+           }
+
+           var result = myNumbers.Max();
+       }
+
+       """, 24, 18, 24, 33)]
 
     [InlineData("""
        // Count > 0 check for .Max();
