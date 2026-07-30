@@ -671,7 +671,7 @@ public class Kuk0005TagWithCallSiteOnExecutionAnalyzerTests
     [InlineData("foobar")]
     [InlineData("INVALID")]
     [InlineData("  bad value  ")]
-    public async Task InvalidCodeFixStyleOptionReportsConfigDiagnosticAlongsideViolationAsync(string invalidStyle)
+    public async Task InvalidCodeFixStyleOptionReportsOnlyConfigDiagnosticAsync(string invalidStyle)
     {
         string testCode = """
             using System.Collections.Generic;
@@ -712,8 +712,6 @@ public class Kuk0005TagWithCallSiteOnExecutionAnalyzerTests
             """
         ));
 
-        test.ExpectedDiagnostics.Add(
-            new DiagnosticResult(DiagnosticIdContant.KUK0005, DiagnosticSeverity.Warning).WithSpan(17, 32, 17, 54));
         test.ExpectedDiagnostics.Add(
             new DiagnosticResult(DiagnosticIdContant.KUK0005, DiagnosticSeverity.Warning).WithSpan(17, 32, 17, 54).WithArguments(invalidStyle.Trim()));
 

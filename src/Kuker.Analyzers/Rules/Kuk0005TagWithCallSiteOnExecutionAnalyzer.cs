@@ -165,14 +165,6 @@ namespace Kuker.Analyzers.Rules
                 return;
             }
 
-            Diagnostic diagnostic = Diagnostic.Create(
-                s_rule,
-                invocation.GetLocation(),
-                methodName
-            );
-
-            context.ReportDiagnostic(diagnostic);
-
             AnalyzerConfigOptions options = context.Options.AnalyzerConfigOptionsProvider.GetOptions(invocation.SyntaxTree);
             if (options.TryGetValue(Kuk0005CodeFixStyleOption.KEY, out string configValue)
                 && !Kuk0005CodeFixStyleOption.IsValid(configValue))
@@ -184,7 +176,16 @@ namespace Kuker.Analyzers.Rules
                 );
 
                 context.ReportDiagnostic(configDiagnostic);
+                return;
             }
+
+            Diagnostic diagnostic = Diagnostic.Create(
+                s_rule,
+                invocation.GetLocation(),
+                methodName
+            );
+
+            context.ReportDiagnostic(diagnostic);
         }
 
         private static bool IsEfQueryable(

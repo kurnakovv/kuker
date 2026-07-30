@@ -326,7 +326,6 @@ public class Kuk0005TagWithCallSiteOnExecutionCodeFixProviderTests
             """
         ));
 
-        test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0005, DiagnosticSeverity.Warning).WithLocation(0));
         test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0005, DiagnosticSeverity.Warning).WithLocation(0).WithArguments(invalidStyle));
 
         await test.RunAsync();
