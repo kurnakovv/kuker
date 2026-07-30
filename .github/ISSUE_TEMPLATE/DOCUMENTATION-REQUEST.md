@@ -9,12 +9,12 @@ labels: documentation
 Please enter an explicit description of your issue.
 
 ## Documentation type
-Where documentation needs to be added or changed:
+Where documentation needs to be added or changed (choose one):
 
-- [ ] ReadMe
-- [ ] Wiki
-- [ ] Code
-- [ ] Other
+- ReadMe
+- Wiki
+- Code
+- Other
 
 ## AI usage
 - [ ] Did not use AI when creating this issue
