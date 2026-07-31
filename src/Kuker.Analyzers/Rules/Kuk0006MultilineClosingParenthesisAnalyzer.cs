@@ -63,12 +63,6 @@ namespace Kuker.Analyzers.Rules
 
         private static readonly HashSet<string> s_defaultTargetSyntaxes = InitDefaultTargetSyntaxes();
 
-        private static HashSet<string> InitDefaultTargetSyntaxes()
-        {
-            Kuk0006TargetSyntaxOption.TryParse(string.Empty, out HashSet<string> defaults);
-            return defaults;
-        }
-
         /// <summary>
         /// SupportedDiagnostics.
         /// </summary>
@@ -215,6 +209,12 @@ namespace Kuker.Analyzers.Rules
             );
 
             context.ReportDiagnostic(diagnostic);
+        }
+
+        private static HashSet<string> InitDefaultTargetSyntaxes()
+        {
+            Kuk0006TargetSyntaxOption.TryParse(string.Empty, out HashSet<string> defaults);
+            return defaults;
         }
     }
 }
