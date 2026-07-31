@@ -10,7 +10,6 @@ Describe the documentation issue clearly and concisely.
 
 ## Documentation type
 Where documentation needs to be added or changed (choose one):
-
 - ReadMe
 - Wiki
 - Code
