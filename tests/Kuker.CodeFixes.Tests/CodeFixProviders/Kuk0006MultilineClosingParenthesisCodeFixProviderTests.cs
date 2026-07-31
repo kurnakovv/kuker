@@ -226,6 +226,10 @@ public class Kuk0006MultilineClosingParenthesisCodeFixProviderTests
     [Theory]
     [InlineData("foobar")]
     [InlineData("INVALID")]
+    [InlineData(",")]
+    [InlineData($"{Kuk0006TargetSyntaxOption.METHOD_INVOCATION},")]
+    [InlineData($",{Kuk0006TargetSyntaxOption.OBJECT_CREATION}")]
+    [InlineData($"{Kuk0006TargetSyntaxOption.METHOD_INVOCATION},,{Kuk0006TargetSyntaxOption.OBJECT_CREATION}")]
     public async Task CodeFixDoesNotApplyWhenTargetSyntaxOptionIsInvalidAsync(string invalidTargetSyntax)
     {
         string testCode = WrapCode(
