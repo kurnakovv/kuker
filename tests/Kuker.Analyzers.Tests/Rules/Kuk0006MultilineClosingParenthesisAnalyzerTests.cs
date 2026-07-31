@@ -633,6 +633,23 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
         """, 0, 0, 0, 0
     )]
     [InlineData(
+        "NoReportOnValidMultilineImplicitObjectCreation",
+        """
+        Item item = new(
+            1,
+            "One"
+        );
+        """, 0, 0, 0, 0
+    )]
+    [InlineData(
+        "ReportOnMultilineImplicitObjectCreationWhenClosingParenthesisIsOnSameLine",
+        """
+        Item item = new(
+            1,
+            "One");
+        """, 11, 10, 11, 11
+    )]
+    [InlineData(
         "ReportOnMultilineObjectCreationWhenClosingParenthesisIsOnSameLine",
         """
         var item = new Item(
@@ -1064,12 +1081,16 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
     }
 
     [Theory]
-    [InlineData(null, true, true)]
-    [InlineData($"{Kuk0006TargetSyntaxOption.METHOD_INVOCATION},{Kuk0006TargetSyntaxOption.OBJECT_CREATION}", true, true)]
-    [InlineData($"{Kuk0006TargetSyntaxOption.OBJECT_CREATION},{Kuk0006TargetSyntaxOption.METHOD_INVOCATION}", true, true)]
-    [InlineData(Kuk0006TargetSyntaxOption.METHOD_INVOCATION, true, false)]
-    [InlineData(Kuk0006TargetSyntaxOption.OBJECT_CREATION, false, true)]
-    public async Task ReportDependingOnTargetSyntaxOptionAsync(string? targetSyntax, bool expectMethodInvocationDiagnostic, bool expectObjectCreationDiagnostic)
+    [InlineData(null, true, true, true)]
+    [InlineData($"{Kuk0006TargetSyntaxOption.METHOD_INVOCATION},{Kuk0006TargetSyntaxOption.OBJECT_CREATION}", true, true, true)]
+    [InlineData($"{Kuk0006TargetSyntaxOption.OBJECT_CREATION},{Kuk0006TargetSyntaxOption.METHOD_INVOCATION}", true, true, true)]
+    [InlineData(Kuk0006TargetSyntaxOption.METHOD_INVOCATION, true, false, false)]
+    [InlineData(Kuk0006TargetSyntaxOption.OBJECT_CREATION, false, true, true)]
+    public async Task ReportDependingOnTargetSyntaxOptionAsync(
+        string? targetSyntax,
+        bool expectMethodInvocationDiagnostic,
+        bool expectObjectCreationDiagnostic,
+        bool expectImplicitObjectCreationDiagnostic)
     {
         string testCode = """
             using System;
@@ -1087,7 +1108,11 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
                         1,
                         "One"{|#1:)|};
 
-                    return fromInvocation + fromCreation.Id;
+                    Item fromImplicitCreation = new(
+                        2,
+                        "Two"{|#2:)|};
+
+                    return fromInvocation + fromCreation.Id + fromImplicitCreation.Id;
                 }
 
                 private static int Foo(params int[] args)
@@ -1136,6 +1161,11 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
         if (expectObjectCreationDiagnostic)
         {
             test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0006, DiagnosticSeverity.Warning).WithLocation(1));
+        }
+
+        if (expectImplicitObjectCreationDiagnostic)
+        {
+            test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0006, DiagnosticSeverity.Warning).WithLocation(2));
         }
 
         await test.RunAsync();

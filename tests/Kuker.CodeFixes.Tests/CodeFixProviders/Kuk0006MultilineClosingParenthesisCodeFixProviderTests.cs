@@ -98,6 +98,22 @@ public class Kuk0006MultilineClosingParenthesisCodeFixProviderTests
         """
     )]
     [InlineData(
+        "CodeFixMovesImplicitObjectCreationClosingParenthesisToOwnLineAsync",
+        """
+        Item item = new(
+            1,
+            "One"{|#0:)|};
+        return item.Id;
+        """,
+        """
+        Item item = new(
+            1,
+            "One"
+        );
+        return item.Id;
+        """
+    )]
+    [InlineData(
         "CodeFixAlignsObjectCreationClosingParenthesisAsync",
         """
         var item = new Item(
@@ -163,7 +179,11 @@ public class Kuk0006MultilineClosingParenthesisCodeFixProviderTests
                 1,
                 "One"{|#1:)|};
 
-            return fromInvocation + fromCreation.Id;
+            Item fromImplicitCreation = new(
+                2,
+                "Two"{|#2:)|};
+
+            return fromInvocation + fromCreation.Id + fromImplicitCreation.Id;
             """
         );
 
@@ -179,7 +199,12 @@ public class Kuk0006MultilineClosingParenthesisCodeFixProviderTests
                 "One"
             );
 
-            return fromInvocation + fromCreation.Id;
+            Item fromImplicitCreation = new(
+                2,
+                "Two"
+            );
+
+            return fromInvocation + fromCreation.Id + fromImplicitCreation.Id;
             """
         );
 
@@ -193,6 +218,7 @@ public class Kuk0006MultilineClosingParenthesisCodeFixProviderTests
 
         test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0006, DiagnosticSeverity.Warning).WithLocation(0));
         test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0006, DiagnosticSeverity.Warning).WithLocation(1));
+        test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0006, DiagnosticSeverity.Warning).WithLocation(2));
 
         await test.RunAsync();
     }

@@ -86,6 +86,11 @@ namespace Kuker.Analyzers.Rules
                 AnalyzeObjectCreation,
                 SyntaxKind.ObjectCreationExpression
             );
+
+            context.RegisterSyntaxNodeAction(
+                AnalyzeImplicitObjectCreation,
+                SyntaxKind.ImplicitObjectCreationExpression
+            );
         }
 
         private static void AnalyzeInvocation(SyntaxNodeAnalysisContext context)
@@ -109,6 +114,18 @@ namespace Kuker.Analyzers.Rules
 
             ArgumentListSyntax argumentList = objectCreation.ArgumentList;
             AnalyzeArgumentList(context, objectCreation, argumentList, Kuk0006TargetSyntaxOption.OBJECT_CREATION);
+        }
+
+        private static void AnalyzeImplicitObjectCreation(SyntaxNodeAnalysisContext context)
+        {
+            if (!(context.Node is ImplicitObjectCreationExpressionSyntax implicitObjectCreation)
+                || implicitObjectCreation.ArgumentList == null)
+            {
+                return;
+            }
+
+            ArgumentListSyntax argumentList = implicitObjectCreation.ArgumentList;
+            AnalyzeArgumentList(context, implicitObjectCreation, argumentList, Kuk0006TargetSyntaxOption.OBJECT_CREATION);
         }
 
         private static void AnalyzeArgumentList(
