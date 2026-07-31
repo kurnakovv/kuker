@@ -624,6 +624,15 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
     )]
     [InlineData("NoReportOnSingleLineObjectCreation", "var item = new Item(1, \"One\");", 0, 0, 0, 0)]
     [InlineData(
+        "NoReportOnObjectCreationWithoutArgumentList",
+        """
+        var uriBuilder = new System.UriBuilder
+        {
+            Host = "example.com",
+        };
+        """, 0, 0, 0, 0
+    )]
+    [InlineData(
         "NoReportOnValidMultilineObjectCreation",
         """
         var item = new Item(
