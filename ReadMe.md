@@ -88,6 +88,7 @@ dotnet_diagnostic.KUK0006.severity = warning # Incorrect multiline closing paren
 
 dotnet_diagnostic.KUK0001.excluded_methods = Foo,Bar # Optional | Ignore selected methods
 dotnet_diagnostic.KUK0005.code_fix_style = newline # "newline" keeps the query chain formatting; "inline" puts .TagWithCallSite() on the same line
+dotnet_diagnostic.KUK0006.syntax_kinds = method_invocation,object_creation # Optional | comma-separated syntax kinds; default is all supported kinds
 
 # ...
 ```
