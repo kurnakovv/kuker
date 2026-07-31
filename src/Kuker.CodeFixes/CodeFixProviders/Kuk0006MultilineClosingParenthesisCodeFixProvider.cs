@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 using Kuker.Core.Contants;
 using Kuker.Core.Formatting;
 using Kuker.Core.Models;
+using Kuker.Core.Options;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -57,6 +59,13 @@ namespace Kuker.CodeFixes.CodeFixProviders
 
             SyntaxToken closeParen = root.FindToken(diagnostic.Location.SourceSpan.Start);
             if (!closeParen.IsKind(SyntaxKind.CloseParenToken))
+            {
+                return;
+            }
+
+            AnalyzerConfigOptions configOptions = context.Document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(closeParen.SyntaxTree);
+            if (configOptions.TryGetValue(Kuk0006TargetSyntaxOption.KEY, out string configValue)
+                && !Kuk0006TargetSyntaxOption.TryParse(configValue, out _))
             {
                 return;
             }

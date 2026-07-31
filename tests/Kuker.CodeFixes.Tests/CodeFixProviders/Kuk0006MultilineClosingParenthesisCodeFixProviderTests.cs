@@ -196,6 +196,42 @@ public class Kuk0006MultilineClosingParenthesisCodeFixProviderTests
         await test.RunAsync();
     }
 
+    [Theory]
+    [InlineData("foobar")]
+    [InlineData("INVALID")]
+    public async Task CodeFixDoesNotApplyWhenTargetSyntaxOptionIsInvalidAsync(string invalidTargetSyntax)
+    {
+        string testCode = WrapCode(
+            """
+            var result = Foo(
+                1,
+                2{|#0:)|};
+            return 1;
+            """
+        );
+
+        CSharpCodeFixTest<Kuk0006MultilineClosingParenthesisAnalyzer, Kuk0006MultilineClosingParenthesisCodeFixProvider, DefaultVerifier> test = new()
+        {
+            TestCode = testCode,
+            FixedCode = testCode,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        };
+
+        test.TestState.AnalyzerConfigFiles.Add((
+            "/.editorconfig",
+            $"""
+            root = true
+
+            [*.cs]
+            dotnet_diagnostic.KUK0006.target_syntax = {invalidTargetSyntax}
+            """
+        ));
+
+        test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0006, DiagnosticSeverity.Warning).WithLocation(0).WithArguments(invalidTargetSyntax));
+
+        await test.RunAsync();
+    }
+
     private static string WrapCode(string code)
     {
         string normalizedCode = code.ReplaceLineEndings(Environment.NewLine).Trim('\r', '\n');
