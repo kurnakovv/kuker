@@ -63,7 +63,13 @@ namespace Kuker.CodeFixes.CodeFixProviders
                 return;
             }
 
-            AnalyzerConfigOptions configOptions = context.Document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(closeParen.SyntaxTree);
+            SyntaxTree syntaxTree = closeParen.SyntaxTree;
+            if (syntaxTree == null)
+            {
+                return;
+            }
+
+            AnalyzerConfigOptions configOptions = context.Document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
             if (configOptions.TryGetValue(Kuk0006TargetSyntaxOption.KEY, out string configValue)
                 && !Kuk0006TargetSyntaxOption.TryParse(configValue, out _))
             {
