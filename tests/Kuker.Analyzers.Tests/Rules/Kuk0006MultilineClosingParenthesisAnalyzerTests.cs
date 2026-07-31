@@ -1184,7 +1184,7 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
         };
 
         test.TestState.AnalyzerConfigFiles.Add((
-            $"/.editorconfig",
+            "/.editorconfig",
             $$"""
             root = true
 
