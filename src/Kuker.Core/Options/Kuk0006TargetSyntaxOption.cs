@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Kuker.Core.Options
 {
@@ -49,15 +50,14 @@ namespace Kuker.Core.Options
                 return true;
             }
 
-            foreach (string token in value.Trim().Split(','))
+            foreach (string token in value.Trim().Split(',').Select(token => token.Trim()))
             {
-                string normalized = token.Trim();
-                if (normalized.Length == 0)
+                if (token.Length == 0)
                 {
                     return false;
                 }
 
-                if (!IsSupportedSyntax(normalized) || !targetSyntaxes.Add(normalized))
+                if (!IsSupportedSyntax(token) || !targetSyntaxes.Add(token))
                 {
                     return false;
                 }
