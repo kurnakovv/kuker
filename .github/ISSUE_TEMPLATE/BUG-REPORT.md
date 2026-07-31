@@ -30,11 +30,11 @@ Please enter what you see after following the instructions.
 ## Additional context
 If you have anything to add, please write about it here.
 
-## AI usage
-- [ ] Did not use AI when creating this issue
-- [ ] Used AI, but carefully reviewed the result
-- [ ] Used AI and did not review it
-- [ ] Other
+## AI usage (choose one):
+- Did not use AI when creating this issue
+- Used AI, but carefully reviewed the result
+- Used AI and did not review it
+- Other
 
 ## Before submitting
 - [ ] I have searched existing issues to ensure this is not a duplicate.

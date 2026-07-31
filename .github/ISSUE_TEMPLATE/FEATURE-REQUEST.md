@@ -21,8 +21,8 @@ Please enter what you expect to see.
 ## For what
 Please explain why you created this issue.
 
-## AI usage
-- [ ] Did not use AI when creating this issue
-- [ ] Used AI, but carefully reviewed the result
-- [ ] Used AI and did not review it
-- [ ] Other
+## AI usage (choose one):
+- Did not use AI when creating this issue
+- Used AI, but carefully reviewed the result
+- Used AI and did not review it
+- Other
