@@ -80,6 +80,55 @@ public class Kuk0006MultilineClosingParenthesisCodeFixProviderTests
         return result;
         """
     )]
+    [InlineData(
+        "CodeFixMovesObjectCreationClosingParenthesisToOwnLineAsync",
+        """
+        var item = new Item(
+            1,
+            "One"{|#0:)|};
+        return item.Id;
+        """,
+        """
+        var item = new Item(
+            1,
+            "One"
+        );
+        return item.Id;
+        """
+    )]
+    [InlineData(
+        "CodeFixAlignsObjectCreationClosingParenthesisAsync",
+        """
+        var item = new Item(
+            1,
+            "One"
+          {|#0:)|};
+        return item.Id;
+        """,
+        """
+        var item = new Item(
+            1,
+            "One"
+        );
+        return item.Id;
+        """
+    )]
+    [InlineData(
+        "CodeFixPreservesTrailingCommentAfterObjectCreationSemicolonAsync",
+        """
+        var item = new Item(
+            1,
+            "One"{|#0:)|}; // Keep this comment
+        return item.Id;
+        """,
+        """
+        var item = new Item(
+            1,
+            "One"
+        ); // Keep this comment
+        return item.Id;
+        """
+    )]
 #pragma warning restore RCS0053, SA1117 // Parameter should not span multiple lines
     public async Task CodeFixAppliesExpectedChangeAsync(string name, string testCode, string fixedCode)
     {
@@ -96,6 +145,53 @@ public class Kuk0006MultilineClosingParenthesisCodeFixProviderTests
         };
 
         test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0006, DiagnosticSeverity.Warning).WithLocation(0));
+
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task CodeFixFixAllInDocumentAppliesToMethodInvocationAndObjectCreationAsync()
+    {
+        string testCode = WrapCode(
+            """
+            var fromInvocation = Foo(
+                1,
+                2{|#0:)|};
+
+            var fromCreation = new Item(
+                1,
+                "One"{|#1:)|};
+
+            return fromInvocation + fromCreation.Id;
+            """
+        );
+
+        string fixedCode = WrapCode(
+            """
+            var fromInvocation = Foo(
+                1,
+                2
+            );
+
+            var fromCreation = new Item(
+                1,
+                "One"
+            );
+
+            return fromInvocation + fromCreation.Id;
+            """
+        );
+
+        CSharpCodeFixTest<Kuk0006MultilineClosingParenthesisAnalyzer, Kuk0006MultilineClosingParenthesisCodeFixProvider, DefaultVerifier> test = new()
+        {
+            TestCode = testCode,
+            FixedCode = fixedCode,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+            NumberOfFixAllIterations = 1,
+        };
+
+        test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0006, DiagnosticSeverity.Warning).WithLocation(0));
+        test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0006, DiagnosticSeverity.Warning).WithLocation(1));
 
         await test.RunAsync();
     }
@@ -119,6 +215,18 @@ public class Kuk0006MultilineClosingParenthesisCodeFixProviderTests
                 private static int Foo(params int[] args)
                 {
                     return args.Sum();
+                }
+
+                private sealed class Item
+                {
+                    public Item(int id, string name)
+                    {
+                        Id = id;
+                        Name = name;
+                    }
+
+                    public int Id { get; }
+                    public string Name { get; }
                 }
             }
             """;
