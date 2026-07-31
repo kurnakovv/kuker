@@ -73,15 +73,15 @@ namespace Kuker.CodeFixes.CodeFixProviders
 
         private static async Task<Document> AlignClosingParenthesisAsync(SyntaxNode root, Document document, SyntaxToken closeParen, CancellationToken cancellationToken)
         {
-            InvocationExpressionSyntax invocation = closeParen.Parent?.FirstAncestorOrSelf<InvocationExpressionSyntax>();
+            ArgumentListSyntax argumentList = closeParen.Parent?.FirstAncestorOrSelf<ArgumentListSyntax>();
 
-            if (invocation == null)
+            if (argumentList == null)
             {
                 return document;
             }
 
             SourceText text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            SyntaxToken openParen = invocation.ArgumentList.OpenParenToken;
+            SyntaxToken openParen = argumentList.OpenParenToken;
 
             MultilineClosingParenthesisPlacement placement = MultilineClosingParenthesisPlacementHelper.GetPlacement(text, openParen, closeParen);
 

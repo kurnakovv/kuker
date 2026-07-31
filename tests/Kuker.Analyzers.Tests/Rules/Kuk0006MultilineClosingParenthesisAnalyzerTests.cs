@@ -730,7 +730,7 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
               ),
             10
         );
-        """, 14, 7, 14, 8
+        """, 13, 7, 13, 8
     )]
     [InlineData(
         "NoReportOnLongAssignmentWithObjectCreationOnSeparateLine",
@@ -749,7 +749,7 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
             new Item(
                 1,
                 "One");
-        """, 13, 14, 13, 15
+        """, 12, 14, 12, 15
     )]
     [InlineData(
         "NoReportOnObjectCreationInIfConditionWithAlignedClosingParenthesis",
@@ -843,7 +843,7 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
         };
 
         return payload;
-        """, 14, 14, 14, 15
+        """, 13, 14, 13, 15
     )]
     [InlineData(
         "NoReportOnObjectCreationInCollectionInitializerWithAlignedClosingParenthesis",
