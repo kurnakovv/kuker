@@ -6,12 +6,12 @@ labels: security
 ---
 
 ## Description
-Please enter an explicit description of your issue.
+Describe the security issue clearly and concisely.
 
 > If this report contains sensitive details (secrets, exploit steps, etc.), please avoid posting them publicly. See docs/SECURITY.md for preferred reporting options.
 
-## Line(s)
-Please provide the code or link to the code that has the problem.
+## Affected code
+Please provide the code or a link to the code that has the problem.
 
 ## AI usage (choose one):
 - Did not use AI when creating this issue

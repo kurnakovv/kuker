@@ -6,7 +6,7 @@ labels: documentation
 ---
 
 ## Description
-Please enter an explicit description of your issue.
+Describe the documentation issue clearly and concisely.
 
 ## Documentation type
 Where documentation needs to be added or changed (choose one):

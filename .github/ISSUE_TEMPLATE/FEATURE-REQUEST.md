@@ -6,7 +6,7 @@ labels: enhancement
 ---
 
 ## Description
-Please enter an explicit description of your issue.
+Describe the feature request clearly and concisely.
 
 ## Minimal reproducible example
 Provide a small code sample to help us debug.
@@ -15,10 +15,10 @@ Provide a small code sample to help us debug.
 // <paste minimal repro here>
 ~~~
 
-## Expect to see
-Please enter what you expect to see.
+## Expected behavior
+Describe the expected behavior or outcome.
 
-## For what
+## Motivation
 Please explain why you created this issue.
 
 ## AI usage (choose one):

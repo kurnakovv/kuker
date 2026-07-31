@@ -6,10 +6,10 @@ labels: bug
 ---
 
 ## Description
-Please enter an explicit description of your issue.
+Describe the issue clearly and concisely.
 
 ## Rule ID(s)
-Please enter rule id(s), for example: `KUK0001`.
+List relevant rule ID(s), for example: `KUK0001`.
 
 ## NuGet version
 What version are you using? For example: `v0.2.1`.
@@ -21,11 +21,11 @@ Provide a small code sample to help us debug.
 // <paste minimal repro here>
 ~~~
 
-## Expect to see
-Please enter what you expect to see after following the instructions.
+## Expected behavior
+Describe the expected behavior after following the steps.
 
-## See
-Please enter what you see after following the instructions.
+## Actual behavior
+Describe the actual behavior after following the steps.
 
 ## Additional context
 If you have anything to add, please write about it here.
