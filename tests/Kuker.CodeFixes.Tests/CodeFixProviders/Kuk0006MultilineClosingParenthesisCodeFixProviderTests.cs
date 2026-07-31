@@ -5,6 +5,7 @@
 using Kuker.Analyzers.Rules;
 using Kuker.CodeFixes.CodeFixProviders;
 using Kuker.Core.Contants;
+using Kuker.Core.Options;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Testing;
@@ -223,7 +224,7 @@ public class Kuk0006MultilineClosingParenthesisCodeFixProviderTests
             root = true
 
             [*.cs]
-            dotnet_diagnostic.KUK0006.target_syntax = {invalidTargetSyntax}
+            {Kuk0006TargetSyntaxOption.KEY} = {invalidTargetSyntax}
             """
         ));
 
