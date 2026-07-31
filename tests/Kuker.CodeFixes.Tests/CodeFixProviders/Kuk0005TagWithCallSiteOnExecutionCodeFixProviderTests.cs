@@ -223,6 +223,23 @@ public class Kuk0005TagWithCallSiteOnExecutionCodeFixProviderTests
 
     [Theory]
     [InlineData(
+        "CodeFixAppliesDefaultNewlineStyleWhenEditorConfigValueIsWhitespace",
+        "   ",
+        """
+        var userId = await {|#0:_appDbContext.Users
+            .Where(x => x.Id > 0)
+            .Select(x => x.Id)
+            .FirstOrDefaultAsync()|};
+        """,
+        """
+        var userId = await _appDbContext.Users
+            .TagWithCallSite()
+            .Where(x => x.Id > 0)
+            .Select(x => x.Id)
+            .FirstOrDefaultAsync();
+        """
+    )]
+    [InlineData(
         "CodeFixAppliesInlineStyleFromEditorConfig",
         "inline",
         """

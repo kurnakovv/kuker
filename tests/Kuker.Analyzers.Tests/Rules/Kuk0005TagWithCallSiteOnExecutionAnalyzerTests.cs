@@ -719,6 +719,8 @@ public class Kuk0005TagWithCallSiteOnExecutionAnalyzerTests
     }
 
     [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
     [InlineData("inline")]
     [InlineData("newline")]
     [InlineData("INLINE")]
