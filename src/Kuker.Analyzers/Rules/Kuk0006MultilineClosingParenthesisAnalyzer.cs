@@ -118,7 +118,7 @@ namespace Kuker.Analyzers.Rules
 
         private static void AnalyzeImplicitObjectCreation(SyntaxNodeAnalysisContext context)
         {
-            var implicitObjectCreation = (ImplicitObjectCreationExpressionSyntax)context.Node;
+            ImplicitObjectCreationExpressionSyntax implicitObjectCreation = (ImplicitObjectCreationExpressionSyntax)context.Node;
             if (implicitObjectCreation.ArgumentList is null)
             {
                 return;
