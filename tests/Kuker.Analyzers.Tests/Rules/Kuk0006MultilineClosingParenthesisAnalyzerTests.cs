@@ -4,6 +4,7 @@
 
 using Kuker.Analyzers.Rules;
 using Kuker.Core.Contants;
+using Kuker.Core.Options;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Testing;
@@ -1064,10 +1065,10 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
 
     [Theory]
     [InlineData(null, true, true)]
-    [InlineData("method_invocation,object_creation", true, true)]
-    [InlineData("object_creation,method_invocation", true, true)]
-    [InlineData("method_invocation", true, false)]
-    [InlineData("object_creation", false, true)]
+    [InlineData($"{Kuk0006TargetSyntaxOption.METHOD_INVOCATION},{Kuk0006TargetSyntaxOption.OBJECT_CREATION}", true, true)]
+    [InlineData($"{Kuk0006TargetSyntaxOption.OBJECT_CREATION},{Kuk0006TargetSyntaxOption.METHOD_INVOCATION}", true, true)]
+    [InlineData(Kuk0006TargetSyntaxOption.METHOD_INVOCATION, true, false)]
+    [InlineData(Kuk0006TargetSyntaxOption.OBJECT_CREATION, false, true)]
     public async Task ReportDependingOnTargetSyntaxOptionAsync(string? targetSyntax, bool expectMethodInvocationDiagnostic, bool expectObjectCreationDiagnostic)
     {
         string testCode = """
@@ -1122,7 +1123,7 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
                 root = true
 
                 [*.cs]
-                dotnet_code_quality.KUK0006.target_syntax = {{targetSyntax}}
+                {{Kuk0006TargetSyntaxOption.KEY}} = {{targetSyntax}}
                 """
             ));
         }
@@ -1183,12 +1184,12 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
         };
 
         test.TestState.AnalyzerConfigFiles.Add((
-            "/.editorconfig",
-            """
+            $"/.editorconfig",
+            $$"""
             root = true
 
             [*.cs]
-            dotnet_code_quality.KUK0006.target_syntax = object_creation
+            {{Kuk0006TargetSyntaxOption.KEY}} = {{Kuk0006TargetSyntaxOption.OBJECT_CREATION}}
             """
         ));
 
@@ -1201,9 +1202,9 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
     [Theory]
     [InlineData("foobar")]
     [InlineData("INVALID")]
-    [InlineData("method_invocation/object_creation")]
-    [InlineData("method_invocation|object_creation")]
-    [InlineData("method_invocation,method_invocation,object_creation")]
+    [InlineData($"{Kuk0006TargetSyntaxOption.METHOD_INVOCATION}/{Kuk0006TargetSyntaxOption.OBJECT_CREATION}")]
+    [InlineData($"{Kuk0006TargetSyntaxOption.METHOD_INVOCATION}|{Kuk0006TargetSyntaxOption.OBJECT_CREATION}")]
+    [InlineData($"{Kuk0006TargetSyntaxOption.METHOD_INVOCATION},{Kuk0006TargetSyntaxOption.METHOD_INVOCATION},{Kuk0006TargetSyntaxOption.OBJECT_CREATION}")]
     [InlineData("  bad value  ")]
     public async Task InvalidTargetSyntaxOptionReportsOnlyConfigDiagnosticAsync(string invalidTargetSyntax)
     {
@@ -1241,7 +1242,7 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
             root = true
 
             [*.cs]
-            dotnet_code_quality.KUK0006.target_syntax = {{invalidTargetSyntax}}
+            {{Kuk0006TargetSyntaxOption.KEY}} = {{invalidTargetSyntax}}
             """
         ));
 

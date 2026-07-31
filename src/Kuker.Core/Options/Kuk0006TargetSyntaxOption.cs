@@ -9,14 +9,14 @@ using System.Linq;
 namespace Kuker.Core.Options
 {
     /// <summary>
-    /// Shared option metadata for <c>dotnet_code_quality.KUK0006.target_syntax</c>.
+    /// Shared option metadata for <c>dotnet_diagnostic.KUK0006.target_syntax</c>.
     /// </summary>
     public static class Kuk0006TargetSyntaxOption
     {
         /// <summary>
         /// The .editorconfig / analyzerconfig option key.
         /// </summary>
-        public const string KEY = "dotnet_code_quality.KUK0006.target_syntax";
+        public const string KEY = "dotnet_diagnostic.KUK0006.target_syntax";
 
         /// <summary>
         /// Apply KUK0006 to method invocation expressions.
@@ -28,7 +28,11 @@ namespace Kuker.Core.Options
         /// </summary>
         public const string OBJECT_CREATION = "object_creation";
 
-        private static readonly string[] s_supportedSyntaxes = new[] { METHOD_INVOCATION, OBJECT_CREATION };
+        private static readonly string[] s_supportedSyntaxes = new[]
+        {
+            METHOD_INVOCATION,
+            OBJECT_CREATION,
+        };
 
         /// <summary>
         /// Parse and validate option value.
