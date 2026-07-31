@@ -107,7 +107,7 @@ namespace Kuker.Analyzers.Rules
         private static void AnalyzeObjectCreation(SyntaxNodeAnalysisContext context)
         {
             ObjectCreationExpressionSyntax objectCreation = (ObjectCreationExpressionSyntax)context.Node;
-            if (objectCreation.ArgumentList == null)
+            if (objectCreation.ArgumentList is null)
             {
                 return;
             }
@@ -119,7 +119,7 @@ namespace Kuker.Analyzers.Rules
         private static void AnalyzeImplicitObjectCreation(SyntaxNodeAnalysisContext context)
         {
             var implicitObjectCreation = (ImplicitObjectCreationExpressionSyntax)context.Node;
-            if (implicitObjectCreation.ArgumentList == null)
+            if (implicitObjectCreation.ArgumentList is null)
             {
                 return;
             }
