@@ -61,6 +61,14 @@ namespace Kuker.Analyzers.Rules
             helpLinkUri: "https://github.com/kurnakovv/kuker/wiki/KUK0006"
         );
 
+        private static readonly HashSet<string> s_defaultTargetSyntaxes = InitDefaultTargetSyntaxes();
+
+        private static HashSet<string> InitDefaultTargetSyntaxes()
+        {
+            Kuk0006TargetSyntaxOption.TryParse(string.Empty, out HashSet<string> defaults);
+            return defaults;
+        }
+
         /// <summary>
         /// SupportedDiagnostics.
         /// </summary>
@@ -154,19 +162,25 @@ namespace Kuker.Analyzers.Rules
                 }
             }
 
-            Kuk0006TargetSyntaxOption.TryParse(string.Empty, out HashSet<string> targetSyntaxes);
+            HashSet<string> targetSyntaxes;
 
             AnalyzerConfigOptions options = context.Options.AnalyzerConfigOptionsProvider.GetOptions(node.SyntaxTree);
-            if (options.TryGetValue(Kuk0006TargetSyntaxOption.KEY, out string configuredTargetSyntax)
-                && !Kuk0006TargetSyntaxOption.TryParse(configuredTargetSyntax, out targetSyntaxes))
+            if (options.TryGetValue(Kuk0006TargetSyntaxOption.KEY, out string configuredTargetSyntax))
             {
-                Diagnostic configDiagnostic = Diagnostic.Create(
-                    s_invalidConfigRule,
-                    closeParen.GetLocation(),
-                    configuredTargetSyntax.Trim());
+                if (!Kuk0006TargetSyntaxOption.TryParse(configuredTargetSyntax, out targetSyntaxes))
+                {
+                    Diagnostic configDiagnostic = Diagnostic.Create(
+                        s_invalidConfigRule,
+                        closeParen.GetLocation(),
+                        configuredTargetSyntax.Trim());
 
-                context.ReportDiagnostic(configDiagnostic);
-                return;
+                    context.ReportDiagnostic(configDiagnostic);
+                    return;
+                }
+            }
+            else
+            {
+                targetSyntaxes = s_defaultTargetSyntaxes;
             }
 
             if (!targetSyntaxes.Contains(targetSyntax))
