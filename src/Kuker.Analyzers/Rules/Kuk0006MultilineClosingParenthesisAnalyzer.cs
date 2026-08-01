@@ -107,12 +107,13 @@ namespace Kuker.Analyzers.Rules
         private static void AnalyzeObjectCreation(SyntaxNodeAnalysisContext context)
         {
             ObjectCreationExpressionSyntax objectCreation = (ObjectCreationExpressionSyntax)context.Node;
-            if (objectCreation.ArgumentList is null)
+            ArgumentListSyntax argumentList = objectCreation.ArgumentList;
+
+            if (argumentList is null)
             {
                 return;
             }
 
-            ArgumentListSyntax argumentList = objectCreation.ArgumentList;
             AnalyzeArgumentList(context, objectCreation, argumentList, Kuk0006TargetSyntaxOption.OBJECT_CREATION);
         }
 
