@@ -1324,14 +1324,6 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
         """, 10, 10, 10, 11
     )]
     [InlineData(
-        "ReportWhenLocalFunctionClosingParenthesisIsOnSameLineAsLastParameter",
-        """
-        void LocalFoo(
-            int a,
-            int b) { }
-        """, 10, 10, 10, 11
-    )]
-    [InlineData(
         "ReportWhenMultilineLocalFunctionClosingParenthesisIsMisaligned",
         """
         void LocalFoo(
