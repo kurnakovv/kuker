@@ -1089,97 +1089,6 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
         await test.RunAsync();
     }
 
-    [Theory]
-    [InlineData(null, true, true, true)]
-    [InlineData($"{Kuk0006TargetSyntaxOption.METHOD_INVOCATION},{Kuk0006TargetSyntaxOption.OBJECT_CREATION}", true, true, true)]
-    [InlineData($"{Kuk0006TargetSyntaxOption.OBJECT_CREATION},{Kuk0006TargetSyntaxOption.METHOD_INVOCATION}", true, true, true)]
-    [InlineData(Kuk0006TargetSyntaxOption.METHOD_INVOCATION, true, false, false)]
-    [InlineData(Kuk0006TargetSyntaxOption.OBJECT_CREATION, false, true, true)]
-    public async Task ReportDependingOnTargetSyntaxOptionAsync(
-        string? targetSyntax,
-        bool expectMethodInvocationDiagnostic,
-        bool expectObjectCreationDiagnostic,
-        bool expectImplicitObjectCreationDiagnostic)
-    {
-        string testCode = """
-            using System;
-            using System.Linq;
-
-            public class TestClass
-            {
-                public object M1()
-                {
-                    var fromInvocation = Foo(
-                        1,
-                        2{|#0:)|};
-
-                    var fromCreation = new Item(
-                        1,
-                        "One"{|#1:)|};
-
-                    Item fromImplicitCreation = new(
-                        2,
-                        "Two"{|#2:)|};
-
-                    return fromInvocation + fromCreation.Id + fromImplicitCreation.Id;
-                }
-
-                private static int Foo(params int[] args)
-                {
-                    return args.Sum();
-                }
-
-                private sealed class Item
-                {
-                    public Item(int id, string name)
-                    {
-                        Id = id;
-                        Name = name;
-                    }
-
-                    public int Id { get; }
-                    public string Name { get; }
-                }
-            }
-            """;
-
-        CSharpAnalyzerTest<Kuk0006MultilineClosingParenthesisAnalyzer, DefaultVerifier> test = new()
-        {
-            TestCode = testCode,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
-        };
-
-        if (targetSyntax is not null)
-        {
-            test.TestState.AnalyzerConfigFiles.Add((
-                "/.editorconfig",
-                $$"""
-                root = true
-
-                [*.cs]
-                {{Kuk0006TargetSyntaxOption.KEY}} = {{targetSyntax}}
-                """
-            ));
-        }
-
-        if (expectMethodInvocationDiagnostic)
-        {
-            test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0006, DiagnosticSeverity.Warning).WithLocation(0));
-        }
-
-        if (expectObjectCreationDiagnostic)
-        {
-            test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0006, DiagnosticSeverity.Warning).WithLocation(1));
-        }
-
-        if (expectImplicitObjectCreationDiagnostic)
-        {
-            test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0006, DiagnosticSeverity.Warning).WithLocation(2));
-        }
-
-        await test.RunAsync();
-    }
-
     [Fact]
     public async Task ReportAllObjectCreationViolationsInSingleMethodWithAccurateLocationsAsync()
     {
@@ -1238,6 +1147,477 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
         await test.RunAsync();
     }
 
+#pragma warning disable RCS0053, SA1117 // Parameter should not span multiple lines
+    [Theory]
+    [InlineData("NoReportOnSingleLineMethodDeclaration", "public void Foo(int a, int b) { }", 0, 0, 0, 0)]
+    [InlineData("NoReportOnMethodDeclarationWithoutParameters", "public void Foo() { }", 0, 0, 0, 0)]
+    [InlineData(
+        "NoReportOnValidMultilineMethodDeclaration",
+        """
+        public void Foo(
+            int a,
+            int b
+        )
+        {
+        }
+        """, 0, 0, 0, 0
+    )]
+    [InlineData(
+        "ReportWhenClosingParenthesisIsNotOnOwnLine",
+        """
+        public void Foo(
+            int a,
+            int b)
+        {
+        }
+        """, 8, 10, 8, 11
+    )]
+    [InlineData(
+        "ReportWhenClosingParenthesisIsMisaligned",
+        """
+        public void Foo(
+            int a,
+            int b
+          )
+        {
+        }
+        """, 9, 3, 9, 4
+    )]
+    [InlineData(
+        "NoReportOnValidMultilineMethodDeclarationWithReturnType",
+        """
+        public int Foo(
+            int a,
+            int b
+        )
+        {
+            return a + b;
+        }
+        """, 0, 0, 0, 0
+    )]
+    [InlineData(
+        "ReportOnMultilineMethodDeclarationWithReturnTypeWhenClosingParenthesisIsOnSameLine",
+        """
+        public int Foo(
+            int a,
+            int b)
+        {
+            return a + b;
+        }
+        """, 8, 10, 8, 11
+    )]
+    [InlineData(
+        "NoReportOnValidMultilineMethodDeclarationWithManyParameters",
+        """
+        public void Foo(
+            int a,
+            int b,
+            int c,
+            int d
+        )
+        {
+        }
+        """, 0, 0, 0, 0
+    )]
+    [InlineData(
+        "ReportOnMultilineMethodDeclarationWithManyParametersWhenClosingParenthesisIsOnSameLine",
+        """
+        public void Foo(
+            int a,
+            int b,
+            int c,
+            int d)
+        {
+        }
+        """, 10, 10, 10, 11
+    )]
+    [InlineData(
+        "NoReportOnValidMultilineMethodDeclarationWithReturnTypeOnSeparateLine",
+        """
+        public VeryLongClassName
+            Foo(
+                int a,
+                int b
+            ) => null;
+        """, 0, 0, 0, 0
+    )]
+    [InlineData(
+        "ReportOnMultilineMethodDeclarationWithReturnTypeOnSeparateLineWhenClosingParenthesisIsOnSameLine",
+        """
+        public VeryLongClassName
+            Foo(
+                int a,
+                int b) => null;
+        """, 9, 14, 9, 15
+    )]
+    [InlineData(
+        "ReportOnMultilineMethodDeclarationWithReturnTypeOnSeparateLineWhenClosingParenthesisIsMisaligned",
+        """
+        public VeryLongClassName
+            Foo(
+                int a,
+                int b
+        ) => null;
+        """, 10, 1, 10, 2
+    )]
+#pragma warning restore RCS0053, SA1117 // Parameter should not span multiple lines
+    public async Task RunMethodDeclarationAsync(string name, string methodDeclarationCode, int startLine, int startColumn, int endLine, int endColumn)
+    {
+        string testCode = """
+            using System;
+
+            public class TestClass
+            {
+            {%methodDeclarationCode%}
+                public class VeryLongClassName { }
+            }
+            """.Replace("{%methodDeclarationCode%}", "// " + name + "\n" + methodDeclarationCode, StringComparison.Ordinal);
+
+        CSharpAnalyzerTest<Kuk0006MultilineClosingParenthesisAnalyzer, DefaultVerifier> test = new()
+        {
+            TestCode = testCode,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        };
+
+        test.TestState.AnalyzerConfigFiles.Add((
+            "/.editorconfig",
+            $$"""
+            root = true
+
+            [*.cs]
+            {{Kuk0006TargetSyntaxOption.KEY}} = {{Kuk0006TargetSyntaxOption.METHOD_DECLARATION}}
+            """
+        ));
+
+        if (!(startLine == 0 && startColumn == 0 && endLine == 0 && endColumn == 0))
+        {
+            DiagnosticResult expected = new DiagnosticResult(DiagnosticIdContant.KUK0006, DiagnosticSeverity.Warning)
+                .WithSpan(startLine, startColumn, endLine, endColumn);
+
+            test.ExpectedDiagnostics.Add(expected);
+        }
+
+        await test.RunAsync();
+    }
+
+#pragma warning disable RCS0053, SA1117 // Parameter should not span multiple lines
+    [Theory]
+    [InlineData("NoReportOnSingleLineLocalFunction", "void LocalFoo(int a, int b) { }", 0, 0, 0, 0)]
+    [InlineData("NoReportOnLocalFunctionWithoutParameters", "void LocalFoo() { }", 0, 0, 0, 0)]
+    [InlineData(
+        "NoReportOnValidMultilineLocalFunction",
+        """
+        void LocalFoo(
+            int a,
+            int b
+        )
+        {
+        }
+        """, 0, 0, 0, 0
+    )]
+    [InlineData(
+        "ReportWhenLocalFunctionClosingParenthesisIsNotOnOwnLine",
+        """
+        void LocalFoo(
+            int a,
+            int b) { }
+        """, 10, 10, 10, 11
+    )]
+    [InlineData(
+        "ReportWhenMultilineLocalFunctionClosingParenthesisIsMisaligned",
+        """
+        void LocalFoo(
+            int a,
+            int b
+          ) { }
+        """, 11, 3, 11, 4
+    )]
+#pragma warning restore RCS0053, SA1117 // Parameter should not span multiple lines
+    public async Task RunLocalFunctionAsync(string name, string localFunctionCode, int startLine, int startColumn, int endLine, int endColumn)
+    {
+        string testCode = """
+            using System;
+
+            public class TestClass
+            {
+                public void ContainingMethod()
+                {
+            {%localFunctionCode%}
+                }
+            }
+            """.Replace("{%localFunctionCode%}", "// " + name + "\n" + localFunctionCode, StringComparison.Ordinal);
+
+        CSharpAnalyzerTest<Kuk0006MultilineClosingParenthesisAnalyzer, DefaultVerifier> test = new()
+        {
+            TestCode = testCode,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        };
+
+        test.TestState.AnalyzerConfigFiles.Add((
+            "/.editorconfig",
+            $$"""
+            root = true
+
+            [*.cs]
+            {{Kuk0006TargetSyntaxOption.KEY}} = {{Kuk0006TargetSyntaxOption.METHOD_DECLARATION}}
+            """
+        ));
+
+        if (!(startLine == 0 && startColumn == 0 && endLine == 0 && endColumn == 0))
+        {
+            DiagnosticResult expected = new DiagnosticResult(DiagnosticIdContant.KUK0006, DiagnosticSeverity.Warning)
+                .WithSpan(startLine, startColumn, endLine, endColumn);
+
+            test.ExpectedDiagnostics.Add(expected);
+        }
+
+        await test.RunAsync();
+    }
+
+#pragma warning disable RCS0053, SA1117 // Parameter should not span multiple lines
+    [Theory]
+    [InlineData("NoReportOnSingleLineInterfaceMethod", "void Foo(int a, int b);", 0, 0, 0, 0)]
+    [InlineData("NoReportOnInterfaceMethodWithoutParameters", "void Foo();", 0, 0, 0, 0)]
+    [InlineData(
+        "NoReportOnValidMultilineInterfaceMethod",
+        """
+        void Foo(
+            int a,
+            int b
+        );
+        """, 0, 0, 0, 0
+    )]
+    [InlineData(
+        "ReportWhenInterfaceMethodClosingParenthesisIsNotOnOwnLine",
+        """
+        void Foo(
+            int a,
+            int b);
+        """, 8, 10, 8, 11
+    )]
+    [InlineData(
+        "ReportWhenMultilineInterfaceMethodClosingParenthesisIsMisaligned",
+        """
+        void Foo(
+            int a,
+            int b
+          );
+        """, 9, 3, 9, 4
+    )]
+#pragma warning restore RCS0053, SA1117 // Parameter should not span multiple lines
+    public async Task RunInterfaceMethodAsync(string name, string methodDeclarationCode, int startLine, int startColumn, int endLine, int endColumn)
+    {
+        string testCode = """
+            using System;
+
+            public interface ITestInterface
+            {
+            {%methodDeclarationCode%}
+            }
+            """.Replace("{%methodDeclarationCode%}", "// " + name + "\n" + methodDeclarationCode, StringComparison.Ordinal);
+
+        CSharpAnalyzerTest<Kuk0006MultilineClosingParenthesisAnalyzer, DefaultVerifier> test = new()
+        {
+            TestCode = testCode,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        };
+
+        test.TestState.AnalyzerConfigFiles.Add((
+            "/.editorconfig",
+            $$"""
+            root = true
+
+            [*.cs]
+            {{Kuk0006TargetSyntaxOption.KEY}} = {{Kuk0006TargetSyntaxOption.METHOD_DECLARATION}}
+            """
+        ));
+
+        if (!(startLine == 0 && startColumn == 0 && endLine == 0 && endColumn == 0))
+        {
+            DiagnosticResult expected = new DiagnosticResult(DiagnosticIdContant.KUK0006, DiagnosticSeverity.Warning)
+                .WithSpan(startLine, startColumn, endLine, endColumn);
+
+            test.ExpectedDiagnostics.Add(expected);
+        }
+
+        await test.RunAsync();
+    }
+
+#pragma warning disable RCS0053, SA1117 // Parameter should not span multiple lines
+    [Theory]
+    [InlineData("NoReportOnSingleLineAbstractMethod", "public abstract void Foo(int a, int b);", 0, 0, 0, 0)]
+    [InlineData("NoReportOnAbstractMethodWithoutParameters", "public abstract void Foo();", 0, 0, 0, 0)]
+    [InlineData(
+        "NoReportOnValidMultilineAbstractMethod",
+        """
+        public abstract void Foo(
+            int a,
+            int b
+        );
+        """, 0, 0, 0, 0
+    )]
+    [InlineData(
+        "ReportWhenAbstractMethodClosingParenthesisIsNotOnOwnLine",
+        """
+        public abstract void Foo(
+            int a,
+            int b);
+        """, 8, 10, 8, 11
+    )]
+    [InlineData(
+        "ReportWhenMultilineAbstractMethodClosingParenthesisIsMisaligned",
+        """
+        public abstract void Foo(
+            int a,
+            int b
+          );
+        """, 9, 3, 9, 4
+    )]
+#pragma warning restore RCS0053, SA1117 // Parameter should not span multiple lines
+    public async Task RunAbstractMethodAsync(string name, string methodDeclarationCode, int startLine, int startColumn, int endLine, int endColumn)
+    {
+        string testCode = """
+            using System;
+
+            public abstract class TestAbstractClass
+            {
+            {%methodDeclarationCode%}
+            }
+            """.Replace("{%methodDeclarationCode%}", "// " + name + "\n" + methodDeclarationCode, StringComparison.Ordinal);
+
+        CSharpAnalyzerTest<Kuk0006MultilineClosingParenthesisAnalyzer, DefaultVerifier> test = new()
+        {
+            TestCode = testCode,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        };
+
+        test.TestState.AnalyzerConfigFiles.Add((
+            "/.editorconfig",
+            $$"""
+            root = true
+
+            [*.cs]
+            {{Kuk0006TargetSyntaxOption.KEY}} = {{Kuk0006TargetSyntaxOption.METHOD_DECLARATION}}
+            """
+        ));
+
+        if (!(startLine == 0 && startColumn == 0 && endLine == 0 && endColumn == 0))
+        {
+            DiagnosticResult expected = new DiagnosticResult(DiagnosticIdContant.KUK0006, DiagnosticSeverity.Warning)
+                .WithSpan(startLine, startColumn, endLine, endColumn);
+
+            test.ExpectedDiagnostics.Add(expected);
+        }
+
+        await test.RunAsync();
+    }
+
+    [Theory]
+    [InlineData(null, true, true, true, true)]
+    [InlineData($"{Kuk0006TargetSyntaxOption.METHOD_INVOCATION},{Kuk0006TargetSyntaxOption.OBJECT_CREATION}", true, true, true, false)]
+    [InlineData($"{Kuk0006TargetSyntaxOption.OBJECT_CREATION},{Kuk0006TargetSyntaxOption.METHOD_INVOCATION}", true, true, true, false)]
+    [InlineData(Kuk0006TargetSyntaxOption.METHOD_INVOCATION, true, false, false, false)]
+    [InlineData(Kuk0006TargetSyntaxOption.OBJECT_CREATION, false, true, true, false)]
+    [InlineData(Kuk0006TargetSyntaxOption.METHOD_DECLARATION, false, false, false, true)]
+    [InlineData($"{Kuk0006TargetSyntaxOption.METHOD_INVOCATION},{Kuk0006TargetSyntaxOption.METHOD_DECLARATION}", true, false, false, true)]
+    [InlineData($"{Kuk0006TargetSyntaxOption.METHOD_DECLARATION},{Kuk0006TargetSyntaxOption.OBJECT_CREATION}", false, true, true, true)]
+    public async Task ReportDependingOnTargetSyntaxOptionAsync(
+        string? targetSyntax,
+        bool expectMethodInvocationDiagnostic,
+        bool expectObjectCreationDiagnostic,
+        bool expectImplicitObjectCreationDiagnostic,
+        bool expectMethodDeclarationDiagnostic)
+    {
+        string testCode = """
+            using System;
+            using System.Linq;
+
+            public class TestClass
+            {
+                public object M1()
+                {
+                    var fromInvocation = Foo(
+                        1,
+                        2{|#0:)|};
+
+                    var fromCreation = new Item(
+                        1,
+                        "One"{|#1:)|};
+
+                    Item fromImplicitCreation = new(
+                        2,
+                        "Two"{|#2:)|};
+
+                    return fromInvocation + fromCreation.Id + fromImplicitCreation.Id;
+                }
+
+                public void Declared(
+                    int a,
+                    int b{|#3:)|}
+                {
+                }
+
+                private static int Foo(params int[] args)
+                {
+                    return args.Sum();
+                }
+
+                private sealed class Item
+                {
+                    public Item(int id, string name)
+                    {
+                        Id = id;
+                        Name = name;
+                    }
+
+                    public int Id { get; }
+                    public string Name { get; }
+                }
+            }
+            """;
+
+        CSharpAnalyzerTest<Kuk0006MultilineClosingParenthesisAnalyzer, DefaultVerifier> test = new()
+        {
+            TestCode = testCode,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        };
+
+        if (targetSyntax is not null)
+        {
+            test.TestState.AnalyzerConfigFiles.Add((
+                "/.editorconfig",
+                $$"""
+                root = true
+
+                [*.cs]
+                {{Kuk0006TargetSyntaxOption.KEY}} = {{targetSyntax}}
+                """
+            ));
+        }
+
+        if (expectMethodInvocationDiagnostic)
+        {
+            test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0006, DiagnosticSeverity.Warning).WithLocation(0));
+        }
+
+        if (expectObjectCreationDiagnostic)
+        {
+            test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0006, DiagnosticSeverity.Warning).WithLocation(1));
+        }
+
+        if (expectImplicitObjectCreationDiagnostic)
+        {
+            test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0006, DiagnosticSeverity.Warning).WithLocation(2));
+        }
+
+        if (expectMethodDeclarationDiagnostic)
+        {
+            test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0006, DiagnosticSeverity.Warning).WithLocation(3));
+        }
+
+        await test.RunAsync();
+    }
+
     [Theory]
     [InlineData("foobar")]
     [InlineData("INVALID")]
@@ -1249,6 +1629,10 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
     [InlineData($"{Kuk0006TargetSyntaxOption.METHOD_INVOCATION}|{Kuk0006TargetSyntaxOption.OBJECT_CREATION}")]
     [InlineData($"{Kuk0006TargetSyntaxOption.METHOD_INVOCATION},{Kuk0006TargetSyntaxOption.METHOD_INVOCATION},{Kuk0006TargetSyntaxOption.OBJECT_CREATION}")]
     [InlineData("  bad value  ")]
+    [InlineData($"{Kuk0006TargetSyntaxOption.METHOD_DECLARATION},")]
+    [InlineData($",{Kuk0006TargetSyntaxOption.METHOD_DECLARATION}")]
+    [InlineData($"{Kuk0006TargetSyntaxOption.METHOD_DECLARATION},,{Kuk0006TargetSyntaxOption.OBJECT_CREATION}")]
+    [InlineData($"{Kuk0006TargetSyntaxOption.METHOD_DECLARATION},{Kuk0006TargetSyntaxOption.METHOD_DECLARATION},{Kuk0006TargetSyntaxOption.OBJECT_CREATION}")]
     public async Task InvalidTargetSyntaxOptionReportsOnlyConfigDiagnosticAsync(string invalidTargetSyntax)
     {
         string testCode = """

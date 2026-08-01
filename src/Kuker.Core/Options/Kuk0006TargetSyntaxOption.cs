@@ -28,10 +28,16 @@ namespace Kuker.Core.Options
         /// </summary>
         public const string OBJECT_CREATION = "object_creation";
 
+        /// <summary>
+        /// Apply KUK0006 to method declaration parameter lists.
+        /// </summary>
+        public const string METHOD_DECLARATION = "method_declaration";
+
         private static readonly string[] s_supportedSyntaxes = new[]
         {
             METHOD_INVOCATION,
             OBJECT_CREATION,
+            METHOD_DECLARATION,
         };
 
         /// <summary>
@@ -73,7 +79,8 @@ namespace Kuker.Core.Options
         private static bool IsSupportedSyntax(string syntax)
         {
             return string.Equals(syntax, METHOD_INVOCATION, StringComparison.OrdinalIgnoreCase)
-                || string.Equals(syntax, OBJECT_CREATION, StringComparison.OrdinalIgnoreCase);
+                || string.Equals(syntax, OBJECT_CREATION, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(syntax, METHOD_DECLARATION, StringComparison.OrdinalIgnoreCase);
         }
     }
 }
