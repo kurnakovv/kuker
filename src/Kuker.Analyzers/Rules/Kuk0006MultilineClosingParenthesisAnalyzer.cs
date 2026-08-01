@@ -2,6 +2,7 @@
 // This file is licensed under the MIT License.
 // See the LICENSE file in the project root for full license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Kuker.Analyzers.Constants;
@@ -92,6 +93,16 @@ namespace Kuker.Analyzers.Rules
                 AnalyzeImplicitObjectCreation,
                 SyntaxKind.ImplicitObjectCreationExpression
             );
+
+            context.RegisterSyntaxNodeAction(
+                AnalyzeMethodDeclaration,
+                SyntaxKind.MethodDeclaration
+            );
+
+            context.RegisterSyntaxNodeAction(
+                AnalyzeLocalFunction,
+                SyntaxKind.LocalFunctionStatement
+            );
         }
 
         private static void AnalyzeInvocation(SyntaxNodeAnalysisContext context)
@@ -126,6 +137,18 @@ namespace Kuker.Analyzers.Rules
             AnalyzeArgumentList(context, implicitObjectCreation, argumentList, Kuk0006TargetSyntaxOption.OBJECT_CREATION);
         }
 
+        private static void AnalyzeMethodDeclaration(SyntaxNodeAnalysisContext context)
+        {
+            MethodDeclarationSyntax methodDeclaration = (MethodDeclarationSyntax)context.Node;
+            AnalyzeParameterList(context, methodDeclaration, methodDeclaration.ParameterList);
+        }
+
+        private static void AnalyzeLocalFunction(SyntaxNodeAnalysisContext context)
+        {
+            LocalFunctionStatementSyntax localFunction = (LocalFunctionStatementSyntax)context.Node;
+            AnalyzeParameterList(context, localFunction, localFunction.ParameterList);
+        }
+
         private static void AnalyzeArgumentList(
             SyntaxNodeAnalysisContext context,
             SyntaxNode node,
@@ -135,6 +158,37 @@ namespace Kuker.Analyzers.Rules
             SyntaxToken openParen = argumentList.OpenParenToken;
             SyntaxToken closeParen = argumentList.CloseParenToken;
 
+            AnalyzeParentheses(
+                context,
+                node,
+                openParen,
+                closeParen,
+                targetSyntax,
+                skipCheck: (text, closeLine, placement) => ShouldSkipArgumentList(node, text, closeLine, placement, closeParen, targetSyntax));
+        }
+
+        private static void AnalyzeParameterList(
+            SyntaxNodeAnalysisContext context,
+            SyntaxNode node,
+            ParameterListSyntax parameterList)
+        {
+            AnalyzeParentheses(
+                context,
+                node,
+                parameterList.OpenParenToken,
+                parameterList.CloseParenToken,
+                Kuk0006TargetSyntaxOption.METHOD_DECLARATION,
+                skipCheck: null);
+        }
+
+        private static void AnalyzeParentheses(
+            SyntaxNodeAnalysisContext context,
+            SyntaxNode node,
+            SyntaxToken openParen,
+            SyntaxToken closeParen,
+            string targetSyntax,
+            Func<SourceText, TextLine, MultilineClosingParenthesisPlacement, bool> skipCheck)
+        {
             if (openParen.IsMissing || closeParen.IsMissing)
             {
                 return;
@@ -157,33 +211,22 @@ namespace Kuker.Analyzers.Rules
                 return;
             }
 
-            SyntaxToken previousToken = closeParen.GetPreviousToken();
-            if (previousToken.IsKind(SyntaxKind.CloseBraceToken) ||
-                previousToken.IsKind(SyntaxKind.CloseBracketToken) ||
-                previousToken.IsKind(SyntaxKind.CloseParenToken)
-            )
+            if (skipCheck != null && skipCheck(text, closeLine, placement))
             {
-                int previousTokenLine = text.Lines.GetLineFromPosition(previousToken.SpanStart).LineNumber;
-                int previousTokenColumn = previousToken.GetLocation().GetLineSpan().StartLinePosition.Character;
-                if (previousTokenLine == closeLine.LineNumber && previousTokenColumn == placement.AnchorColumn)
-                {
-                    return;
-                }
+                return;
             }
 
+            AnalyzerConfigOptions options = context.Options.AnalyzerConfigOptionsProvider.GetOptions(node.SyntaxTree);
             HashSet<string> targetSyntaxes;
 
-            AnalyzerConfigOptions options = context.Options.AnalyzerConfigOptionsProvider.GetOptions(node.SyntaxTree);
             if (options.TryGetValue(Kuk0006TargetSyntaxOption.KEY, out string configuredTargetSyntax))
             {
                 if (!Kuk0006TargetSyntaxOption.TryParse(configuredTargetSyntax, out targetSyntaxes))
                 {
-                    Diagnostic configDiagnostic = Diagnostic.Create(
+                    context.ReportDiagnostic(Diagnostic.Create(
                         s_invalidConfigRule,
                         closeParen.GetLocation(),
-                        configuredTargetSyntax.Trim());
-
-                    context.ReportDiagnostic(configDiagnostic);
+                        configuredTargetSyntax.Trim()));
                     return;
                 }
             }
@@ -197,6 +240,31 @@ namespace Kuker.Analyzers.Rules
                 return;
             }
 
+            ReportDiagnostic(context, closeParen, placement.ExpectedLineNumber, placement.ExpectedCharacter);
+        }
+
+        private static bool ShouldSkipArgumentList(
+            SyntaxNode node,
+            SourceText text,
+            TextLine closeLine,
+            MultilineClosingParenthesisPlacement placement,
+            SyntaxToken closeParen,
+            string targetSyntax)
+        {
+            SyntaxToken previousToken = closeParen.GetPreviousToken();
+            if (previousToken.IsKind(SyntaxKind.CloseBraceToken) ||
+                previousToken.IsKind(SyntaxKind.CloseBracketToken) ||
+                previousToken.IsKind(SyntaxKind.CloseParenToken)
+            )
+            {
+                int previousTokenLine = text.Lines.GetLineFromPosition(previousToken.SpanStart).LineNumber;
+                int previousTokenColumn = previousToken.GetLocation().GetLineSpan().StartLinePosition.Character;
+                if (previousTokenLine == closeLine.LineNumber && previousTokenColumn == placement.AnchorColumn)
+                {
+                    return true;
+                }
+            }
+
             if (targetSyntax == Kuk0006TargetSyntaxOption.OBJECT_CREATION &&
                 node.Parent is ArgumentSyntax &&
                 node.Parent.Parent is ArgumentListSyntax parentArgumentList &&
@@ -207,11 +275,11 @@ namespace Kuker.Analyzers.Rules
                     parentCloseParen.GetPreviousToken() == closeParen &&
                     text.Lines.GetLineFromPosition(parentCloseParen.SpanStart).LineNumber == closeLine.LineNumber)
                 {
-                    return;
+                    return true;
                 }
             }
 
-            ReportDiagnostic(context, closeParen, placement.ExpectedLineNumber, placement.ExpectedCharacter);
+            return false;
         }
 
         private static void ReportDiagnostic(SyntaxNodeAnalysisContext context, SyntaxToken closeParen, int expectedLineNumber, int expectedCharacter)

@@ -1321,7 +1321,7 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
         void LocalFoo(
             int a,
             int b) { }
-        """, 8, 14, 8, 15
+        """, 10, 10, 10, 11
     )]
     [InlineData(
         "ReportWhenLocalFunctionClosingParenthesisIsOnSameLineAsLastParameter",
@@ -1329,7 +1329,7 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
         void LocalFoo(
             int a,
             int b) { }
-        """, 8, 14, 8, 15
+        """, 10, 10, 10, 11
     )]
     [InlineData(
         "ReportWhenMultilineLocalFunctionClosingParenthesisIsMisaligned",
@@ -1337,8 +1337,8 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
         void LocalFoo(
             int a,
             int b
-        ) { }
-        """, 9, 1, 9, 2
+          ) { }
+        """, 11, 3, 11, 4
     )]
 #pragma warning restore RCS0053, SA1117 // Parameter should not span multiple lines
     public async Task RunLocalFunctionAsync(string name, string localFunctionCode, int startLine, int startColumn, int endLine, int endColumn)
@@ -1401,7 +1401,7 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
         void Foo(
             int a,
             int b);
-        """, 7, 14, 7, 15
+        """, 8, 10, 8, 11
     )]
     [InlineData(
         "ReportWhenMultilineInterfaceMethodClosingParenthesisIsMisaligned",
@@ -1409,8 +1409,8 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
         void Foo(
             int a,
             int b
-        );
-        """, 8, 1, 8, 2
+          );
+        """, 9, 3, 9, 4
     )]
 #pragma warning restore RCS0053, SA1117 // Parameter should not span multiple lines
     public async Task RunInterfaceMethodAsync(string name, string methodDeclarationCode, int startLine, int startColumn, int endLine, int endColumn)
@@ -1470,7 +1470,7 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
         public abstract void Foo(
             int a,
             int b);
-        """, 7, 20, 7, 21
+        """, 8, 10, 8, 11
     )]
     [InlineData(
         "ReportWhenMultilineAbstractMethodClosingParenthesisIsMisaligned",
@@ -1478,8 +1478,8 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
         public abstract void Foo(
             int a,
             int b
-        );
-        """, 8, 1, 8, 2
+          );
+        """, 9, 3, 9, 4
     )]
 #pragma warning restore RCS0053, SA1117 // Parameter should not span multiple lines
     public async Task RunAbstractMethodAsync(string name, string methodDeclarationCode, int startLine, int startColumn, int endLine, int endColumn)
@@ -1521,7 +1521,7 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
     }
 
     [Theory]
-    [InlineData(null, true, true, true, false)]
+    [InlineData(null, true, true, true, true)]
     [InlineData($"{Kuk0006TargetSyntaxOption.METHOD_INVOCATION},{Kuk0006TargetSyntaxOption.OBJECT_CREATION}", true, true, true, false)]
     [InlineData($"{Kuk0006TargetSyntaxOption.OBJECT_CREATION},{Kuk0006TargetSyntaxOption.METHOD_INVOCATION}", true, true, true, false)]
     [InlineData(Kuk0006TargetSyntaxOption.METHOD_INVOCATION, true, false, false, false)]
