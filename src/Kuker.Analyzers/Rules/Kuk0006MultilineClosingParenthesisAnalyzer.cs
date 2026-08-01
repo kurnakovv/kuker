@@ -30,7 +30,7 @@ namespace Kuker.Analyzers.Rules
             "with the first non-whitespace character of the opening line. Expected location Line:{0}, Character:{1}.";
 
         private static readonly LocalizableString s_description =
-            "For multiline method invocations, the closing parenthesis must be on its own line " +
+            "For multiline argument and parameter lists, the closing parenthesis must be on its own line " +
             "and aligned with the first non-whitespace character of the opening line.";
 
         private static readonly DiagnosticDescriptor s_rule = new DiagnosticDescriptor(
