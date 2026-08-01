@@ -10,11 +10,13 @@ using System.Threading.Tasks;
 using Kuker.Core.Contants;
 using Kuker.Core.Formatting;
 using Kuker.Core.Models;
+using Kuker.Core.Options;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Kuker.CodeFixes.CodeFixProviders
@@ -61,6 +63,19 @@ namespace Kuker.CodeFixes.CodeFixProviders
                 return;
             }
 
+            SyntaxTree syntaxTree = closeParen.SyntaxTree;
+            if (syntaxTree == null)
+            {
+                return;
+            }
+
+            AnalyzerConfigOptions configOptions = context.Document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
+            if (configOptions.TryGetValue(Kuk0006TargetSyntaxOption.KEY, out string configValue)
+                && !Kuk0006TargetSyntaxOption.TryParse(configValue, out _))
+            {
+                return;
+            }
+
             context.RegisterCodeFix(
                 CodeAction.Create(
                     title: TITLE,
@@ -73,15 +88,15 @@ namespace Kuker.CodeFixes.CodeFixProviders
 
         private static async Task<Document> AlignClosingParenthesisAsync(SyntaxNode root, Document document, SyntaxToken closeParen, CancellationToken cancellationToken)
         {
-            InvocationExpressionSyntax invocation = closeParen.Parent?.FirstAncestorOrSelf<InvocationExpressionSyntax>();
+            ArgumentListSyntax argumentList = closeParen.Parent?.FirstAncestorOrSelf<ArgumentListSyntax>();
 
-            if (invocation == null)
+            if (argumentList == null)
             {
                 return document;
             }
 
             SourceText text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            SyntaxToken openParen = invocation.ArgumentList.OpenParenToken;
+            SyntaxToken openParen = argumentList.OpenParenToken;
 
             MultilineClosingParenthesisPlacement placement = MultilineClosingParenthesisPlacementHelper.GetPlacement(text, openParen, closeParen);
 

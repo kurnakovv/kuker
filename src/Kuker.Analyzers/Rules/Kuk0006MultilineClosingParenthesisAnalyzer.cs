@@ -2,11 +2,13 @@
 // This file is licensed under the MIT License.
 // See the LICENSE file in the project root for full license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using Kuker.Analyzers.Constants;
 using Kuker.Core.Contants;
 using Kuker.Core.Formatting;
 using Kuker.Core.Models;
+using Kuker.Core.Options;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -41,10 +43,30 @@ namespace Kuker.Analyzers.Rules
             helpLinkUri: "https://github.com/kurnakovv/kuker/wiki/KUK0006"
         );
 
+        private static readonly LocalizableString s_invalidConfigTitle = "Invalid KUK0006 target syntax option";
+        private static readonly LocalizableString s_invalidConfigMessageFormat =
+            "Invalid value '{0}' for option '" + Kuk0006TargetSyntaxOption.KEY + "'. " +
+            "Expected '" + Kuk0006TargetSyntaxOption.METHOD_INVOCATION +
+            "', '" + Kuk0006TargetSyntaxOption.OBJECT_CREATION +
+            "', or both comma-separated.";
+
+        private static readonly DiagnosticDescriptor s_invalidConfigRule = new DiagnosticDescriptor(
+            id: DiagnosticIdContant.KUK0006,
+            title: s_invalidConfigTitle,
+            messageFormat: s_invalidConfigMessageFormat,
+            category: CategoryConstant.ALL_RULES,
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            description: s_invalidConfigMessageFormat,
+            helpLinkUri: "https://github.com/kurnakovv/kuker/wiki/KUK0006"
+        );
+
+        private static readonly HashSet<string> s_defaultTargetSyntaxes = InitDefaultTargetSyntaxes();
+
         /// <summary>
         /// SupportedDiagnostics.
         /// </summary>
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_rule);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_rule, s_invalidConfigRule);
 
         /// <summary>
         /// Initialize.
@@ -59,6 +81,16 @@ namespace Kuker.Analyzers.Rules
                 AnalyzeInvocation,
                 SyntaxKind.InvocationExpression
             );
+
+            context.RegisterSyntaxNodeAction(
+                AnalyzeObjectCreation,
+                SyntaxKind.ObjectCreationExpression
+            );
+
+            context.RegisterSyntaxNodeAction(
+                AnalyzeImplicitObjectCreation,
+                SyntaxKind.ImplicitObjectCreationExpression
+            );
         }
 
         private static void AnalyzeInvocation(SyntaxNodeAnalysisContext context)
@@ -69,6 +101,36 @@ namespace Kuker.Analyzers.Rules
             }
 
             ArgumentListSyntax argumentList = invocation.ArgumentList;
+            AnalyzeArgumentList(context, invocation, argumentList, Kuk0006TargetSyntaxOption.METHOD_INVOCATION);
+        }
+
+        private static void AnalyzeObjectCreation(SyntaxNodeAnalysisContext context)
+        {
+            ObjectCreationExpressionSyntax objectCreation = (ObjectCreationExpressionSyntax)context.Node;
+            ArgumentListSyntax argumentList = objectCreation.ArgumentList;
+
+            if (argumentList is null)
+            {
+                return;
+            }
+
+            AnalyzeArgumentList(context, objectCreation, argumentList, Kuk0006TargetSyntaxOption.OBJECT_CREATION);
+        }
+
+        private static void AnalyzeImplicitObjectCreation(SyntaxNodeAnalysisContext context)
+        {
+            ImplicitObjectCreationExpressionSyntax implicitObjectCreation = (ImplicitObjectCreationExpressionSyntax)context.Node;
+
+            ArgumentListSyntax argumentList = implicitObjectCreation.ArgumentList;
+            AnalyzeArgumentList(context, implicitObjectCreation, argumentList, Kuk0006TargetSyntaxOption.OBJECT_CREATION);
+        }
+
+        private static void AnalyzeArgumentList(
+            SyntaxNodeAnalysisContext context,
+            SyntaxNode node,
+            ArgumentListSyntax argumentList,
+            string targetSyntax)
+        {
             SyntaxToken openParen = argumentList.OpenParenToken;
             SyntaxToken closeParen = argumentList.CloseParenToken;
 
@@ -77,7 +139,7 @@ namespace Kuker.Analyzers.Rules
                 return;
             }
 
-            SourceText text = invocation.SyntaxTree.GetText(context.CancellationToken);
+            SourceText text = node.SyntaxTree.GetText(context.CancellationToken);
             TextLine openLine = text.Lines.GetLineFromPosition(openParen.SpanStart);
             TextLine closeLine = text.Lines.GetLineFromPosition(closeParen.SpanStart);
 
@@ -108,6 +170,46 @@ namespace Kuker.Analyzers.Rules
                 }
             }
 
+            HashSet<string> targetSyntaxes;
+
+            AnalyzerConfigOptions options = context.Options.AnalyzerConfigOptionsProvider.GetOptions(node.SyntaxTree);
+            if (options.TryGetValue(Kuk0006TargetSyntaxOption.KEY, out string configuredTargetSyntax))
+            {
+                if (!Kuk0006TargetSyntaxOption.TryParse(configuredTargetSyntax, out targetSyntaxes))
+                {
+                    Diagnostic configDiagnostic = Diagnostic.Create(
+                        s_invalidConfigRule,
+                        closeParen.GetLocation(),
+                        configuredTargetSyntax.Trim());
+
+                    context.ReportDiagnostic(configDiagnostic);
+                    return;
+                }
+            }
+            else
+            {
+                targetSyntaxes = s_defaultTargetSyntaxes;
+            }
+
+            if (!targetSyntaxes.Contains(targetSyntax))
+            {
+                return;
+            }
+
+            if (targetSyntax == Kuk0006TargetSyntaxOption.OBJECT_CREATION &&
+                node.Parent is ArgumentSyntax &&
+                node.Parent.Parent is ArgumentListSyntax parentArgumentList &&
+                parentArgumentList.Parent is InvocationExpressionSyntax parentInvocation)
+            {
+                SyntaxToken parentCloseParen = parentInvocation.ArgumentList.CloseParenToken;
+                if (!parentCloseParen.IsMissing &&
+                    parentCloseParen.GetPreviousToken() == closeParen &&
+                    text.Lines.GetLineFromPosition(parentCloseParen.SpanStart).LineNumber == closeLine.LineNumber)
+                {
+                    return;
+                }
+            }
+
             ReportDiagnostic(context, closeParen, placement.ExpectedLineNumber, placement.ExpectedCharacter);
         }
 
@@ -121,6 +223,12 @@ namespace Kuker.Analyzers.Rules
             );
 
             context.ReportDiagnostic(diagnostic);
+        }
+
+        private static HashSet<string> InitDefaultTargetSyntaxes()
+        {
+            Kuk0006TargetSyntaxOption.TryParse(string.Empty, out HashSet<string> defaults);
+            return defaults;
         }
     }
 }
