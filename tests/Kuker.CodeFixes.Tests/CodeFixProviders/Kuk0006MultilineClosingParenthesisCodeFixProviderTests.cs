@@ -230,6 +230,9 @@ public class Kuk0006MultilineClosingParenthesisCodeFixProviderTests
     [InlineData($"{Kuk0006TargetSyntaxOption.METHOD_INVOCATION},")]
     [InlineData($",{Kuk0006TargetSyntaxOption.OBJECT_CREATION}")]
     [InlineData($"{Kuk0006TargetSyntaxOption.METHOD_INVOCATION},,{Kuk0006TargetSyntaxOption.OBJECT_CREATION}")]
+    [InlineData($"{Kuk0006TargetSyntaxOption.METHOD_DECLARATION},")]
+    [InlineData($",{Kuk0006TargetSyntaxOption.METHOD_DECLARATION}")]
+    [InlineData($"{Kuk0006TargetSyntaxOption.METHOD_DECLARATION},,{Kuk0006TargetSyntaxOption.OBJECT_CREATION}")]
     public async Task CodeFixDoesNotApplyWhenTargetSyntaxOptionIsInvalidAsync(string invalidTargetSyntax)
     {
         string testCode = WrapCode(
@@ -261,6 +264,177 @@ public class Kuk0006MultilineClosingParenthesisCodeFixProviderTests
         test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0006, DiagnosticSeverity.Warning).WithLocation(0).WithArguments(invalidTargetSyntax));
 
         await test.RunAsync();
+    }
+
+#pragma warning disable RCS0053, SA1117 // Parameter should not span multiple lines
+    [Theory]
+    [InlineData(
+        "CodeFixMovesMethodDeclarationClosingParenthesisToOwnLineAsync",
+        """
+            public void Foo(
+                int a,
+                int b{|#0:)|}
+            {
+            }
+            """,
+        """
+            public void Foo(
+                int a,
+                int b
+            )
+            {
+            }
+            """
+    )]
+    [InlineData(
+        "CodeFixAlignsMethodDeclarationClosingParenthesisAsync",
+        """
+            public void Foo(
+                int a,
+                int b
+              {|#0:)|}
+            {
+            }
+            """,
+        """
+            public void Foo(
+                int a,
+                int b
+            )
+            {
+            }
+            """
+    )]
+    [InlineData(
+        "CodeFixMovesLocalFunctionClosingParenthesisToOwnLineAsync",
+        """
+            public void M()
+            {
+                void Local(
+                    int a,
+                    int b{|#0:)|}
+                {
+                }
+            }
+            """,
+        """
+            public void M()
+            {
+                void Local(
+                    int a,
+                    int b
+                )
+                {
+                }
+            }
+            """
+    )]
+#pragma warning restore RCS0053, SA1117 // Parameter should not span multiple lines
+    public async Task CodeFixAppliesExpectedChangeToMethodDeclarationAsync(string name, string testCode, string fixedCode)
+    {
+        _ = name;
+
+        string wrappedTestCode = WrapMethodDeclarationCode(testCode);
+        string wrappedFixedCode = WrapMethodDeclarationCode(fixedCode);
+
+        CSharpCodeFixTest<Kuk0006MultilineClosingParenthesisAnalyzer, Kuk0006MultilineClosingParenthesisCodeFixProvider, DefaultVerifier> test = new()
+        {
+            TestCode = wrappedTestCode,
+            FixedCode = wrappedFixedCode,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        };
+
+        test.TestState.AnalyzerConfigFiles.Add((
+            "/.editorconfig",
+            $$"""
+                root = true
+
+                [*.cs]
+                {{Kuk0006TargetSyntaxOption.KEY}} = {{Kuk0006TargetSyntaxOption.METHOD_DECLARATION}}
+                """
+        ));
+
+        test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0006, DiagnosticSeverity.Warning).WithLocation(0));
+
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task CodeFixFixAllInDocumentAppliesToMethodDeclarationAsync()
+    {
+        string testCode = WrapMethodDeclarationCode(
+            """
+                public void Foo(
+                    int a,
+                    int b{|#0:)|}
+                {
+                }
+
+                public void Bar(
+                    string x,
+                    string y{|#1:)|}
+                {
+                }
+                """
+        );
+
+        string fixedCode = WrapMethodDeclarationCode(
+            """
+                public void Foo(
+                    int a,
+                    int b
+                )
+                {
+                }
+
+                public void Bar(
+                    string x,
+                    string y
+                )
+                {
+                }
+                """
+        );
+
+        CSharpCodeFixTest<Kuk0006MultilineClosingParenthesisAnalyzer, Kuk0006MultilineClosingParenthesisCodeFixProvider, DefaultVerifier> test = new()
+        {
+            TestCode = testCode,
+            FixedCode = fixedCode,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+            NumberOfFixAllIterations = 1,
+        };
+
+        test.TestState.AnalyzerConfigFiles.Add((
+            "/.editorconfig",
+            $$"""
+                root = true
+
+                [*.cs]
+                {{Kuk0006TargetSyntaxOption.KEY}} = {{Kuk0006TargetSyntaxOption.METHOD_DECLARATION}}
+                """
+        ));
+
+        test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0006, DiagnosticSeverity.Warning).WithLocation(0));
+        test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0006, DiagnosticSeverity.Warning).WithLocation(1));
+
+        await test.RunAsync();
+    }
+
+    private static string WrapMethodDeclarationCode(string code)
+    {
+        string normalizedCode = code.ReplaceLineEndings(Environment.NewLine).Trim('\r', '\n');
+        string indentedCode = normalizedCode.Replace(Environment.NewLine, $"{Environment.NewLine}    ", StringComparison.Ordinal);
+
+        string template = """
+                using System;
+
+                public class TestClass
+                {
+                    __CODE__
+                }
+                """;
+
+        return template.Replace("__CODE__", indentedCode, StringComparison.Ordinal);
     }
 
     private static string WrapCode(string code)

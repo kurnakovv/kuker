@@ -48,7 +48,8 @@ namespace Kuker.Analyzers.Rules
             "Invalid value '{0}' for option '" + Kuk0006TargetSyntaxOption.KEY + "'. " +
             "Expected '" + Kuk0006TargetSyntaxOption.METHOD_INVOCATION +
             "', '" + Kuk0006TargetSyntaxOption.OBJECT_CREATION +
-            "', or both comma-separated.";
+            "', '" + Kuk0006TargetSyntaxOption.METHOD_DECLARATION +
+            "', or a comma-separated combination.";
 
         private static readonly DiagnosticDescriptor s_invalidConfigRule = new DiagnosticDescriptor(
             id: DiagnosticIdContant.KUK0006,
