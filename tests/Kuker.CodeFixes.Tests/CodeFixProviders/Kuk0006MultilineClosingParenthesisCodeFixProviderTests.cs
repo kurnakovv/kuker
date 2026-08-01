@@ -271,63 +271,63 @@ public class Kuk0006MultilineClosingParenthesisCodeFixProviderTests
     [InlineData(
         "CodeFixMovesMethodDeclarationClosingParenthesisToOwnLineAsync",
         """
-            public void Foo(
-                int a,
-                int b{|#0:)|}
-            {
-            }
-            """,
+        public void Foo(
+            int a,
+            int b{|#0:)|}
+        {
+        }
+        """,
         """
-            public void Foo(
-                int a,
-                int b
-            )
-            {
-            }
-            """
+        public void Foo(
+            int a,
+            int b
+        )
+        {
+        }
+        """
     )]
     [InlineData(
         "CodeFixAlignsMethodDeclarationClosingParenthesisAsync",
         """
-            public void Foo(
+        public void Foo(
+            int a,
+            int b
+          {|#0:)|}
+        {
+        }
+        """,
+        """
+        public void Foo(
+            int a,
+            int b
+        )
+        {
+        }
+        """
+    )]
+    [InlineData(
+        "CodeFixMovesLocalFunctionClosingParenthesisToOwnLineAsync",
+        """
+        public void M()
+        {
+            void Local(
                 int a,
-                int b
-              {|#0:)|}
+                int b{|#0:)|}
             {
             }
-            """,
+        }
+        """,
         """
-            public void Foo(
+        public void M()
+        {
+            void Local(
                 int a,
                 int b
             )
             {
             }
-            """
-    )]
-    [InlineData(
-        "CodeFixMovesLocalFunctionClosingParenthesisToOwnLineAsync",
+        }
         """
-            public void M()
-            {
-                void Local(
-                    int a,
-                    int b{|#0:)|}
-                {
-                }
-            }
-            """,
-        """
-            public void M()
-            {
-                void Local(
-                    int a,
-                    int b
-                )
-                {
-                }
-            }
-            """
     )]
 #pragma warning restore RCS0053, SA1117 // Parameter should not span multiple lines
     public async Task CodeFixAppliesExpectedChangeToMethodDeclarationAsync(string name, string testCode, string fixedCode)
@@ -347,11 +347,11 @@ public class Kuk0006MultilineClosingParenthesisCodeFixProviderTests
         test.TestState.AnalyzerConfigFiles.Add((
             "/.editorconfig",
             $$"""
-                root = true
+            root = true
 
-                [*.cs]
-                {{Kuk0006TargetSyntaxOption.KEY}} = {{Kuk0006TargetSyntaxOption.METHOD_DECLARATION}}
-                """
+            [*.cs]
+            {{Kuk0006TargetSyntaxOption.KEY}} = {{Kuk0006TargetSyntaxOption.METHOD_DECLARATION}}
+            """
         ));
 
         test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0006, DiagnosticSeverity.Warning).WithLocation(0));
@@ -364,36 +364,36 @@ public class Kuk0006MultilineClosingParenthesisCodeFixProviderTests
     {
         string testCode = WrapMethodDeclarationCode(
             """
-                public void Foo(
-                    int a,
-                    int b{|#0:)|}
-                {
-                }
+            public void Foo(
+                int a,
+                int b{|#0:)|}
+            {
+            }
 
-                public void Bar(
-                    string x,
-                    string y{|#1:)|}
-                {
-                }
-                """
+            public void Bar(
+                string x,
+                string y{|#1:)|}
+            {
+            }
+            """
         );
 
         string fixedCode = WrapMethodDeclarationCode(
             """
-                public void Foo(
-                    int a,
-                    int b
-                )
-                {
-                }
+            public void Foo(
+                int a,
+                int b
+            )
+            {
+            }
 
-                public void Bar(
-                    string x,
-                    string y
-                )
-                {
-                }
-                """
+            public void Bar(
+                string x,
+                string y
+            )
+            {
+            }
+            """
         );
 
         CSharpCodeFixTest<Kuk0006MultilineClosingParenthesisAnalyzer, Kuk0006MultilineClosingParenthesisCodeFixProvider, DefaultVerifier> test = new()
@@ -407,11 +407,11 @@ public class Kuk0006MultilineClosingParenthesisCodeFixProviderTests
         test.TestState.AnalyzerConfigFiles.Add((
             "/.editorconfig",
             $$"""
-                root = true
+            root = true
 
-                [*.cs]
-                {{Kuk0006TargetSyntaxOption.KEY}} = {{Kuk0006TargetSyntaxOption.METHOD_DECLARATION}}
-                """
+            [*.cs]
+            {{Kuk0006TargetSyntaxOption.KEY}} = {{Kuk0006TargetSyntaxOption.METHOD_DECLARATION}}
+            """
         ));
 
         test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0006, DiagnosticSeverity.Warning).WithLocation(0));
@@ -426,13 +426,13 @@ public class Kuk0006MultilineClosingParenthesisCodeFixProviderTests
         string indentedCode = normalizedCode.Replace(Environment.NewLine, $"{Environment.NewLine}    ", StringComparison.Ordinal);
 
         string template = """
-                using System;
+            using System;
 
-                public class TestClass
-                {
-                    __CODE__
-                }
-                """;
+            public class TestClass
+            {
+                __CODE__
+            }
+            """;
 
         return template.Replace("__CODE__", indentedCode, StringComparison.Ordinal);
     }
