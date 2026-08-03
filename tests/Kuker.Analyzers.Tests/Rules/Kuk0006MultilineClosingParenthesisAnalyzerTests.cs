@@ -1589,7 +1589,7 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
 
 #pragma warning disable RCS0053, SA1117 // Parameter should not span multiple lines
     [Theory]
-    [InlineData("NoReportOnSingleLinePrimaryConstructorClass", "public class TestClass(int a, int b)\n{\n    public int Sum { get; } = a + b;\n}", 0, 0, 0, 0)]
+    [InlineData("NoReportOnSingleLinePrimaryConstructorClass", "public class TestClass(int a, int b){ public int Sum { get; } = a + b;}", 0, 0, 0, 0)]
     [InlineData(
         "NoReportOnValidMultilinePrimaryConstructorClass",
         """
@@ -1601,6 +1601,17 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
             public int Sum { get; } = a + b;
         }
         """, 0, 0, 0, 0
+    )]
+    [InlineData(
+        "ReportWhenPrimaryConstructorClassClosingParenthesisIsOnSameLine",
+        """
+        public class TestClass(
+            int a,
+            int b)
+        {
+            public int Sum { get; } = a + b;
+        }
+        """, 6, 10, 6, 11
     )]
     [InlineData(
         "NoReportOnValidMultilinePrimaryConstructorStruct",
@@ -1615,14 +1626,26 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
         """, 0, 0, 0, 0
     )]
     [InlineData(
-        "ReportWhenPrimaryConstructorClosingParenthesisIsNotOnOwnLine",
+        "ReportWhenPrimaryConstructorStructClosingParenthesisIsOnSameLine",
         """
-        public record TestRecord(
+        public struct TestStruct(
             int a,
             int b)
         {
+            public int Sum { get; } = a + b;
         }
         """, 6, 10, 6, 11
+    )]
+    [InlineData(
+        "NoReportOnValidMultilinePrimaryConstructorRecord",
+        """
+        public record TestRecord(
+            int a,
+            int b
+        )
+        {
+        }
+        """, 0, 0, 0, 0
     )]
     [InlineData(
         "ReportWhenPrimaryConstructorClosingParenthesisIsMisaligned",
@@ -1634,6 +1657,29 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
         {
         }
         """, 7, 3, 7, 4
+    )]
+    [InlineData(
+        "NoReportOnValidMultilinePrimaryConstructorRecordStruct",
+        """
+        public record struct TestRecordStruct(
+            int a,
+            int b
+        )
+        {
+            public int Sum { get; } = a + b;
+        }
+        """, 0, 0, 0, 0
+    )]
+    [InlineData(
+        "ReportWhenPrimaryConstructorRecordStructClosingParenthesisIsOnSameLine",
+        """
+        public record struct TestRecordStruct(
+            int a,
+            int b)
+        {
+            public int Sum { get; } = a + b;
+        }
+        """, 6, 10, 6, 11
     )]
 #pragma warning restore RCS0053, SA1117 // Parameter should not span multiple lines
     public async Task RunPrimaryConstructorAsync(string name, string primaryConstructorCode, int startLine, int startColumn, int endLine, int endColumn)

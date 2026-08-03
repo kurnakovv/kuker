@@ -115,7 +115,8 @@ namespace Kuker.Analyzers.Rules
                 AnalyzePrimaryConstructor,
                 SyntaxKind.ClassDeclaration,
                 SyntaxKind.StructDeclaration,
-                SyntaxKind.RecordDeclaration
+                SyntaxKind.RecordDeclaration,
+                SyntaxKind.RecordStructDeclaration
             );
         }
 
