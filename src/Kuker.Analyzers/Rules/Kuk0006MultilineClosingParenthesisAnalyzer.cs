@@ -50,6 +50,7 @@ namespace Kuker.Analyzers.Rules
             "Expected '" + Kuk0006TargetSyntaxOption.METHOD_INVOCATION +
             "', '" + Kuk0006TargetSyntaxOption.OBJECT_CREATION +
             "', '" + Kuk0006TargetSyntaxOption.METHOD_DECLARATION +
+            "', '" + Kuk0006TargetSyntaxOption.CONSTRUCTOR_DECLARATION +
             "', or a comma-separated combination.";
 
         private static readonly DiagnosticDescriptor s_invalidConfigRule = new DiagnosticDescriptor(
@@ -100,6 +101,11 @@ namespace Kuker.Analyzers.Rules
             );
 
             context.RegisterSyntaxNodeAction(
+                AnalyzeConstructorDeclaration,
+                SyntaxKind.ConstructorDeclaration
+            );
+
+            context.RegisterSyntaxNodeAction(
                 AnalyzeLocalFunction,
                 SyntaxKind.LocalFunctionStatement
             );
@@ -140,13 +146,19 @@ namespace Kuker.Analyzers.Rules
         private static void AnalyzeMethodDeclaration(SyntaxNodeAnalysisContext context)
         {
             MethodDeclarationSyntax methodDeclaration = (MethodDeclarationSyntax)context.Node;
-            AnalyzeParameterList(context, methodDeclaration, methodDeclaration.ParameterList);
+            AnalyzeParameterList(context, methodDeclaration, methodDeclaration.ParameterList, Kuk0006TargetSyntaxOption.METHOD_DECLARATION);
+        }
+
+        private static void AnalyzeConstructorDeclaration(SyntaxNodeAnalysisContext context)
+        {
+            ConstructorDeclarationSyntax constructorDeclaration = (ConstructorDeclarationSyntax)context.Node;
+            AnalyzeParameterList(context, constructorDeclaration, constructorDeclaration.ParameterList, Kuk0006TargetSyntaxOption.CONSTRUCTOR_DECLARATION);
         }
 
         private static void AnalyzeLocalFunction(SyntaxNodeAnalysisContext context)
         {
             LocalFunctionStatementSyntax localFunction = (LocalFunctionStatementSyntax)context.Node;
-            AnalyzeParameterList(context, localFunction, localFunction.ParameterList);
+            AnalyzeParameterList(context, localFunction, localFunction.ParameterList, Kuk0006TargetSyntaxOption.METHOD_DECLARATION);
         }
 
         private static void AnalyzeArgumentList(
@@ -170,14 +182,15 @@ namespace Kuker.Analyzers.Rules
         private static void AnalyzeParameterList(
             SyntaxNodeAnalysisContext context,
             SyntaxNode node,
-            ParameterListSyntax parameterList)
+            ParameterListSyntax parameterList,
+            string targetSyntax)
         {
             AnalyzeParentheses(
                 context,
                 node,
                 parameterList.OpenParenToken,
                 parameterList.CloseParenToken,
-                Kuk0006TargetSyntaxOption.METHOD_DECLARATION,
+                targetSyntax,
                 skipCheck: null);
         }
 
