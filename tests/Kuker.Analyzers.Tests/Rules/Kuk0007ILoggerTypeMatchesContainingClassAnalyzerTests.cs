@@ -116,6 +116,15 @@ public class Kuk0007ILoggerTypeMatchesContainingClassAnalyzerTests
         """, 0, 0, 0, 0
     )]
     [InlineData(
+        "NoReportWhenInterfaceContainsMismatchedILoggerProperty",
+        """
+        public interface IOrderService
+        {
+            ILogger<PaymentService> Logger { get; }
+        }
+        """, 0, 0, 0, 0
+    )]
+    [InlineData(
         "NoReportWhenGenericClassUsesMatchingILoggerType",
         """
         public class GenericOrderService<T>

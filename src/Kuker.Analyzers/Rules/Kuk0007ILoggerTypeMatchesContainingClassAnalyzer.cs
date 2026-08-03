@@ -55,10 +55,7 @@ namespace Kuker.Analyzers.Rules
 
         private static void AnalyzeNamedType(SymbolAnalysisContext context)
         {
-            if (!(context.Symbol is INamedTypeSymbol containingType))
-            {
-                return;
-            }
+            INamedTypeSymbol containingType = (INamedTypeSymbol)context.Symbol;
 
             if (containingType.TypeKind != TypeKind.Class && containingType.TypeKind != TypeKind.Struct)
             {
