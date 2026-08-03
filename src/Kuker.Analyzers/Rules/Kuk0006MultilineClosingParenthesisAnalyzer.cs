@@ -51,6 +51,7 @@ namespace Kuker.Analyzers.Rules
             "', '" + Kuk0006TargetSyntaxOption.OBJECT_CREATION +
             "', '" + Kuk0006TargetSyntaxOption.METHOD_DECLARATION +
             "', '" + Kuk0006TargetSyntaxOption.CONSTRUCTOR_DECLARATION +
+            "', '" + Kuk0006TargetSyntaxOption.PRIMARY_CONSTRUCTOR +
             "', or a comma-separated combination.";
 
         private static readonly DiagnosticDescriptor s_invalidConfigRule = new DiagnosticDescriptor(
@@ -101,13 +102,20 @@ namespace Kuker.Analyzers.Rules
             );
 
             context.RegisterSyntaxNodeAction(
+                AnalyzeLocalFunction,
+                SyntaxKind.LocalFunctionStatement
+            );
+
+            context.RegisterSyntaxNodeAction(
                 AnalyzeConstructorDeclaration,
                 SyntaxKind.ConstructorDeclaration
             );
 
             context.RegisterSyntaxNodeAction(
-                AnalyzeLocalFunction,
-                SyntaxKind.LocalFunctionStatement
+                AnalyzePrimaryConstructor,
+                SyntaxKind.ClassDeclaration,
+                SyntaxKind.StructDeclaration,
+                SyntaxKind.RecordDeclaration
             );
         }
 
@@ -153,6 +161,18 @@ namespace Kuker.Analyzers.Rules
         {
             ConstructorDeclarationSyntax constructorDeclaration = (ConstructorDeclarationSyntax)context.Node;
             AnalyzeParameterList(context, constructorDeclaration, constructorDeclaration.ParameterList, Kuk0006TargetSyntaxOption.CONSTRUCTOR_DECLARATION);
+        }
+
+        private static void AnalyzePrimaryConstructor(SyntaxNodeAnalysisContext context)
+        {
+            TypeDeclarationSyntax typeDeclaration = (TypeDeclarationSyntax)context.Node;
+
+            if (typeDeclaration.ParameterList is null)
+            {
+                return;
+            }
+
+            AnalyzeParameterList(context, typeDeclaration, typeDeclaration.ParameterList, Kuk0006TargetSyntaxOption.PRIMARY_CONSTRUCTOR);
         }
 
         private static void AnalyzeLocalFunction(SyntaxNodeAnalysisContext context)

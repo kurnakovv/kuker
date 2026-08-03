@@ -1302,81 +1302,6 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
 
 #pragma warning disable RCS0053, SA1117 // Parameter should not span multiple lines
     [Theory]
-    [InlineData("NoReportOnSingleLineConstructorDeclaration", "public TestClass(int a, int b) { }", 0, 0, 0, 0)]
-    [InlineData("NoReportOnConstructorDeclarationWithoutParameters", "public TestClass() { }", 0, 0, 0, 0)]
-    [InlineData(
-        "NoReportOnValidMultilineConstructorDeclaration",
-        """
-        public TestClass(
-            int a,
-            int b
-        )
-        {
-        }
-        """, 0, 0, 0, 0
-    )]
-    [InlineData(
-        "ReportWhenConstructorClosingParenthesisIsNotOnOwnLine",
-        """
-        public TestClass(
-            int a,
-            int b)
-        {
-        }
-        """, 8, 10, 8, 11
-    )]
-    [InlineData(
-        "ReportWhenConstructorClosingParenthesisIsMisaligned",
-        """
-        public TestClass(
-            int a,
-            int b
-          )
-        {
-        }
-        """, 9, 3, 9, 4
-    )]
-#pragma warning restore RCS0053, SA1117 // Parameter should not span multiple lines
-    public async Task RunConstructorDeclarationAsync(string name, string constructorDeclarationCode, int startLine, int startColumn, int endLine, int endColumn)
-    {
-        string testCode = """
-            using System;
-
-            public class TestClass
-            {
-            {%constructorDeclarationCode%}
-            }
-            """.Replace("{%constructorDeclarationCode%}", "// " + name + "\n" + constructorDeclarationCode, StringComparison.Ordinal);
-
-        CSharpAnalyzerTest<Kuk0006MultilineClosingParenthesisAnalyzer, DefaultVerifier> test = new()
-        {
-            TestCode = testCode,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
-        };
-
-        test.TestState.AnalyzerConfigFiles.Add((
-            "/.editorconfig",
-            $$"""
-            root = true
-
-            [*.cs]
-            {{Kuk0006TargetSyntaxOption.KEY}} = {{Kuk0006TargetSyntaxOption.CONSTRUCTOR_DECLARATION}}
-            """
-        ));
-
-        if (!(startLine == 0 && startColumn == 0 && endLine == 0 && endColumn == 0))
-        {
-            DiagnosticResult expected = new DiagnosticResult(DiagnosticIdContant.KUK0006, DiagnosticSeverity.Warning)
-                .WithSpan(startLine, startColumn, endLine, endColumn);
-
-            test.ExpectedDiagnostics.Add(expected);
-        }
-
-        await test.RunAsync();
-    }
-
-#pragma warning disable RCS0053, SA1117 // Parameter should not span multiple lines
-    [Theory]
     [InlineData("NoReportOnSingleLineLocalFunction", "void LocalFoo(int a, int b) { }", 0, 0, 0, 0)]
     [InlineData("NoReportOnLocalFunctionWithoutParameters", "void LocalFoo() { }", 0, 0, 0, 0)]
     [InlineData(
@@ -1573,6 +1498,156 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
 
             [*.cs]
             {{Kuk0006TargetSyntaxOption.KEY}} = {{Kuk0006TargetSyntaxOption.METHOD_DECLARATION}}
+            """
+        ));
+
+        if (!(startLine == 0 && startColumn == 0 && endLine == 0 && endColumn == 0))
+        {
+            DiagnosticResult expected = new DiagnosticResult(DiagnosticIdContant.KUK0006, DiagnosticSeverity.Warning)
+                .WithSpan(startLine, startColumn, endLine, endColumn);
+
+            test.ExpectedDiagnostics.Add(expected);
+        }
+
+        await test.RunAsync();
+    }
+
+#pragma warning disable RCS0053, SA1117 // Parameter should not span multiple lines
+    [Theory]
+    [InlineData("NoReportOnSingleLineConstructorDeclaration", "public TestClass(int a, int b) { }", 0, 0, 0, 0)]
+    [InlineData("NoReportOnConstructorDeclarationWithoutParameters", "public TestClass() { }", 0, 0, 0, 0)]
+    [InlineData(
+        "NoReportOnValidMultilineConstructorDeclaration",
+        """
+        public TestClass(
+            int a,
+            int b
+        )
+        {
+        }
+        """, 0, 0, 0, 0
+    )]
+    [InlineData(
+        "ReportWhenConstructorClosingParenthesisIsNotOnOwnLine",
+        """
+        public TestClass(
+            int a,
+            int b)
+        {
+        }
+        """, 8, 10, 8, 11
+    )]
+    [InlineData(
+        "ReportWhenConstructorClosingParenthesisIsMisaligned",
+        """
+        public TestClass(
+            int a,
+            int b
+          )
+        {
+        }
+        """, 9, 3, 9, 4
+    )]
+#pragma warning restore RCS0053, SA1117 // Parameter should not span multiple lines
+    public async Task RunConstructorDeclarationAsync(string name, string constructorDeclarationCode, int startLine, int startColumn, int endLine, int endColumn)
+    {
+        string testCode = """
+            using System;
+
+            public class TestClass
+            {
+            {%constructorDeclarationCode%}
+            }
+            """.Replace("{%constructorDeclarationCode%}", "// " + name + "\n" + constructorDeclarationCode, StringComparison.Ordinal);
+
+        CSharpAnalyzerTest<Kuk0006MultilineClosingParenthesisAnalyzer, DefaultVerifier> test = new()
+        {
+            TestCode = testCode,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        };
+
+        test.TestState.AnalyzerConfigFiles.Add((
+            "/.editorconfig",
+            $$"""
+            root = true
+
+            [*.cs]
+            {{Kuk0006TargetSyntaxOption.KEY}} = {{Kuk0006TargetSyntaxOption.CONSTRUCTOR_DECLARATION}}
+            """
+        ));
+
+        if (!(startLine == 0 && startColumn == 0 && endLine == 0 && endColumn == 0))
+        {
+            DiagnosticResult expected = new DiagnosticResult(DiagnosticIdContant.KUK0006, DiagnosticSeverity.Warning)
+                .WithSpan(startLine, startColumn, endLine, endColumn);
+
+            test.ExpectedDiagnostics.Add(expected);
+        }
+
+        await test.RunAsync();
+    }
+
+#pragma warning disable RCS0053, SA1117 // Parameter should not span multiple lines
+    [Theory]
+    [InlineData("NoReportOnSingleLinePrimaryConstructorClass", "public class TestClass(int a, int b)\n{\n    public int Sum { get; } = a + b;\n}", 0, 0, 0, 0)]
+    [InlineData(
+        "NoReportOnValidMultilinePrimaryConstructorStruct",
+        """
+        public struct TestStruct(
+            int a,
+            int b
+        )
+        {
+            public int Sum { get; } = a + b;
+        }
+        """, 0, 0, 0, 0
+    )]
+    [InlineData(
+        "ReportWhenPrimaryConstructorClosingParenthesisIsNotOnOwnLine",
+        """
+        public record TestRecord(
+            int a,
+            int b)
+        {
+        }
+        """, 6, 10, 6, 11
+    )]
+    [InlineData(
+        "ReportWhenPrimaryConstructorClosingParenthesisIsMisaligned",
+        """
+        public record TestRecord(
+            int a,
+            int b
+          )
+        {
+        }
+        """, 7, 3, 7, 4
+    )]
+#pragma warning restore RCS0053, SA1117 // Parameter should not span multiple lines
+    public async Task RunPrimaryConstructorAsync(string name, string primaryConstructorCode, int startLine, int startColumn, int endLine, int endColumn)
+    {
+        string testCode = """
+            using System;
+
+            // {%name%}
+            {%primaryConstructorCode%}
+            """
+            .Replace("{%name%}", name, StringComparison.Ordinal)
+            .Replace("{%primaryConstructorCode%}", primaryConstructorCode, StringComparison.Ordinal);
+
+        CSharpAnalyzerTest<Kuk0006MultilineClosingParenthesisAnalyzer, DefaultVerifier> test = new()
+        {
+            TestCode = testCode,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        };
+
+        test.TestState.AnalyzerConfigFiles.Add((
+            "/.editorconfig",
+            $$"""
+            root = true
+
+            [*.cs]
+            {{Kuk0006TargetSyntaxOption.KEY}} = {{Kuk0006TargetSyntaxOption.PRIMARY_CONSTRUCTOR}}
             """
         ));
 
