@@ -20,8 +20,10 @@ namespace Kuker.Analyzers.Rules
     public class Kuk0007ILoggerTypeMatchesContainingTypeAnalyzer : DiagnosticAnalyzer
     {
         private static readonly LocalizableString s_title = "ILogger type parameter should match containing type";
+
         private static readonly LocalizableString s_messageFormat =
             "ILogger<T> type parameter '{0}' does not match the containing type '{1}'";
+
         private static readonly LocalizableString s_description =
             "The ILogger<T> category type should be the same as the containing type.";
 
