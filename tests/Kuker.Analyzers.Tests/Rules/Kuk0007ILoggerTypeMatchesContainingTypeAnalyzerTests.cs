@@ -116,6 +116,12 @@ public class Kuk0007ILoggerTypeMatchesContainingTypeAnalyzerTests
         """, 0, 0, 0, 0
     )]
     [InlineData(
+        "NoReportWhenLoggerTypeIsArray",
+        """
+        private readonly ILogger<PaymentService>[] _loggers;
+        """, 0, 0, 0, 0
+    )]
+    [InlineData(
         "NoReportWhenInterfaceContainsMismatchedILoggerProperty",
         """
         public interface IOrderService
