@@ -40,7 +40,7 @@ namespace Kuker.Core.Contants
         public const string KUK0006 = "KUK0006";
 
         /// <summary>
-        /// KUK0007 - <c>Kuk0007ILoggerTypeMatchesContainingClassAnalyzer</c>.
+        /// KUK0007 - <c>Kuk0007ILoggerTypeMatchesContainingTypeAnalyzer</c>.
         /// </summary>
         public const string KUK0007 = "KUK0007";
     }

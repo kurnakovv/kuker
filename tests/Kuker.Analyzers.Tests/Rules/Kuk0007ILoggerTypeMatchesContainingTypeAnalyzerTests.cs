@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Testing;
 
 namespace Kuker.Analyzers.Tests.Rules;
 
-public class Kuk0007ILoggerTypeMatchesContainingClassAnalyzerTests
+public class Kuk0007ILoggerTypeMatchesContainingTypeAnalyzerTests
 {
 #pragma warning disable RCS0053, SA1117 // Parameter should not span multiple lines
     [Theory]
@@ -383,7 +383,7 @@ public class Kuk0007ILoggerTypeMatchesContainingClassAnalyzerTests
             }
             """;
 
-        CSharpAnalyzerTest<Kuk0007ILoggerTypeMatchesContainingClassAnalyzer, DefaultVerifier> test = new()
+        CSharpAnalyzerTest<Kuk0007ILoggerTypeMatchesContainingTypeAnalyzer, DefaultVerifier> test = new()
         {
             TestCode = testCode,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
@@ -420,7 +420,7 @@ public class Kuk0007ILoggerTypeMatchesContainingClassAnalyzerTests
             }
             """;
 
-        await new CSharpAnalyzerTest<Kuk0007ILoggerTypeMatchesContainingClassAnalyzer, DefaultVerifier>
+        await new CSharpAnalyzerTest<Kuk0007ILoggerTypeMatchesContainingTypeAnalyzer, DefaultVerifier>
         {
             TestCode = testCode,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
@@ -451,7 +451,7 @@ public class Kuk0007ILoggerTypeMatchesContainingClassAnalyzerTests
             }
             """;
 
-        await new CSharpAnalyzerTest<Kuk0007ILoggerTypeMatchesContainingClassAnalyzer, DefaultVerifier>
+        await new CSharpAnalyzerTest<Kuk0007ILoggerTypeMatchesContainingTypeAnalyzer, DefaultVerifier>
         {
             TestCode = testCode,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
@@ -485,7 +485,7 @@ public class Kuk0007ILoggerTypeMatchesContainingClassAnalyzerTests
         DiagnosticResult expected = new DiagnosticResult(DiagnosticIdContant.KUK0007, DiagnosticSeverity.Warning)
             .WithSpan(13, 30, 13, 44);
 
-        await new CSharpAnalyzerTest<Kuk0007ILoggerTypeMatchesContainingClassAnalyzer, DefaultVerifier>
+        await new CSharpAnalyzerTest<Kuk0007ILoggerTypeMatchesContainingTypeAnalyzer, DefaultVerifier>
         {
             TestCode = testCode,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
@@ -520,7 +520,7 @@ public class Kuk0007ILoggerTypeMatchesContainingClassAnalyzerTests
         DiagnosticResult expected = new DiagnosticResult(DiagnosticIdContant.KUK0007, DiagnosticSeverity.Warning)
             .WithSpan(9, 34, 9, 48);
 
-        await new CSharpAnalyzerTest<Kuk0007ILoggerTypeMatchesContainingClassAnalyzer, DefaultVerifier>
+        await new CSharpAnalyzerTest<Kuk0007ILoggerTypeMatchesContainingTypeAnalyzer, DefaultVerifier>
         {
             TestCode = testCode,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
@@ -552,7 +552,7 @@ public class Kuk0007ILoggerTypeMatchesContainingClassAnalyzerTests
             }
             """;
 
-        await new CSharpAnalyzerTest<Kuk0007ILoggerTypeMatchesContainingClassAnalyzer, DefaultVerifier>
+        await new CSharpAnalyzerTest<Kuk0007ILoggerTypeMatchesContainingTypeAnalyzer, DefaultVerifier>
         {
             TestCode = testCode,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,

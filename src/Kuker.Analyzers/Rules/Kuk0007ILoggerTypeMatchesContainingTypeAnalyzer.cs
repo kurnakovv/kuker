@@ -14,16 +14,16 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace Kuker.Analyzers.Rules
 {
     /// <summary>
-    /// KUK0007 rule - ILogger type argument should match containing class.
+    /// KUK0007 rule - ILogger type argument should match containing type.
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class Kuk0007ILoggerTypeMatchesContainingClassAnalyzer : DiagnosticAnalyzer
+    public class Kuk0007ILoggerTypeMatchesContainingTypeAnalyzer : DiagnosticAnalyzer
     {
-        private static readonly LocalizableString s_title = "ILogger type parameter should match containing class";
+        private static readonly LocalizableString s_title = "ILogger type parameter should match containing type";
         private static readonly LocalizableString s_messageFormat =
-            "ILogger<T> type parameter '{0}' does not match the containing class '{1}'";
+            "ILogger<T> type parameter '{0}' does not match the containing type '{1}'";
         private static readonly LocalizableString s_description =
-            "The ILogger<T> category type should be the same as the containing class.";
+            "The ILogger<T> category type should be the same as the containing type.";
 
         private static readonly DiagnosticDescriptor s_rule = new DiagnosticDescriptor(
             id: DiagnosticIdContant.KUK0007,
