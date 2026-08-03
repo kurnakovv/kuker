@@ -1721,23 +1721,26 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
     }
 
     [Theory]
-    [InlineData(null, true, true, true, true, true)]
-    [InlineData($"{Kuk0006TargetSyntaxOption.METHOD_INVOCATION},{Kuk0006TargetSyntaxOption.OBJECT_CREATION}", true, true, true, false, false)]
-    [InlineData($"{Kuk0006TargetSyntaxOption.OBJECT_CREATION},{Kuk0006TargetSyntaxOption.METHOD_INVOCATION}", true, true, true, false, false)]
-    [InlineData(Kuk0006TargetSyntaxOption.METHOD_INVOCATION, true, false, false, false, false)]
-    [InlineData(Kuk0006TargetSyntaxOption.OBJECT_CREATION, false, true, true, false, false)]
-    [InlineData(Kuk0006TargetSyntaxOption.METHOD_DECLARATION, false, false, false, true, false)]
-    [InlineData(Kuk0006TargetSyntaxOption.CONSTRUCTOR_DECLARATION, false, false, false, false, true)]
-    [InlineData($"{Kuk0006TargetSyntaxOption.METHOD_INVOCATION},{Kuk0006TargetSyntaxOption.METHOD_DECLARATION}", true, false, false, true, false)]
-    [InlineData($"{Kuk0006TargetSyntaxOption.METHOD_DECLARATION},{Kuk0006TargetSyntaxOption.OBJECT_CREATION}", false, true, true, true, false)]
-    [InlineData($"{Kuk0006TargetSyntaxOption.METHOD_DECLARATION},{Kuk0006TargetSyntaxOption.CONSTRUCTOR_DECLARATION}", false, false, false, true, true)]
+    [InlineData(null, true, true, true, true, true, true)]
+    [InlineData($"{Kuk0006TargetSyntaxOption.METHOD_INVOCATION},{Kuk0006TargetSyntaxOption.OBJECT_CREATION}", true, true, true, false, false, false)]
+    [InlineData($"{Kuk0006TargetSyntaxOption.OBJECT_CREATION},{Kuk0006TargetSyntaxOption.METHOD_INVOCATION}", true, true, true, false, false, false)]
+    [InlineData(Kuk0006TargetSyntaxOption.METHOD_INVOCATION, true, false, false, false, false, false)]
+    [InlineData(Kuk0006TargetSyntaxOption.OBJECT_CREATION, false, true, true, false, false, false)]
+    [InlineData(Kuk0006TargetSyntaxOption.METHOD_DECLARATION, false, false, false, true, false, false)]
+    [InlineData(Kuk0006TargetSyntaxOption.CONSTRUCTOR_DECLARATION, false, false, false, false, true, false)]
+    [InlineData(Kuk0006TargetSyntaxOption.PRIMARY_CONSTRUCTOR, false, false, false, false, false, true)]
+    [InlineData($"{Kuk0006TargetSyntaxOption.METHOD_INVOCATION},{Kuk0006TargetSyntaxOption.METHOD_DECLARATION}", true, false, false, true, false, false)]
+    [InlineData($"{Kuk0006TargetSyntaxOption.METHOD_DECLARATION},{Kuk0006TargetSyntaxOption.OBJECT_CREATION}", false, true, true, true, false, false)]
+    [InlineData($"{Kuk0006TargetSyntaxOption.METHOD_DECLARATION},{Kuk0006TargetSyntaxOption.CONSTRUCTOR_DECLARATION}", false, false, false, true, true, false)]
+    [InlineData($"{Kuk0006TargetSyntaxOption.PRIMARY_CONSTRUCTOR},{Kuk0006TargetSyntaxOption.METHOD_INVOCATION}", true, false, false, false, false, true)]
     public async Task ReportDependingOnTargetSyntaxOptionAsync(
         string? targetSyntax,
         bool expectMethodInvocationDiagnostic,
         bool expectObjectCreationDiagnostic,
         bool expectImplicitObjectCreationDiagnostic,
         bool expectMethodDeclarationDiagnostic,
-        bool expectConstructorDeclarationDiagnostic)
+        bool expectConstructorDeclarationDiagnostic,
+        bool expectPrimaryConstructorDiagnostic)
     {
         string testCode = """
             using System;
@@ -1790,6 +1793,13 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
                     public int Id { get; }
                     public string Name { get; }
                 }
+
+                private sealed class PrimaryCarrier(
+                    int x,
+                    int y{|#5:)|}
+                {
+                    public int Sum { get; } = x + y;
+                }
             }
             """;
 
@@ -1835,6 +1845,11 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
         if (expectConstructorDeclarationDiagnostic)
         {
             test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0006, DiagnosticSeverity.Warning).WithLocation(4));
+        }
+
+        if (expectPrimaryConstructorDiagnostic)
+        {
+            test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0006, DiagnosticSeverity.Warning).WithLocation(5));
         }
 
         await test.RunAsync();
