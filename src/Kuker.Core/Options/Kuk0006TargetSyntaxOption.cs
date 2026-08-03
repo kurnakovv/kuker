@@ -38,12 +38,18 @@ namespace Kuker.Core.Options
         /// </summary>
         public const string CONSTRUCTOR_DECLARATION = "constructor_declaration";
 
+        /// <summary>
+        /// Apply KUK0006 to primary constructor parameter lists.
+        /// </summary>
+        public const string PRIMARY_CONSTRUCTOR = "primary_constructor";
+
         private static readonly string[] s_supportedSyntaxes = new[]
         {
             METHOD_INVOCATION,
             OBJECT_CREATION,
             METHOD_DECLARATION,
             CONSTRUCTOR_DECLARATION,
+            PRIMARY_CONSTRUCTOR,
         };
 
         /// <summary>
@@ -87,7 +93,8 @@ namespace Kuker.Core.Options
             return string.Equals(syntax, METHOD_INVOCATION, StringComparison.OrdinalIgnoreCase)
                 || string.Equals(syntax, OBJECT_CREATION, StringComparison.OrdinalIgnoreCase)
                 || string.Equals(syntax, METHOD_DECLARATION, StringComparison.OrdinalIgnoreCase)
-                || string.Equals(syntax, CONSTRUCTOR_DECLARATION, StringComparison.OrdinalIgnoreCase);
+                || string.Equals(syntax, CONSTRUCTOR_DECLARATION, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(syntax, PRIMARY_CONSTRUCTOR, StringComparison.OrdinalIgnoreCase);
         }
     }
 }

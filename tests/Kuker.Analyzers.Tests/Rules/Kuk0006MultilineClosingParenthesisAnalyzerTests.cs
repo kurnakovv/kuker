@@ -1302,81 +1302,6 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
 
 #pragma warning disable RCS0053, SA1117 // Parameter should not span multiple lines
     [Theory]
-    [InlineData("NoReportOnSingleLineConstructorDeclaration", "public TestClass(int a, int b) { }", 0, 0, 0, 0)]
-    [InlineData("NoReportOnConstructorDeclarationWithoutParameters", "public TestClass() { }", 0, 0, 0, 0)]
-    [InlineData(
-        "NoReportOnValidMultilineConstructorDeclaration",
-        """
-        public TestClass(
-            int a,
-            int b
-        )
-        {
-        }
-        """, 0, 0, 0, 0
-    )]
-    [InlineData(
-        "ReportWhenConstructorClosingParenthesisIsNotOnOwnLine",
-        """
-        public TestClass(
-            int a,
-            int b)
-        {
-        }
-        """, 8, 10, 8, 11
-    )]
-    [InlineData(
-        "ReportWhenConstructorClosingParenthesisIsMisaligned",
-        """
-        public TestClass(
-            int a,
-            int b
-          )
-        {
-        }
-        """, 9, 3, 9, 4
-    )]
-#pragma warning restore RCS0053, SA1117 // Parameter should not span multiple lines
-    public async Task RunConstructorDeclarationAsync(string name, string constructorDeclarationCode, int startLine, int startColumn, int endLine, int endColumn)
-    {
-        string testCode = """
-            using System;
-
-            public class TestClass
-            {
-            {%constructorDeclarationCode%}
-            }
-            """.Replace("{%constructorDeclarationCode%}", "// " + name + "\n" + constructorDeclarationCode, StringComparison.Ordinal);
-
-        CSharpAnalyzerTest<Kuk0006MultilineClosingParenthesisAnalyzer, DefaultVerifier> test = new()
-        {
-            TestCode = testCode,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
-        };
-
-        test.TestState.AnalyzerConfigFiles.Add((
-            "/.editorconfig",
-            $$"""
-            root = true
-
-            [*.cs]
-            {{Kuk0006TargetSyntaxOption.KEY}} = {{Kuk0006TargetSyntaxOption.CONSTRUCTOR_DECLARATION}}
-            """
-        ));
-
-        if (!(startLine == 0 && startColumn == 0 && endLine == 0 && endColumn == 0))
-        {
-            DiagnosticResult expected = new DiagnosticResult(DiagnosticIdContant.KUK0006, DiagnosticSeverity.Warning)
-                .WithSpan(startLine, startColumn, endLine, endColumn);
-
-            test.ExpectedDiagnostics.Add(expected);
-        }
-
-        await test.RunAsync();
-    }
-
-#pragma warning disable RCS0053, SA1117 // Parameter should not span multiple lines
-    [Theory]
     [InlineData("NoReportOnSingleLineLocalFunction", "void LocalFoo(int a, int b) { }", 0, 0, 0, 0)]
     [InlineData("NoReportOnLocalFunctionWithoutParameters", "void LocalFoo() { }", 0, 0, 0, 0)]
     [InlineData(
@@ -1587,24 +1512,235 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
         await test.RunAsync();
     }
 
+#pragma warning disable RCS0053, SA1117 // Parameter should not span multiple lines
     [Theory]
-    [InlineData(null, true, true, true, true, true)]
-    [InlineData($"{Kuk0006TargetSyntaxOption.METHOD_INVOCATION},{Kuk0006TargetSyntaxOption.OBJECT_CREATION}", true, true, true, false, false)]
-    [InlineData($"{Kuk0006TargetSyntaxOption.OBJECT_CREATION},{Kuk0006TargetSyntaxOption.METHOD_INVOCATION}", true, true, true, false, false)]
-    [InlineData(Kuk0006TargetSyntaxOption.METHOD_INVOCATION, true, false, false, false, false)]
-    [InlineData(Kuk0006TargetSyntaxOption.OBJECT_CREATION, false, true, true, false, false)]
-    [InlineData(Kuk0006TargetSyntaxOption.METHOD_DECLARATION, false, false, false, true, false)]
-    [InlineData(Kuk0006TargetSyntaxOption.CONSTRUCTOR_DECLARATION, false, false, false, false, true)]
-    [InlineData($"{Kuk0006TargetSyntaxOption.METHOD_INVOCATION},{Kuk0006TargetSyntaxOption.METHOD_DECLARATION}", true, false, false, true, false)]
-    [InlineData($"{Kuk0006TargetSyntaxOption.METHOD_DECLARATION},{Kuk0006TargetSyntaxOption.OBJECT_CREATION}", false, true, true, true, false)]
-    [InlineData($"{Kuk0006TargetSyntaxOption.METHOD_DECLARATION},{Kuk0006TargetSyntaxOption.CONSTRUCTOR_DECLARATION}", false, false, false, true, true)]
+    [InlineData("NoReportOnSingleLineConstructorDeclaration", "public TestClass(int a, int b) { }", 0, 0, 0, 0)]
+    [InlineData("NoReportOnConstructorDeclarationWithoutParameters", "public TestClass() { }", 0, 0, 0, 0)]
+    [InlineData(
+        "NoReportOnValidMultilineConstructorDeclaration",
+        """
+        public TestClass(
+            int a,
+            int b
+        )
+        {
+        }
+        """, 0, 0, 0, 0
+    )]
+    [InlineData(
+        "ReportWhenConstructorClosingParenthesisIsNotOnOwnLine",
+        """
+        public TestClass(
+            int a,
+            int b)
+        {
+        }
+        """, 8, 10, 8, 11
+    )]
+    [InlineData(
+        "ReportWhenConstructorClosingParenthesisIsMisaligned",
+        """
+        public TestClass(
+            int a,
+            int b
+          )
+        {
+        }
+        """, 9, 3, 9, 4
+    )]
+#pragma warning restore RCS0053, SA1117 // Parameter should not span multiple lines
+    public async Task RunConstructorDeclarationAsync(string name, string constructorDeclarationCode, int startLine, int startColumn, int endLine, int endColumn)
+    {
+        string testCode = """
+            using System;
+
+            public class TestClass
+            {
+            {%constructorDeclarationCode%}
+            }
+            """.Replace("{%constructorDeclarationCode%}", "// " + name + "\n" + constructorDeclarationCode, StringComparison.Ordinal);
+
+        CSharpAnalyzerTest<Kuk0006MultilineClosingParenthesisAnalyzer, DefaultVerifier> test = new()
+        {
+            TestCode = testCode,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        };
+
+        test.TestState.AnalyzerConfigFiles.Add((
+            "/.editorconfig",
+            $$"""
+            root = true
+
+            [*.cs]
+            {{Kuk0006TargetSyntaxOption.KEY}} = {{Kuk0006TargetSyntaxOption.CONSTRUCTOR_DECLARATION}}
+            """
+        ));
+
+        if (!(startLine == 0 && startColumn == 0 && endLine == 0 && endColumn == 0))
+        {
+            DiagnosticResult expected = new DiagnosticResult(DiagnosticIdContant.KUK0006, DiagnosticSeverity.Warning)
+                .WithSpan(startLine, startColumn, endLine, endColumn);
+
+            test.ExpectedDiagnostics.Add(expected);
+        }
+
+        await test.RunAsync();
+    }
+
+#pragma warning disable RCS0053, SA1117 // Parameter should not span multiple lines
+    [Theory]
+    [InlineData("NoReportOnSingleLinePrimaryConstructorClass", "public class TestClass(int a, int b){ public int Sum { get; } = a + b;}", 0, 0, 0, 0)]
+    [InlineData(
+        "NoReportOnValidMultilinePrimaryConstructorClass",
+        """
+        public class TestClass(
+            int a,
+            int b
+        )
+        {
+            public int Sum { get; } = a + b;
+        }
+        """, 0, 0, 0, 0
+    )]
+    [InlineData(
+        "ReportWhenPrimaryConstructorClassClosingParenthesisIsOnSameLine",
+        """
+        public class TestClass(
+            int a,
+            int b)
+        {
+            public int Sum { get; } = a + b;
+        }
+        """, 6, 10, 6, 11
+    )]
+    [InlineData(
+        "NoReportOnValidMultilinePrimaryConstructorStruct",
+        """
+        public struct TestStruct(
+            int a,
+            int b
+        )
+        {
+            public int Sum { get; } = a + b;
+        }
+        """, 0, 0, 0, 0
+    )]
+    [InlineData(
+        "ReportWhenPrimaryConstructorStructClosingParenthesisIsOnSameLine",
+        """
+        public struct TestStruct(
+            int a,
+            int b)
+        {
+            public int Sum { get; } = a + b;
+        }
+        """, 6, 10, 6, 11
+    )]
+    [InlineData(
+        "NoReportOnValidMultilinePrimaryConstructorRecord",
+        """
+        public record TestRecord(
+            int a,
+            int b
+        )
+        {
+        }
+        """, 0, 0, 0, 0
+    )]
+    [InlineData(
+        "ReportWhenPrimaryConstructorClosingParenthesisIsMisaligned",
+        """
+        public record TestRecord(
+            int a,
+            int b
+          )
+        {
+        }
+        """, 7, 3, 7, 4
+    )]
+    [InlineData(
+        "NoReportOnValidMultilinePrimaryConstructorRecordStruct",
+        """
+        public record struct TestRecordStruct(
+            int a,
+            int b
+        )
+        {
+            public int Sum { get; } = a + b;
+        }
+        """, 0, 0, 0, 0
+    )]
+    [InlineData(
+        "ReportWhenPrimaryConstructorRecordStructClosingParenthesisIsOnSameLine",
+        """
+        public record struct TestRecordStruct(
+            int a,
+            int b)
+        {
+            public int Sum { get; } = a + b;
+        }
+        """, 6, 10, 6, 11
+    )]
+#pragma warning restore RCS0053, SA1117 // Parameter should not span multiple lines
+    public async Task RunPrimaryConstructorAsync(string name, string primaryConstructorCode, int startLine, int startColumn, int endLine, int endColumn)
+    {
+        string testCode = """
+            using System;
+
+            // {%name%}
+            {%primaryConstructorCode%}
+            """
+            .Replace("{%name%}", name, StringComparison.Ordinal)
+            .Replace("{%primaryConstructorCode%}", primaryConstructorCode, StringComparison.Ordinal);
+
+        CSharpAnalyzerTest<Kuk0006MultilineClosingParenthesisAnalyzer, DefaultVerifier> test = new()
+        {
+            TestCode = testCode,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        };
+
+        test.TestState.AnalyzerConfigFiles.Add((
+            "/.editorconfig",
+            $$"""
+            root = true
+
+            [*.cs]
+            {{Kuk0006TargetSyntaxOption.KEY}} = {{Kuk0006TargetSyntaxOption.PRIMARY_CONSTRUCTOR}}
+            """
+        ));
+
+        if (!(startLine == 0 && startColumn == 0 && endLine == 0 && endColumn == 0))
+        {
+            DiagnosticResult expected = new DiagnosticResult(DiagnosticIdContant.KUK0006, DiagnosticSeverity.Warning)
+                .WithSpan(startLine, startColumn, endLine, endColumn);
+
+            test.ExpectedDiagnostics.Add(expected);
+        }
+
+        await test.RunAsync();
+    }
+
+    [Theory]
+    [InlineData(null, true, true, true, true, true, true)]
+    [InlineData($"{Kuk0006TargetSyntaxOption.METHOD_INVOCATION},{Kuk0006TargetSyntaxOption.OBJECT_CREATION}", true, true, true, false, false, false)]
+    [InlineData($"{Kuk0006TargetSyntaxOption.OBJECT_CREATION},{Kuk0006TargetSyntaxOption.METHOD_INVOCATION}", true, true, true, false, false, false)]
+    [InlineData(Kuk0006TargetSyntaxOption.METHOD_INVOCATION, true, false, false, false, false, false)]
+    [InlineData(Kuk0006TargetSyntaxOption.OBJECT_CREATION, false, true, true, false, false, false)]
+    [InlineData(Kuk0006TargetSyntaxOption.METHOD_DECLARATION, false, false, false, true, false, false)]
+    [InlineData(Kuk0006TargetSyntaxOption.CONSTRUCTOR_DECLARATION, false, false, false, false, true, false)]
+    [InlineData(Kuk0006TargetSyntaxOption.PRIMARY_CONSTRUCTOR, false, false, false, false, false, true)]
+    [InlineData($"{Kuk0006TargetSyntaxOption.METHOD_INVOCATION},{Kuk0006TargetSyntaxOption.METHOD_DECLARATION}", true, false, false, true, false, false)]
+    [InlineData($"{Kuk0006TargetSyntaxOption.METHOD_DECLARATION},{Kuk0006TargetSyntaxOption.OBJECT_CREATION}", false, true, true, true, false, false)]
+    [InlineData($"{Kuk0006TargetSyntaxOption.METHOD_DECLARATION},{Kuk0006TargetSyntaxOption.CONSTRUCTOR_DECLARATION}", false, false, false, true, true, false)]
+    [InlineData($"{Kuk0006TargetSyntaxOption.PRIMARY_CONSTRUCTOR},{Kuk0006TargetSyntaxOption.METHOD_INVOCATION}", true, false, false, false, false, true)]
     public async Task ReportDependingOnTargetSyntaxOptionAsync(
         string? targetSyntax,
         bool expectMethodInvocationDiagnostic,
         bool expectObjectCreationDiagnostic,
         bool expectImplicitObjectCreationDiagnostic,
         bool expectMethodDeclarationDiagnostic,
-        bool expectConstructorDeclarationDiagnostic)
+        bool expectConstructorDeclarationDiagnostic,
+        bool expectPrimaryConstructorDiagnostic)
     {
         string testCode = """
             using System;
@@ -1657,6 +1793,13 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
                     public int Id { get; }
                     public string Name { get; }
                 }
+
+                private sealed class PrimaryCarrier(
+                    int x,
+                    int y{|#5:)|}
+                {
+                    public int Sum { get; } = x + y;
+                }
             }
             """;
 
@@ -1702,6 +1845,11 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
         if (expectConstructorDeclarationDiagnostic)
         {
             test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0006, DiagnosticSeverity.Warning).WithLocation(4));
+        }
+
+        if (expectPrimaryConstructorDiagnostic)
+        {
+            test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0006, DiagnosticSeverity.Warning).WithLocation(5));
         }
 
         await test.RunAsync();
