@@ -30,7 +30,7 @@ public class Kuk0007ILoggerTypeMatchesContainingClassAnalyzerTests
             ILogger<PaymentService> logger)
         {
         }
-        """, 10, 13, 10, 35
+        """, 10, 13, 10, 27
     )]
     [InlineData(
         "NoReportWhenFieldILoggerTypeMatchesContainingClass",
@@ -42,14 +42,14 @@ public class Kuk0007ILoggerTypeMatchesContainingClassAnalyzerTests
         "ReportWhenFieldILoggerTypeDoesNotMatchContainingClass",
         """
         private readonly ILogger<PaymentService> _logger;
-        """, 9, 26, 9, 48
+        """, 9, 30, 9, 44
     )]
     [InlineData(
         "ReportOnlyOneDiagnosticWhenOnlyOneOfMultipleLoggerFieldsMismatches",
         """
         private readonly ILogger<OrderService> _logger1;
         private readonly ILogger<PaymentService> _logger2;
-        """, 10, 26, 10, 48
+        """, 10, 26, 10, 40
     )]
     [InlineData(
         "NoReportWhenPropertyILoggerTypeMatchesContainingClass",
@@ -61,7 +61,7 @@ public class Kuk0007ILoggerTypeMatchesContainingClassAnalyzerTests
         "ReportWhenPropertyILoggerTypeDoesNotMatchContainingClass",
         """
         public ILogger<PaymentService> Logger { get; }
-        """, 9, 16, 9, 38
+        """, 9, 20, 9, 34
     )]
     [InlineData(
         "NoReportWhenConstructorParameterMatchesContainingClassWithFieldAssignment",
@@ -85,7 +85,7 @@ public class Kuk0007ILoggerTypeMatchesContainingClassAnalyzerTests
         {
             this._logger = logger;
         }
-        """, 12, 13, 12, 35
+        """, 12, 13, 12, 27
     )]
     [InlineData(
         "NoReportWhenNestedClassUsesILoggerOfInnerClass",
@@ -103,11 +103,15 @@ public class Kuk0007ILoggerTypeMatchesContainingClassAnalyzerTests
         {
             private readonly ILogger<OrderService> _logger;
         }
-        """, 11, 26, 11, 46
+        """, 11, 30, 11, 42
     )]
     [InlineData(
         "NoReportWhenILoggerIsNonGeneric",
         """
+        private interface ILogger
+        {
+        }
+
         private readonly ILogger _logger;
         """, 0, 0, 0, 0
     )]
@@ -127,7 +131,7 @@ public class Kuk0007ILoggerTypeMatchesContainingClassAnalyzerTests
         {
             private readonly ILogger<OrderService> _logger;
         }
-        """, 15, 30, 15, 50
+        """, 11, 30, 11, 42
     )]
     [InlineData(
         "ReportWhenGenericClassUsesTypeParameterInILogger",
@@ -136,7 +140,7 @@ public class Kuk0007ILoggerTypeMatchesContainingClassAnalyzerTests
         {
             private readonly ILogger<T> _logger;
         }
-        """, 15, 30, 15, 40
+        """, 11, 30, 11, 31
     )]
     [InlineData(
         "ReportOnlyMismatchedConstructorWhenMultipleConstructorsExist",
@@ -151,7 +155,7 @@ public class Kuk0007ILoggerTypeMatchesContainingClassAnalyzerTests
             ILogger<PaymentService> logger)
         {
         }
-        """, 16, 13, 16, 35
+        """, 16, 13, 16, 27
     )]
     [InlineData(
         "NoReportWhenRecordUsesMatchingILoggerType",
@@ -165,7 +169,7 @@ public class Kuk0007ILoggerTypeMatchesContainingClassAnalyzerTests
         """
         public record RecordOrderService(
             ILogger<PaymentService> logger);
-        """, 10, 13, 10, 35
+        """, 10, 13, 10, 27
     )]
     [InlineData(
         "NoReportWhenStructUsesMatchingILoggerType",
@@ -183,7 +187,7 @@ public class Kuk0007ILoggerTypeMatchesContainingClassAnalyzerTests
         {
             private readonly ILogger<PaymentService> _logger;
         }
-        """, 15, 30, 15, 52
+        """, 11, 30, 11, 44
     )]
     [InlineData(
         "NoReportWhenRecordStructUsesMatchingILoggerType",
@@ -197,7 +201,7 @@ public class Kuk0007ILoggerTypeMatchesContainingClassAnalyzerTests
         """
         public record struct RecordStructOrderService(
             ILogger<PaymentService> logger);
-        """, 14, 13, 14, 35
+        """, 10, 13, 10, 27
     )]
     [InlineData(
         "NoReportWhenFullyQualifiedILoggerTypeMatchesContainingClass",
@@ -209,7 +213,7 @@ public class Kuk0007ILoggerTypeMatchesContainingClassAnalyzerTests
         "ReportWhenFullyQualifiedILoggerTypeDoesNotMatchContainingClass",
         """
         private readonly global::TestNamespace.ILogger<PaymentService> _logger;
-        """, 15, 49, 15, 71
+        """, 9, 52, 9, 66
     )]
     [InlineData(
         "NoReportWhenFieldILoggerTypeIsNullableAndMatchesContainingClass",
@@ -221,7 +225,7 @@ public class Kuk0007ILoggerTypeMatchesContainingClassAnalyzerTests
         "ReportWhenFieldILoggerTypeIsNullableAndDoesNotMatchContainingClass",
         """
         private readonly ILogger<PaymentService>? _logger;
-        """, 9, 26, 9, 48
+        """, 9, 30, 9, 44
     )]
     [InlineData(
         "NoReportWhenConstructorParameterILoggerTypeIsNullableAndMatchesContainingClass",
@@ -239,11 +243,15 @@ public class Kuk0007ILoggerTypeMatchesContainingClassAnalyzerTests
         {
             _ = logger;
         }
-        """, 10, 25, 10, 47
+        """, 9, 33, 9, 47
     )]
     [InlineData(
         "NoReportWhenConstructorParameterHasAttributeAndILoggerTypeMatchesContainingClass",
         """
+        private sealed class FromServicesAttribute : global::System.Attribute
+        {
+        }
+
         public OrderService(
             [FromServices] ILogger<OrderService> logger)
         {
@@ -253,11 +261,15 @@ public class Kuk0007ILoggerTypeMatchesContainingClassAnalyzerTests
     [InlineData(
         "ReportWhenConstructorParameterHasAttributeAndILoggerTypeDoesNotMatchContainingClass",
         """
+        private sealed class FromServicesAttribute : global::System.Attribute
+        {
+        }
+
         public OrderService(
             [FromServices] ILogger<PaymentService> logger)
         {
         }
-        """, 11, 20, 11, 42
+        """, 14, 28, 14, 42
     )]
     [InlineData(
         "NoReportWhenConstructorParameterUsesInModifierAndILoggerTypeMatchesContainingClass",
@@ -275,7 +287,7 @@ public class Kuk0007ILoggerTypeMatchesContainingClassAnalyzerTests
             in ILogger<PaymentService> logger)
         {
         }
-        """, 11, 16, 11, 38
+        """, 10, 16, 10, 30
     )]
     [InlineData(
         "ReportWhenILoggerTypeIsBaseClassOfContainingClass",
@@ -288,7 +300,7 @@ public class Kuk0007ILoggerTypeMatchesContainingClassAnalyzerTests
         {
             private readonly ILogger<BaseService> _logger;
         }
-        """, 13, 26, 13, 46
+        """, 13, 30, 13, 41
     )]
     [InlineData(
         "NoReportWhenContainingClassInheritsBaseButILoggerTypeMatchesContainingClass",
@@ -310,7 +322,7 @@ public class Kuk0007ILoggerTypeMatchesContainingClassAnalyzerTests
         {
             private readonly ILogger<OrderService<int>> _logger;
         }
-        """, 15, 30, 15, 47
+        """, 9, 30, 9, 47
     )]
     [InlineData(
         "NoReportWhenGenericClassUsesWrongGenericSpecializationInILogger",
@@ -326,18 +338,29 @@ public class Kuk0007ILoggerTypeMatchesContainingClassAnalyzerTests
     {
         _ = name;
 
-        string testCode = $$"""
-            namespace TestNamespace;
+        bool containsContainingTypeDeclaration =
+            loggerDeclarationCode.Contains("class OrderService", StringComparison.Ordinal) ||
+            loggerDeclarationCode.Contains("struct OrderService", StringComparison.Ordinal) ||
+            loggerDeclarationCode.Contains("record OrderService", StringComparison.Ordinal);
 
-            public interface ILogger
-            {
-            }
+        string testCode = containsContainingTypeDeclaration
+            ? $$"""
+            namespace TestNamespace;
 
             public interface ILogger<T>
             {
             }
 
-            public sealed class FromServicesAttribute : global::System.Attribute
+            {{loggerDeclarationCode}}
+
+            public class PaymentService
+            {
+            }
+            """
+            : $$"""
+            namespace TestNamespace;
+
+            public interface ILogger<T>
             {
             }
 
@@ -451,7 +474,7 @@ public class Kuk0007ILoggerTypeMatchesContainingClassAnalyzerTests
             """;
 
         DiagnosticResult expected = new DiagnosticResult(DiagnosticIdContant.KUK0007, DiagnosticSeverity.Warning)
-            .WithSpan(13, 26, 13, 48);
+            .WithSpan(13, 30, 13, 44);
 
         await new CSharpAnalyzerTest<Kuk0007ILoggerTypeMatchesContainingClassAnalyzer, DefaultVerifier>
         {
