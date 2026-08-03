@@ -38,5 +38,10 @@ namespace Kuker.Core.Contants
         /// KUK0006 - <c>Kuk0006MultilineClosingParenthesisAnalyzer</c>.
         /// </summary>
         public const string KUK0006 = "KUK0006";
+
+        /// <summary>
+        /// KUK0007 - <c>Kuk0007ILoggerTypeMatchesContainingClassAnalyzer</c>.
+        /// </summary>
+        public const string KUK0007 = "KUK0007";
     }
 }
