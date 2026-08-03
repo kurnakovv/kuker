@@ -1591,6 +1591,18 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
     [Theory]
     [InlineData("NoReportOnSingleLinePrimaryConstructorClass", "public class TestClass(int a, int b)\n{\n    public int Sum { get; } = a + b;\n}", 0, 0, 0, 0)]
     [InlineData(
+        "NoReportOnValidMultilinePrimaryConstructorClass",
+        """
+        public class TestClass(
+            int a,
+            int b
+        )
+        {
+            public int Sum { get; } = a + b;
+        }
+        """, 0, 0, 0, 0
+    )]
+    [InlineData(
         "NoReportOnValidMultilinePrimaryConstructorStruct",
         """
         public struct TestStruct(
