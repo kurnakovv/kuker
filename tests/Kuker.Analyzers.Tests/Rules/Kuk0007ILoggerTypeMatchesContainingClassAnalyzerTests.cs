@@ -134,13 +134,13 @@ public class Kuk0007ILoggerTypeMatchesContainingClassAnalyzerTests
         """, 11, 30, 11, 42
     )]
     [InlineData(
-        "ReportWhenGenericClassUsesTypeParameterInILogger",
+        "NoReportWhenGenericClassUsesTypeParameterInILogger",
         """
         public class GenericOrderService<T>
         {
             private readonly ILogger<T> _logger;
         }
-        """, 11, 30, 11, 31
+        """, 0, 0, 0, 0
     )]
     [InlineData(
         "ReportOnlyMismatchedConstructorWhenMultipleConstructorsExist",

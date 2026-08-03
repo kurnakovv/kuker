@@ -179,6 +179,12 @@ namespace Kuker.Analyzers.Rules
 
         private static bool IsSameType(INamedTypeSymbol containingType, ITypeSymbol loggerCategoryType)
         {
+            if (loggerCategoryType is ITypeParameterSymbol loggerTypeParameter &&
+                containingType.TypeParameters.Any(x => SymbolEqualityComparer.Default.Equals(x, loggerTypeParameter)))
+            {
+                return true;
+            }
+
             ITypeSymbol normalizedContainingType = NormalizeType(containingType);
             ITypeSymbol normalizedLoggerCategoryType = NormalizeType(loggerCategoryType);
             return SymbolEqualityComparer.Default.Equals(normalizedContainingType, normalizedLoggerCategoryType);
