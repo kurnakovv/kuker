@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Kuker.CodeFixes.CodeFixProviders
 {
@@ -25,6 +26,8 @@ namespace Kuker.CodeFixes.CodeFixProviders
     {
         private const string MEMBER_ONLY_TITLE_FORMAT = "Change ILogger<T> to ILogger<{0}>";
         private const string CONSTRUCTOR_CHAIN_TITLE_FORMAT = "Change ILogger<T> to ILogger<{0}> for constructor and assigned members";
+        private const string MEMBER_ONLY_EQUIVALENCE_KEY = "KUK0007_MemberOnly";
+        private const string CONSTRUCTOR_CHAIN_EQUIVALENCE_KEY = "KUK0007_ConstructorChain";
 
         /// <summary>
         /// FixableDiagnosticIds.
@@ -56,7 +59,13 @@ namespace Kuker.CodeFixes.CodeFixProviders
             }
 
             SyntaxNode node = root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
-            if (TryGetParameterFixContext(node, semanticModel, context.CancellationToken, out _, out _, out INamedTypeSymbol constructorContainingType))
+            if (TryGetParameterFixContext(
+                node,
+                semanticModel,
+                context.CancellationToken,
+                out _,
+                out _,
+                out INamedTypeSymbol constructorContainingType))
             {
                 string containingTypeDisplayName = constructorContainingType.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
                 string title = string.Format(CONSTRUCTOR_CHAIN_TITLE_FORMAT, containingTypeDisplayName);
@@ -65,7 +74,7 @@ namespace Kuker.CodeFixes.CodeFixProviders
                     CodeAction.Create(
                         title: title,
                         createChangedDocument: token => UpdateLoggerTypeAsync(context.Document, diagnostic, token),
-                        equivalenceKey: title
+                        equivalenceKey: CONSTRUCTOR_CHAIN_EQUIVALENCE_KEY
                     ),
                     diagnostic
                 );
@@ -73,7 +82,12 @@ namespace Kuker.CodeFixes.CodeFixProviders
                 return;
             }
 
-            if (TryGetMemberFixContext(node, semanticModel, context.CancellationToken, out _, out INamedTypeSymbol memberContainingType))
+            if (TryGetMemberFixContext(
+                node,
+                semanticModel,
+                context.CancellationToken,
+                out _,
+                out INamedTypeSymbol memberContainingType))
             {
                 string containingTypeDisplayName = memberContainingType.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
                 string title = string.Format(MEMBER_ONLY_TITLE_FORMAT, containingTypeDisplayName);
@@ -82,7 +96,7 @@ namespace Kuker.CodeFixes.CodeFixProviders
                     CodeAction.Create(
                         title: title,
                         createChangedDocument: token => UpdateLoggerTypeAsync(context.Document, diagnostic, token),
-                        equivalenceKey: title
+                        equivalenceKey: MEMBER_ONLY_EQUIVALENCE_KEY
                     ),
                     diagnostic
                 );
@@ -182,13 +196,13 @@ namespace Kuker.CodeFixes.CodeFixProviders
             INamedTypeSymbol containingType,
             IEnumerable<TypeSyntax> targetNodes)
         {
-            Dictionary<int, TypeSyntax> uniqueTargetNodes = new Dictionary<int, TypeSyntax>();
+            Dictionary<TextSpan, TypeSyntax> uniqueTargetNodes = new Dictionary<TextSpan, TypeSyntax>();
             foreach (TypeSyntax targetNode in targetNodes)
             {
-                int key = (targetNode.SpanStart * 397) ^ targetNode.Span.Length;
-                if (!uniqueTargetNodes.ContainsKey(key))
+                TextSpan span = targetNode.Span;
+                if (!uniqueTargetNodes.ContainsKey(span))
                 {
-                    uniqueTargetNodes.Add(key, targetNode);
+                    uniqueTargetNodes.Add(span, targetNode);
                 }
             }
 
