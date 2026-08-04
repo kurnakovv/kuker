@@ -73,7 +73,7 @@ namespace Kuker.CodeFixes.CodeFixProviders
                 context.RegisterCodeFix(
                     CodeAction.Create(
                         title: title,
-                        createChangedDocument: token => UpdateLoggerTypeAsync(context.Document, diagnostic, token),
+                        createChangedDocument: token => Task.FromResult(UpdateLoggerType(context.Document, diagnostic, root, semanticModel, token)),
                         equivalenceKey: CONSTRUCTOR_CHAIN_EQUIVALENCE_KEY
                     ),
                     diagnostic
@@ -95,7 +95,7 @@ namespace Kuker.CodeFixes.CodeFixProviders
                 context.RegisterCodeFix(
                     CodeAction.Create(
                         title: title,
-                        createChangedDocument: token => UpdateLoggerTypeAsync(context.Document, diagnostic, token),
+                        createChangedDocument: token => Task.FromResult(UpdateLoggerType(context.Document, diagnostic, root, semanticModel, token)),
                         equivalenceKey: MEMBER_ONLY_EQUIVALENCE_KEY
                     ),
                     diagnostic
@@ -103,15 +103,14 @@ namespace Kuker.CodeFixes.CodeFixProviders
             }
         }
 
-        private static async Task<Document> UpdateLoggerTypeAsync(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
+        private static Document UpdateLoggerType(
+            Document document,
+            Diagnostic diagnostic,
+            SyntaxNode root,
+            SemanticModel semanticModel,
+            CancellationToken cancellationToken
+        )
         {
-            SyntaxNode root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            SemanticModel semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            if (root == null || semanticModel == null)
-            {
-                return document;
-            }
-
             SyntaxNode node = root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
 
             if (TryGetParameterFixContext(
