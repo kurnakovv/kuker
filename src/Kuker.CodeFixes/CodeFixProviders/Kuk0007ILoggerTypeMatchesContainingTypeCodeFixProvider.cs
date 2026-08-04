@@ -145,13 +145,16 @@ namespace Kuker.CodeFixes.CodeFixProviders
                 targetNodes.Add(parameterTypeArgument);
             }
 
-            foreach (ISymbol memberSymbol in GetDirectlyAssignedMembers(constructorSyntax, parameterSymbol, semanticModel, cancellationToken))
-            {
-                if (TryGetDeclaredLoggerTypeArgumentSyntax(memberSymbol, out TypeSyntax memberTypeArgument))
+            IEnumerable<TypeSyntax> memberTypeArguments = GetDirectlyAssignedMembers(constructorSyntax, parameterSymbol, semanticModel, cancellationToken)
+                .Select(memberSymbol =>
                 {
-                    targetNodes.Add(memberTypeArgument);
-                }
-            }
+                    return TryGetDeclaredLoggerTypeArgumentSyntax(memberSymbol, out TypeSyntax memberTypeArgument)
+                        ? memberTypeArgument
+                        : null;
+                })
+                .Where(memberTypeArgument => memberTypeArgument != null);
+
+            targetNodes.AddRange(memberTypeArguments);
 
             SyntaxNode newRoot = ReplaceLoggerTypeArguments(root, semanticModel, containingType, targetNodes);
             return document.WithSyntaxRoot(newRoot);
