@@ -158,6 +158,18 @@ public class Kuk0007ILoggerTypeMatchesContainingTypeAnalyzerTests
         """, 0, 0, 0, 0
     )]
     [InlineData(
+        "ReportWhenNestedClassUsesOuterTypeParameterInILogger",
+        """
+        public class OrderService<T>
+        {
+            public class Inner
+            {
+                private readonly ILogger<T> _logger;
+            }
+        }
+        """, 11, 34, 11, 35
+    )]
+    [InlineData(
         "ReportOnlyMismatchedConstructorWhenMultipleConstructorsExist",
         """
         public OrderService(
