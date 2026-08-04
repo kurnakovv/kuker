@@ -205,12 +205,7 @@ namespace Kuker.Analyzers.Rules
                 ? parameter.DeclaringSyntaxReferences[0]
                 : null;
 
-            if (syntaxReference == null)
-            {
-                return parameter.Locations.Length > 0 ? parameter.Locations[0] : Location.None;
-            }
-
-            if (syntaxReference.GetSyntax() is ParameterSyntax parameterSyntax)
+            if (syntaxReference?.GetSyntax() is ParameterSyntax parameterSyntax)
             {
                 if (parameterSyntax.Type != null && TryGetLoggerTypeArgumentLocation(parameterSyntax.Type, out Location loggerTypeArgumentLocation))
                 {
