@@ -94,6 +94,51 @@ public class Kuk0007ILoggerTypeMatchesContainingTypeCodeFixProviderTests
     }
 
     [Fact]
+    public async Task CodeFixHandlesNonSimpleAndNestedAssignmentsInConstructorAsync()
+    {
+        string testCode = WrapCode(
+            """
+            private readonly ILogger<PaymentService> _logger;
+            private int _counter;
+            public object Holder { get; set; }
+
+            public OrderService(ILogger<{|#0:PaymentService|}> logger)
+            {
+                _counter += 1;
+                global::System.Action assign = () => Holder = logger;
+                _logger = logger;
+            }
+            """
+        );
+
+        string fixedCode = WrapCode(
+            """
+            private readonly ILogger<OrderService> _logger;
+            private int _counter;
+            public object Holder { get; set; }
+
+            public OrderService(ILogger<OrderService> logger)
+            {
+                _counter += 1;
+                global::System.Action assign = () => Holder = logger;
+                _logger = logger;
+            }
+            """
+        );
+
+        CSharpCodeFixTest<Kuk0007ILoggerTypeMatchesContainingTypeAnalyzer, Kuk0007ILoggerTypeMatchesContainingTypeCodeFixProvider, DefaultVerifier> test = new()
+        {
+            TestCode = testCode,
+            FixedCode = fixedCode,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        };
+
+        test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0007, DiagnosticSeverity.Warning).WithLocation(0));
+
+        await test.RunAsync();
+    }
+
+    [Fact]
     public async Task CodeFixUpdatesFieldOnlyAsync()
     {
         string testCode = WrapCode("private readonly ILogger<{|#0:PaymentService|}> _logger;");
