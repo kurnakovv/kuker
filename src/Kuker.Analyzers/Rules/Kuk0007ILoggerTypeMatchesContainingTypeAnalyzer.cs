@@ -240,7 +240,7 @@ namespace Kuker.Analyzers.Rules
                 return variableDeclaration.Type.GetLocation();
             }
 
-            return field.Locations.Length > 0 ? field.Locations[0] : Location.None;
+            return Location.None;
         }
 
         private static Location GetPropertyTypeLocation(IPropertySymbol property)
@@ -259,7 +259,7 @@ namespace Kuker.Analyzers.Rules
                 return propertyDeclarationSyntax.Type.GetLocation();
             }
 
-            return property.Locations.Length > 0 ? property.Locations[0] : Location.None;
+            return Location.None;
         }
 
         private static bool TryGetLoggerTypeArgumentLocation(TypeSyntax loggerTypeSyntax, out Location loggerTypeArgumentLocation)

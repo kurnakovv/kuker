@@ -88,7 +88,7 @@ public class Kuk0007ILoggerTypeMatchesContainingTypeAnalyzerTests
         """, 9, 20, 9, 34
     )]
     [InlineData(
-        "NoReportWhenConstructorParameterMatchesContainingClassWithFieldAssignment", 
+        "NoReportWhenConstructorParameterMatchesContainingClassWithFieldAssignment",
         """
         private readonly ILogger<OrderService> _logger;
 
@@ -341,7 +341,7 @@ public class Kuk0007ILoggerTypeMatchesContainingTypeAnalyzerTests
         """, 10, 16, 10, 30
     )]
     [InlineData(
-        "ReportWhenILoggerTypeIsBaseClassOfContainingClass", 
+        "ReportWhenILoggerTypeIsBaseClassOfContainingClass",
         """
         public class BaseService
         {
