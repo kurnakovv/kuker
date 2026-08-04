@@ -512,6 +512,39 @@ public class Kuk0007ILoggerTypeMatchesContainingTypeAnalyzerTests
     }
 
     [Fact]
+    public async Task ReportWhenFieldUsesAliasTypeAndILoggerTypeDoesNotMatchContainingTypeAsync()
+    {
+        string testCode = """
+            using LoggerAlias = TestNamespace.ILogger<TestNamespace.PaymentService>;
+
+            namespace TestNamespace;
+
+            public interface ILogger<T>
+            {
+            }
+
+            public class OrderService
+            {
+                private readonly LoggerAlias _logger;
+            }
+
+            public class PaymentService
+            {
+            }
+            """;
+
+        DiagnosticResult expected = new DiagnosticResult(DiagnosticIdContant.KUK0007, DiagnosticSeverity.Warning)
+            .WithSpan(11, 22, 11, 33);
+
+        await new CSharpAnalyzerTest<Kuk0007ILoggerTypeMatchesContainingTypeAnalyzer, DefaultVerifier>
+        {
+            TestCode = testCode,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+            ExpectedDiagnostics = { expected },
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task ReportWhenPartialClassUsesMismatchedILoggerTypeAsync()
     {
         string testCode = """
