@@ -64,6 +64,30 @@ public class Kuk0007ILoggerTypeMatchesContainingTypeAnalyzerTests
         """, 9, 20, 9, 34
     )]
     [InlineData(
+        "NoReportWhenPropertyILoggerTypeDoesNotMatchContainingClassButHasSetter",
+        """
+        public ILogger<PaymentService> Logger { get; set; }
+        """, 0, 0, 0, 0
+    )]
+    [InlineData(
+        "NoReportWhenPropertyILoggerTypeDoesNotMatchContainingClassButHasInitSetter",
+        """
+        public ILogger<PaymentService> Logger { get; init; }
+        """, 0, 0, 0, 0
+    )]
+    [InlineData(
+        "ReportWhenPropertyILoggerTypeDoesNotMatchContainingClassButHasPrivateSetter",
+        """
+        public ILogger<PaymentService> Logger { get; private set; }
+        """, 9, 20, 9, 34
+    )]
+    [InlineData(
+        "ReportWhenPropertyILoggerTypeDoesNotMatchContainingClassButHasPrivateInitSetter",
+        """
+        public ILogger<PaymentService> Logger { get; private init; }
+        """, 9, 20, 9, 34
+    )]
+    [InlineData(
         "NoReportWhenConstructorParameterMatchesContainingClassWithFieldAssignment", 
         """
         private readonly ILogger<OrderService> _logger;
@@ -559,6 +583,130 @@ public class Kuk0007ILoggerTypeMatchesContainingTypeAnalyzerTests
             public class OrderService
             {
                 public LoggerAlias Logger { get; }
+            }
+
+            public class PaymentService
+            {
+            }
+            """;
+
+        DiagnosticResult expected = new DiagnosticResult(DiagnosticIdContant.KUK0007, DiagnosticSeverity.Warning)
+            .WithSpan(11, 12, 11, 23);
+
+        await new CSharpAnalyzerTest<Kuk0007ILoggerTypeMatchesContainingTypeAnalyzer, DefaultVerifier>
+        {
+            TestCode = testCode,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+            ExpectedDiagnostics = { expected },
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task NoReportWhenPropertyUsesAliasTypeAndILoggerTypeDoesNotMatchContainingTypeButHasSetterAsync()
+    {
+        string testCode = """
+            using LoggerAlias = TestNamespace.ILogger<TestNamespace.PaymentService>;
+
+            namespace TestNamespace;
+
+            public interface ILogger<T>
+            {
+            }
+
+            public class OrderService
+            {
+                public LoggerAlias Logger { get; set; }
+            }
+
+            public class PaymentService
+            {
+            }
+            """;
+
+        await new CSharpAnalyzerTest<Kuk0007ILoggerTypeMatchesContainingTypeAnalyzer, DefaultVerifier>
+        {
+            TestCode = testCode,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task NoReportWhenPropertyUsesAliasTypeAndILoggerTypeDoesNotMatchContainingTypeButHasInitSetterAsync()
+    {
+        string testCode = """
+            using LoggerAlias = TestNamespace.ILogger<TestNamespace.PaymentService>;
+
+            namespace TestNamespace;
+
+            public interface ILogger<T>
+            {
+            }
+
+            public class OrderService
+            {
+                public LoggerAlias Logger { get; init; }
+            }
+
+            public class PaymentService
+            {
+            }
+            """;
+
+        await new CSharpAnalyzerTest<Kuk0007ILoggerTypeMatchesContainingTypeAnalyzer, DefaultVerifier>
+        {
+            TestCode = testCode,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task ReportWhenPropertyUsesAliasTypeAndILoggerTypeDoesNotMatchContainingTypeButHasPrivateSetterAsync()
+    {
+        string testCode = """
+            using LoggerAlias = TestNamespace.ILogger<TestNamespace.PaymentService>;
+
+            namespace TestNamespace;
+
+            public interface ILogger<T>
+            {
+            }
+
+            public class OrderService
+            {
+                public LoggerAlias Logger { get; private set; }
+            }
+
+            public class PaymentService
+            {
+            }
+            """;
+
+        DiagnosticResult expected = new DiagnosticResult(DiagnosticIdContant.KUK0007, DiagnosticSeverity.Warning)
+            .WithSpan(11, 12, 11, 23);
+
+        await new CSharpAnalyzerTest<Kuk0007ILoggerTypeMatchesContainingTypeAnalyzer, DefaultVerifier>
+        {
+            TestCode = testCode,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+            ExpectedDiagnostics = { expected },
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task ReportWhenPropertyUsesAliasTypeAndILoggerTypeDoesNotMatchContainingTypeButHasPrivateInitSetterAsync()
+    {
+        string testCode = """
+            using LoggerAlias = TestNamespace.ILogger<TestNamespace.PaymentService>;
+
+            namespace TestNamespace;
+
+            public interface ILogger<T>
+            {
+            }
+
+            public class OrderService
+            {
+                public LoggerAlias Logger { get; private init; }
             }
 
             public class PaymentService

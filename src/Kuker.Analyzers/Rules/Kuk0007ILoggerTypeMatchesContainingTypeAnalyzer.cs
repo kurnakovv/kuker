@@ -144,6 +144,11 @@ namespace Kuker.Analyzers.Rules
                     continue;
                 }
 
+                if (property.SetMethod != null && property.SetMethod.DeclaredAccessibility != Accessibility.Private)
+                {
+                    continue;
+                }
+
                 if (IsSameType(containingType, propertyLoggerCategoryType))
                 {
                     continue;
