@@ -2,6 +2,7 @@
 // This file is licensed under the MIT License.
 // See the LICENSE file in the project root for full license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -167,7 +168,7 @@ namespace Kuker.Analyzers.Rules
                 return false;
             }
 
-            if (!string.Equals(namedTypeSymbol.Name, "ILogger", System.StringComparison.Ordinal))
+            if (!string.Equals(namedTypeSymbol.Name, "ILogger", StringComparison.Ordinal))
             {
                 return false;
             }
@@ -206,60 +207,52 @@ namespace Kuker.Analyzers.Rules
 
         private static Location GetParameterTypeLocation(IParameterSymbol parameter)
         {
-            SyntaxReference syntaxReference = parameter.DeclaringSyntaxReferences.Length > 0
-                ? parameter.DeclaringSyntaxReferences[0]
-                : null;
-
-            if (!(syntaxReference?.GetSyntax() is ParameterSyntax parameterSyntax && parameterSyntax.Type != null))
-            {
-                return Location.None;
-            }
-
-            if (TryGetLoggerTypeArgumentLocation(parameterSyntax.Type, out Location loggerTypeArgumentLocation))
-            {
-                return loggerTypeArgumentLocation;
-            }
-
-            return parameterSyntax.Type.GetLocation();
+            return GetMemberTypeLocation(
+                parameter,
+                syntaxNode => syntaxNode is ParameterSyntax parameterSyntax ? parameterSyntax.Type : null);
         }
 
         private static Location GetFieldTypeLocation(IFieldSymbol field)
         {
-            SyntaxReference syntaxReference = field.DeclaringSyntaxReferences.Length > 0
-                ? field.DeclaringSyntaxReferences[0]
-                : null;
-
-            if (!(syntaxReference?.GetSyntax() is VariableDeclaratorSyntax variableDeclarator &&
-                variableDeclarator.Parent is VariableDeclarationSyntax variableDeclaration))
-            {
-                return Location.None;
-            }
-
-            if (TryGetLoggerTypeArgumentLocation(variableDeclaration.Type, out Location loggerTypeArgumentLocation))
-            {
-                return loggerTypeArgumentLocation;
-            }
-
-            return variableDeclaration.Type.GetLocation();
+            return GetMemberTypeLocation(
+                field,
+                syntaxNode =>
+                    syntaxNode is VariableDeclaratorSyntax variableDeclarator &&
+                    variableDeclarator.Parent is VariableDeclarationSyntax variableDeclaration
+                        ? variableDeclaration.Type
+                        : null);
         }
 
         private static Location GetPropertyTypeLocation(IPropertySymbol property)
         {
-            SyntaxReference syntaxReference = property.DeclaringSyntaxReferences.Length > 0
-                ? property.DeclaringSyntaxReferences[0]
+            return GetMemberTypeLocation(
+                property,
+                syntaxNode => syntaxNode is PropertyDeclarationSyntax propertyDeclarationSyntax ? propertyDeclarationSyntax.Type : null);
+        }
+
+        private static Location GetMemberTypeLocation(ISymbol symbol, Func<SyntaxNode, TypeSyntax> getTypeSyntax)
+        {
+            SyntaxReference syntaxReference = symbol.DeclaringSyntaxReferences.Length > 0
+                ? symbol.DeclaringSyntaxReferences[0]
                 : null;
 
-            if (!(syntaxReference?.GetSyntax() is PropertyDeclarationSyntax propertyDeclarationSyntax))
+            if (syntaxReference == null)
             {
                 return Location.None;
             }
 
-            if (TryGetLoggerTypeArgumentLocation(propertyDeclarationSyntax.Type, out Location loggerTypeArgumentLocation))
+            TypeSyntax typeSyntax = getTypeSyntax(syntaxReference.GetSyntax());
+            if (typeSyntax == null)
+            {
+                return Location.None;
+            }
+
+            if (TryGetLoggerTypeArgumentLocation(typeSyntax, out Location loggerTypeArgumentLocation))
             {
                 return loggerTypeArgumentLocation;
             }
 
-            return propertyDeclarationSyntax.Type.GetLocation();
+            return typeSyntax.GetLocation();
         }
 
         private static bool TryGetLoggerTypeArgumentLocation(TypeSyntax loggerTypeSyntax, out Location loggerTypeArgumentLocation)
