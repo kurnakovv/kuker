@@ -307,7 +307,7 @@ namespace Kuker.CodeFixes.CodeFixProviders
         {
             if (memberDeclaration is FieldDeclarationSyntax fieldDeclaration)
             {
-                VariableDeclaratorSyntax variable = fieldDeclaration.Declaration?.Variables.FirstOrDefault();
+                VariableDeclaratorSyntax variable = fieldDeclaration.Declaration.Variables.FirstOrDefault();
                 return semanticModel.GetDeclaredSymbol(variable, cancellationToken)?.ContainingType;
             }
 
@@ -350,8 +350,7 @@ namespace Kuker.CodeFixes.CodeFixProviders
 
             if (memberDeclaration is FieldDeclarationSyntax fieldDeclaration)
             {
-                return fieldDeclaration.Declaration != null
-                    && TryGetLoggerTypeArgumentSyntax(fieldDeclaration.Declaration.Type, out loggerTypeArgumentSyntax);
+                return TryGetLoggerTypeArgumentSyntax(fieldDeclaration.Declaration.Type, out loggerTypeArgumentSyntax);
             }
 
             if (memberDeclaration is PropertyDeclarationSyntax propertyDeclaration)
