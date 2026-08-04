@@ -224,12 +224,7 @@ namespace Kuker.Analyzers.Rules
                 ? field.DeclaringSyntaxReferences[0]
                 : null;
 
-            if (syntaxReference == null)
-            {
-                return field.Locations.Length > 0 ? field.Locations[0] : Location.None;
-            }
-
-            if (syntaxReference.GetSyntax() is VariableDeclaratorSyntax variableDeclarator &&
+            if (syntaxReference?.GetSyntax() is VariableDeclaratorSyntax variableDeclarator &&
                 variableDeclarator.Parent is VariableDeclarationSyntax variableDeclaration)
             {
                 if (TryGetLoggerTypeArgumentLocation(variableDeclaration.Type, out Location loggerTypeArgumentLocation))
@@ -249,12 +244,7 @@ namespace Kuker.Analyzers.Rules
                 ? property.DeclaringSyntaxReferences[0]
                 : null;
 
-            if (syntaxReference == null)
-            {
-                return property.Locations.Length > 0 ? property.Locations[0] : Location.None;
-            }
-
-            if (syntaxReference.GetSyntax() is PropertyDeclarationSyntax propertyDeclarationSyntax)
+            if (syntaxReference?.GetSyntax() is PropertyDeclarationSyntax propertyDeclarationSyntax)
             {
                 if (TryGetLoggerTypeArgumentLocation(propertyDeclarationSyntax.Type, out Location loggerTypeArgumentLocation))
                 {
