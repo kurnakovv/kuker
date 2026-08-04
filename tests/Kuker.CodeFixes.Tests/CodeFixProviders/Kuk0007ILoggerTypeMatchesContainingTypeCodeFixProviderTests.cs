@@ -139,6 +139,45 @@ public class Kuk0007ILoggerTypeMatchesContainingTypeCodeFixProviderTests
     }
 
     [Fact]
+    public async Task CodeFixIgnoresAssignmentsWhenRightSideIsNotConstructorParameterAsync()
+    {
+        string testCode = WrapCode(
+            """
+            private object _holder;
+
+            public OrderService(ILogger<{|#0:PaymentService|}> logger)
+            {
+                var fallbackLogger = logger;
+                _holder = fallbackLogger;
+            }
+            """
+        );
+
+        string fixedCode = WrapCode(
+            """
+            private object _holder;
+
+            public OrderService(ILogger<OrderService> logger)
+            {
+                var fallbackLogger = logger;
+                _holder = fallbackLogger;
+            }
+            """
+        );
+
+        CSharpCodeFixTest<Kuk0007ILoggerTypeMatchesContainingTypeAnalyzer, Kuk0007ILoggerTypeMatchesContainingTypeCodeFixProvider, DefaultVerifier> test = new()
+        {
+            TestCode = testCode,
+            FixedCode = fixedCode,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        };
+
+        test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0007, DiagnosticSeverity.Warning).WithLocation(0));
+
+        await test.RunAsync();
+    }
+
+    [Fact]
     public async Task CodeFixUpdatesFieldOnlyAsync()
     {
         string testCode = WrapCode("private readonly ILogger<{|#0:PaymentService|}> _logger;");
