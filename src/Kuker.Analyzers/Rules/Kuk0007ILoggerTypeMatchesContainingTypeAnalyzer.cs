@@ -205,17 +205,17 @@ namespace Kuker.Analyzers.Rules
                 ? parameter.DeclaringSyntaxReferences[0]
                 : null;
 
-            if (syntaxReference?.GetSyntax() is ParameterSyntax parameterSyntax)
+            if (!(syntaxReference?.GetSyntax() is ParameterSyntax parameterSyntax && parameterSyntax.Type != null))
             {
-                if (parameterSyntax.Type != null && TryGetLoggerTypeArgumentLocation(parameterSyntax.Type, out Location loggerTypeArgumentLocation))
-                {
-                    return loggerTypeArgumentLocation;
-                }
-
-                return parameterSyntax.Type != null ? parameterSyntax.Type.GetLocation() : parameterSyntax.GetLocation();
+                return Location.None;
             }
 
-            return parameter.Locations.Length > 0 ? parameter.Locations[0] : Location.None;
+            if (TryGetLoggerTypeArgumentLocation(parameterSyntax.Type, out Location loggerTypeArgumentLocation))
+            {
+                return loggerTypeArgumentLocation;
+            }
+
+            return parameterSyntax.Type.GetLocation();
         }
 
         private static Location GetFieldTypeLocation(IFieldSymbol field)

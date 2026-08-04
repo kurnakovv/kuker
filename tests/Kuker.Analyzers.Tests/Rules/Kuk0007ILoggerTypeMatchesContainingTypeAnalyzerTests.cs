@@ -317,7 +317,7 @@ public class Kuk0007ILoggerTypeMatchesContainingTypeAnalyzerTests
         """, 10, 16, 10, 30
     )]
     [InlineData(
-        "ReportWhenILoggerTypeIsBaseClassOfContainingClass",
+        "ReportWhenILoggerTypeIsBaseClassOfContainingClass", 
         """
         public class BaseService
         {
@@ -442,6 +442,41 @@ public class Kuk0007ILoggerTypeMatchesContainingTypeAnalyzerTests
         {
             TestCode = testCode,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task ReportWhenConstructorParameterUsesAliasTypeAndILoggerTypeDoesNotMatchContainingTypeAsync()
+    {
+        string testCode = """
+            using LoggerAlias = TestNamespace.ILogger<TestNamespace.PaymentService>;
+
+            namespace TestNamespace;
+
+            public interface ILogger<T>
+            {
+            }
+
+            public class OrderService
+            {
+                public OrderService(LoggerAlias logger)
+                {
+                }
+            }
+
+            public class PaymentService
+            {
+            }
+            """;
+
+        DiagnosticResult expected = new DiagnosticResult(DiagnosticIdContant.KUK0007, DiagnosticSeverity.Warning)
+            .WithSpan(11, 25, 11, 36);
+
+        await new CSharpAnalyzerTest<Kuk0007ILoggerTypeMatchesContainingTypeAnalyzer, DefaultVerifier>
+        {
+            TestCode = testCode,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+            ExpectedDiagnostics = { expected },
         }.RunAsync();
     }
 
