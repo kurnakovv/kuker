@@ -85,6 +85,7 @@ dotnet_diagnostic.KUK0003.severity = warning # Min/Max (Async) and MinBy/MaxBy m
 dotnet_diagnostic.KUK0004.severity = warning # Avoid primary constructor | https://github.com/kurnakovv/kuker/wiki/KUK0004
 dotnet_diagnostic.KUK0005.severity = warning # .TagWithCallSite() on EF Core query execution | https://github.com/kurnakovv/kuker/wiki/KUK0005
 dotnet_diagnostic.KUK0006.severity = warning # Incorrect multiline closing parenthesis placement | https://github.com/kurnakovv/kuker/wiki/KUK0006
+dotnet_diagnostic.KUK0007.severity = warning # ILogger<T> type argument does not match containing type | https://github.com/kurnakovv/kuker/wiki/KUK0007
 
 dotnet_diagnostic.KUK0001.excluded_methods = Foo,Bar # Optional | Ignore selected methods
 dotnet_diagnostic.KUK0005.code_fix_style = newline # "newline" keeps the query chain formatting; "inline" puts .TagWithCallSite() on the same line
