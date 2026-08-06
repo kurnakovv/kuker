@@ -64,11 +64,13 @@ namespace Kuker.CodeFixes.CodeFixProviders
                 semanticModel,
                 context.CancellationToken,
                 out _,
-                out _,
+                out ConstructorDeclarationSyntax constructorSyntax,
                 out INamedTypeSymbol constructorContainingType))
             {
                 string containingTypeDisplayName = constructorContainingType.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
-                string title = string.Format(CONSTRUCTOR_CHAIN_TITLE_FORMAT, containingTypeDisplayName);
+                string title = constructorSyntax != null
+                    ? string.Format(CONSTRUCTOR_CHAIN_TITLE_FORMAT, containingTypeDisplayName)
+                    : string.Format(MEMBER_ONLY_TITLE_FORMAT, containingTypeDisplayName);
 
                 context.RegisterCodeFix(
                     CodeAction.Create(
@@ -131,7 +133,7 @@ namespace Kuker.CodeFixes.CodeFixProviders
                 out MemberDeclarationSyntax memberDeclaration,
                 out INamedTypeSymbol memberContainingType))
             {
-                return ApplyMemberFix(document, root, semanticModel, memberDeclaration, memberContainingType);
+                return ApplyMemberFix(document, root, semanticModel, memberDeclaration, memberContainingType, cancellationToken);
             }
 
             return document;
@@ -152,22 +154,26 @@ namespace Kuker.CodeFixes.CodeFixProviders
                 return document;
             }
 
-            List<TypeSyntax> targetNodes = new List<TypeSyntax>();
-            if (TryGetLoggerTypeArgumentSyntax(parameterSyntax.Type, out TypeSyntax parameterTypeArgument))
+            List<(TypeSyntax Node, bool ReplaceWholeType)> targetNodes = new List<(TypeSyntax Node, bool ReplaceWholeType)>();
+            if (TryGetLoggerReplacementTarget(parameterSyntax.Type, semanticModel, cancellationToken, out TypeSyntax parameterReplacementNode, out bool parameterReplaceWholeType))
             {
-                targetNodes.Add(parameterTypeArgument);
+                targetNodes.Add((parameterReplacementNode, parameterReplaceWholeType));
             }
 
-            IEnumerable<TypeSyntax> memberTypeArguments = GetDirectlyAssignedMembers(constructorSyntax, parameterSymbol, semanticModel, cancellationToken)
-                .Select(memberSymbol =>
-                {
-                    return TryGetDeclaredLoggerTypeArgumentSyntax(memberSymbol, root.SyntaxTree, out TypeSyntax memberTypeArgument)
-                        ? memberTypeArgument
-                        : null;
-                })
-                .Where(memberTypeArgument => memberTypeArgument != null);
+            if (constructorSyntax != null)
+            {
+                IEnumerable<(TypeSyntax Node, bool ReplaceWholeType)> memberTypeArguments = GetDirectlyAssignedMembers(constructorSyntax, parameterSymbol, semanticModel, cancellationToken)
+                    .Select(memberSymbol =>
+                    {
+                        return TryGetDeclaredLoggerReplacementTargetSyntax(memberSymbol, root.SyntaxTree, semanticModel, cancellationToken, out TypeSyntax memberReplacementNode, out bool memberReplaceWholeType)
+                            ? (memberReplacementNode, memberReplaceWholeType)
+                            : ((TypeSyntax Node, bool ReplaceWholeType)?)null;
+                    })
+                    .Where(memberTypeArgument => memberTypeArgument != null)
+                    .Select(memberTypeArgument => memberTypeArgument.Value);
 
-            targetNodes.AddRange(memberTypeArguments);
+                targetNodes.AddRange(memberTypeArguments);
+            }
 
             SyntaxNode newRoot = ReplaceLoggerTypeArguments(root, semanticModel, containingType, targetNodes);
             return document.WithSyntaxRoot(newRoot);
@@ -178,14 +184,16 @@ namespace Kuker.CodeFixes.CodeFixProviders
             SyntaxNode root,
             SemanticModel semanticModel,
             MemberDeclarationSyntax memberDeclaration,
-            INamedTypeSymbol containingType)
+            INamedTypeSymbol containingType,
+            CancellationToken cancellationToken)
         {
-            if (!TryGetLoggerTypeArgumentSyntax(memberDeclaration, out TypeSyntax memberTypeArgument))
+            TypeSyntax memberTypeSyntax = GetMemberTypeSyntax(memberDeclaration);
+            if (memberTypeSyntax == null || !TryGetLoggerReplacementTarget(memberTypeSyntax, semanticModel, cancellationToken, out TypeSyntax memberReplacementNode, out bool memberReplaceWholeType))
             {
                 return document;
             }
 
-            SyntaxNode newRoot = ReplaceLoggerTypeArguments(root, semanticModel, containingType, new[] { memberTypeArgument });
+            SyntaxNode newRoot = ReplaceLoggerTypeArguments(root, semanticModel, containingType, new[] { (memberReplacementNode, memberReplaceWholeType) });
             return document.WithSyntaxRoot(newRoot);
         }
 
@@ -193,12 +201,12 @@ namespace Kuker.CodeFixes.CodeFixProviders
             SyntaxNode root,
             SemanticModel semanticModel,
             INamedTypeSymbol containingType,
-            IEnumerable<TypeSyntax> targetNodes)
+            IEnumerable<(TypeSyntax Node, bool ReplaceWholeType)> targetNodes)
         {
-            Dictionary<TextSpan, TypeSyntax> uniqueTargetNodes = new Dictionary<TextSpan, TypeSyntax>();
-            foreach (TypeSyntax targetNode in targetNodes)
+            Dictionary<TextSpan, (TypeSyntax Node, bool ReplaceWholeType)> uniqueTargetNodes = new Dictionary<TextSpan, (TypeSyntax Node, bool ReplaceWholeType)>();
+            foreach ((TypeSyntax Node, bool ReplaceWholeType) targetNode in targetNodes)
             {
-                TextSpan span = targetNode.Span;
+                TextSpan span = targetNode.Node.Span;
                 if (!uniqueTargetNodes.ContainsKey(span))
                 {
                     uniqueTargetNodes.Add(span, targetNode);
@@ -206,10 +214,14 @@ namespace Kuker.CodeFixes.CodeFixProviders
             }
 
             return root.ReplaceNodes(
-                uniqueTargetNodes.Values,
+                uniqueTargetNodes.Values.Select(x => x.Node),
                 (originalNode, _) =>
                 {
-                    string replacementText = containingType.ToMinimalDisplayString(semanticModel, originalNode.SpanStart);
+                    bool replaceWholeType = uniqueTargetNodes[originalNode.Span].ReplaceWholeType;
+                    string replacementText = replaceWholeType
+                        ? $"ILogger<{containingType.ToMinimalDisplayString(semanticModel, originalNode.SpanStart)}>"
+                        : containingType.ToMinimalDisplayString(semanticModel, originalNode.SpanStart);
+
                     return SyntaxFactory.ParseTypeName(replacementText)
                         .WithTriviaFrom(originalNode);
                 });
@@ -270,22 +282,30 @@ namespace Kuker.CodeFixes.CodeFixProviders
             out INamedTypeSymbol containingType)
         {
             parameterSyntax = node.FirstAncestorOrSelf<ParameterSyntax>();
-            constructorSyntax = parameterSyntax?.FirstAncestorOrSelf<ConstructorDeclarationSyntax>();
+            constructorSyntax = null;
             containingType = null;
 
-            if (parameterSyntax?.Type == null || constructorSyntax == null)
+            if (parameterSyntax?.Type == null || !IsILoggerType(parameterSyntax.Type, semanticModel, cancellationToken))
             {
                 return false;
             }
 
-            if (!TryGetLoggerTypeArgumentSyntax(parameterSyntax.Type, out _))
+            constructorSyntax = parameterSyntax.Parent?.Parent as ConstructorDeclarationSyntax;
+            if (constructorSyntax != null)
             {
-                return false;
+                IMethodSymbol constructorSymbol = semanticModel.GetDeclaredSymbol(constructorSyntax, cancellationToken);
+                containingType = constructorSymbol?.ContainingType;
+                return containingType != null;
             }
 
-            IMethodSymbol constructorSymbol = semanticModel.GetDeclaredSymbol(constructorSyntax, cancellationToken);
-            containingType = constructorSymbol?.ContainingType;
-            return containingType != null;
+            TypeDeclarationSyntax typeDeclarationSyntax = parameterSyntax.Parent?.Parent as TypeDeclarationSyntax;
+            if (typeDeclarationSyntax?.ParameterList == parameterSyntax.Parent)
+            {
+                containingType = semanticModel.GetDeclaredSymbol(typeDeclarationSyntax, cancellationToken);
+                return containingType != null;
+            }
+
+            return false;
         }
 
         private static bool TryGetMemberFixContext(
@@ -296,17 +316,25 @@ namespace Kuker.CodeFixes.CodeFixProviders
             out INamedTypeSymbol containingType)
         {
             memberDeclaration = node.FirstAncestorOrSelf<FieldDeclarationSyntax>();
-            if (memberDeclaration != null && TryGetLoggerTypeArgumentSyntax(memberDeclaration, out _))
+            if (memberDeclaration != null)
             {
-                containingType = GetContainingType(memberDeclaration, semanticModel, cancellationToken);
-                return containingType != null;
+                TypeSyntax fieldType = GetMemberTypeSyntax(memberDeclaration);
+                if (fieldType != null && IsILoggerType(fieldType, semanticModel, cancellationToken))
+                {
+                    containingType = GetContainingType(memberDeclaration, semanticModel, cancellationToken);
+                    return containingType != null;
+                }
             }
 
             memberDeclaration = node.FirstAncestorOrSelf<PropertyDeclarationSyntax>();
-            if (memberDeclaration != null && TryGetLoggerTypeArgumentSyntax(memberDeclaration, out _))
+            if (memberDeclaration != null)
             {
-                containingType = GetContainingType(memberDeclaration, semanticModel, cancellationToken);
-                return containingType != null;
+                TypeSyntax propertyType = GetMemberTypeSyntax(memberDeclaration);
+                if (propertyType != null && IsILoggerType(propertyType, semanticModel, cancellationToken))
+                {
+                    containingType = GetContainingType(memberDeclaration, semanticModel, cancellationToken);
+                    return containingType != null;
+                }
             }
 
             containingType = null;
@@ -332,9 +360,16 @@ namespace Kuker.CodeFixes.CodeFixProviders
             return null;
         }
 
-        private static bool TryGetDeclaredLoggerTypeArgumentSyntax(ISymbol symbol, SyntaxTree currentSyntaxTree, out TypeSyntax loggerTypeArgumentSyntax)
+        private static bool TryGetDeclaredLoggerReplacementTargetSyntax(
+            ISymbol symbol,
+            SyntaxTree currentSyntaxTree,
+            SemanticModel semanticModel,
+            CancellationToken cancellationToken,
+            out TypeSyntax replacementTargetNode,
+            out bool replaceWholeType)
         {
-            loggerTypeArgumentSyntax = null;
+            replacementTargetNode = null;
+            replaceWholeType = false;
 
             SyntaxReference syntaxReference = symbol.DeclaringSyntaxReferences.FirstOrDefault(x => x.SyntaxTree == currentSyntaxTree);
             if (syntaxReference == null)
@@ -342,36 +377,84 @@ namespace Kuker.CodeFixes.CodeFixProviders
                 return false;
             }
 
-            SyntaxNode syntaxNode = syntaxReference.GetSyntax();
+            SyntaxNode syntaxNode = syntaxReference.GetSyntax(cancellationToken);
             if (syntaxNode is VariableDeclaratorSyntax variableDeclarator
                 && variableDeclarator.Parent is VariableDeclarationSyntax variableDeclaration)
             {
-                return TryGetLoggerTypeArgumentSyntax(variableDeclaration.Type, out loggerTypeArgumentSyntax);
+                return TryGetLoggerReplacementTarget(variableDeclaration.Type, semanticModel, cancellationToken, out replacementTargetNode, out replaceWholeType);
             }
 
             if (syntaxNode is PropertyDeclarationSyntax propertyDeclaration)
             {
-                return TryGetLoggerTypeArgumentSyntax(propertyDeclaration.Type, out loggerTypeArgumentSyntax);
+                return TryGetLoggerReplacementTarget(propertyDeclaration.Type, semanticModel, cancellationToken, out replacementTargetNode, out replaceWholeType);
             }
 
             return false;
         }
 
-        private static bool TryGetLoggerTypeArgumentSyntax(MemberDeclarationSyntax memberDeclaration, out TypeSyntax loggerTypeArgumentSyntax)
+        private static TypeSyntax GetMemberTypeSyntax(MemberDeclarationSyntax memberDeclaration)
         {
-            loggerTypeArgumentSyntax = null;
-
             if (memberDeclaration is FieldDeclarationSyntax fieldDeclaration)
             {
-                return TryGetLoggerTypeArgumentSyntax(fieldDeclaration.Declaration.Type, out loggerTypeArgumentSyntax);
+                return fieldDeclaration.Declaration.Type;
             }
 
             if (memberDeclaration is PropertyDeclarationSyntax propertyDeclaration)
             {
-                return TryGetLoggerTypeArgumentSyntax(propertyDeclaration.Type, out loggerTypeArgumentSyntax);
+                return propertyDeclaration.Type;
+            }
+
+            return null;
+        }
+
+        private static bool TryGetLoggerReplacementTarget(
+            TypeSyntax loggerTypeSyntax,
+            SemanticModel semanticModel,
+            CancellationToken cancellationToken,
+            out TypeSyntax replacementTargetNode,
+            out bool replaceWholeType)
+        {
+            replacementTargetNode = null;
+            replaceWholeType = false;
+
+            if (loggerTypeSyntax == null)
+            {
+                return false;
+            }
+
+            if (TryGetLoggerTypeArgumentSyntax(loggerTypeSyntax, out TypeSyntax loggerTypeArgumentSyntax))
+            {
+                replacementTargetNode = loggerTypeArgumentSyntax;
+                return true;
+            }
+
+            ITypeSymbol loggerTypeSymbol = semanticModel.GetTypeInfo(loggerTypeSyntax, cancellationToken).Type;
+            if (IsILoggerTypeSymbol(loggerTypeSymbol))
+            {
+                replacementTargetNode = loggerTypeSyntax;
+                replaceWholeType = true;
+                return true;
             }
 
             return false;
+        }
+
+        private static bool IsILoggerType(TypeSyntax typeSyntax, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            if (TryGetLoggerTypeArgumentSyntax(typeSyntax, out _))
+            {
+                return true;
+            }
+
+            ITypeSymbol loggerTypeSymbol = semanticModel.GetTypeInfo(typeSyntax, cancellationToken).Type;
+            return IsILoggerTypeSymbol(loggerTypeSymbol);
+        }
+
+        private static bool IsILoggerTypeSymbol(ITypeSymbol loggerTypeSymbol)
+        {
+            return loggerTypeSymbol is INamedTypeSymbol namedTypeSymbol
+                && namedTypeSymbol.Name == "ILogger"
+                && namedTypeSymbol.Arity == 1;
         }
 
         private static bool TryGetLoggerTypeArgumentSyntax(TypeSyntax loggerTypeSyntax, out TypeSyntax loggerTypeArgumentSyntax)

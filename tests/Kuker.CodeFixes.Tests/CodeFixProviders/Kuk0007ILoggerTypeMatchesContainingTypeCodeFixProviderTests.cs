@@ -475,6 +475,108 @@ public class Kuk0007ILoggerTypeMatchesContainingTypeCodeFixProviderTests
         await test.RunAsync();
     }
 
+    [Fact]
+    public async Task CodeFixUpdatesRecordPrimaryConstructorParameterAsync()
+    {
+        string testCode = """
+            namespace TestNamespace;
+
+            public interface ILogger<T>
+            {
+            }
+
+            public record OrderService(
+                ILogger<{|#0:PaymentService|}> Logger);
+
+            public class PaymentService
+            {
+            }
+            """;
+
+        string fixedCode = """
+            namespace TestNamespace;
+
+            public interface ILogger<T>
+            {
+            }
+
+            public record OrderService(
+                ILogger<OrderService> Logger);
+
+            public class PaymentService
+            {
+            }
+            """;
+
+        CSharpCodeFixTest<Kuk0007ILoggerTypeMatchesContainingTypeAnalyzer, Kuk0007ILoggerTypeMatchesContainingTypeCodeFixProvider, DefaultVerifier> test = new()
+        {
+            TestCode = testCode,
+            FixedCode = fixedCode,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        };
+
+        test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0007, DiagnosticSeverity.Warning).WithLocation(0));
+
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task CodeFixUpdatesAliasConstructorParameterTypeAsync()
+    {
+        string testCode = """
+            using LoggerAlias = TestNamespace.ILogger<TestNamespace.PaymentService>;
+
+            namespace TestNamespace;
+
+            public interface ILogger<T>
+            {
+            }
+
+            public class OrderService
+            {
+                public OrderService({|#0:LoggerAlias|} logger)
+                {
+                }
+            }
+
+            public class PaymentService
+            {
+            }
+            """;
+
+        string fixedCode = """
+            using LoggerAlias = TestNamespace.ILogger<TestNamespace.PaymentService>;
+
+            namespace TestNamespace;
+
+            public interface ILogger<T>
+            {
+            }
+
+            public class OrderService
+            {
+                public OrderService(ILogger<OrderService> logger)
+                {
+                }
+            }
+
+            public class PaymentService
+            {
+            }
+            """;
+
+        CSharpCodeFixTest<Kuk0007ILoggerTypeMatchesContainingTypeAnalyzer, Kuk0007ILoggerTypeMatchesContainingTypeCodeFixProvider, DefaultVerifier> test = new()
+        {
+            TestCode = testCode,
+            FixedCode = fixedCode,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        };
+
+        test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0007, DiagnosticSeverity.Warning).WithLocation(0));
+
+        await test.RunAsync();
+    }
+
     private static string WrapCode(string code)
     {
         string normalizedCode = code.ReplaceLineEndings(Environment.NewLine).Trim('\r', '\n');
