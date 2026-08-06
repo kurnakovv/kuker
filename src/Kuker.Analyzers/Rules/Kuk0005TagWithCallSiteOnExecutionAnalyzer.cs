@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Kuker.Analyzers.Constants;
+using Kuker.Core.Contants;
+using Kuker.Core.Options;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -19,7 +21,6 @@ namespace Kuker.Analyzers.Rules
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class Kuk0005TagWithCallSiteOnExecutionAnalyzer : DiagnosticAnalyzer
     {
-        private const string DIAGNOSTIC_ID = "KUK0005";
         private static readonly LocalizableString s_title = "Require .TagWithCallSite() on EF Core query execution";
         private static readonly LocalizableString s_messageFormat = "Use .TagWithCallSite() for '{0}' method";
         private static readonly LocalizableString s_description =
@@ -27,13 +28,28 @@ namespace Kuker.Analyzers.Rules
             "This helps improve observability, debugging, and tracing of generated SQL by including call site information.";
 
         private static readonly DiagnosticDescriptor s_rule = new DiagnosticDescriptor(
-            id: DIAGNOSTIC_ID,
+            id: DiagnosticIdContant.KUK0005,
             title: s_title,
             messageFormat: s_messageFormat,
             category: CategoryConstant.ALL_RULES,
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: s_description,
+            helpLinkUri: "https://github.com/kurnakovv/kuker/wiki/KUK0005"
+        );
+
+        private static readonly LocalizableString s_invalidConfigTitle = "Invalid KUK0005 code fix style option";
+        private static readonly LocalizableString s_invalidConfigMessageFormat =
+            "Invalid value '{0}' for option '" + Kuk0005CodeFixStyleOption.KEY + "'. Expected '" + Kuk0005CodeFixStyleOption.INLINE + "' or '" + Kuk0005CodeFixStyleOption.NEWLINE + "'.";
+
+        private static readonly DiagnosticDescriptor s_invalidConfigRule = new DiagnosticDescriptor(
+            id: DiagnosticIdContant.KUK0005,
+            title: s_invalidConfigTitle,
+            messageFormat: s_invalidConfigMessageFormat,
+            category: CategoryConstant.ALL_RULES,
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            description: s_invalidConfigMessageFormat,
             helpLinkUri: "https://github.com/kurnakovv/kuker/wiki/KUK0005"
         );
 
@@ -82,7 +98,7 @@ namespace Kuker.Analyzers.Rules
         /// <summary>
         /// SupportedDiagnostics.
         /// </summary>
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_rule);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_rule, s_invalidConfigRule);
 
         /// <summary>
         /// Initialize.
@@ -149,6 +165,20 @@ namespace Kuker.Analyzers.Rules
                 return;
             }
 
+            AnalyzerConfigOptions options = context.Options.AnalyzerConfigOptionsProvider.GetOptions(invocation.SyntaxTree);
+            if (options.TryGetValue(Kuk0005CodeFixStyleOption.KEY, out string configValue)
+                && !Kuk0005CodeFixStyleOption.IsValid(configValue))
+            {
+                Diagnostic configDiagnostic = Diagnostic.Create(
+                    s_invalidConfigRule,
+                    invocation.GetLocation(),
+                    configValue.Trim()
+                );
+
+                context.ReportDiagnostic(configDiagnostic);
+                return;
+            }
+
             Diagnostic diagnostic = Diagnostic.Create(
                 s_rule,
                 invocation.GetLocation(),
@@ -184,13 +214,19 @@ namespace Kuker.Analyzers.Rules
 
             ITypeSymbol type = context.SemanticModel.GetTypeInfo(expression).Type;
 
+            if (type == null)
+            {
+                return false;
+            }
+
             if (!ImplementsIQueryable(type, compilationSymbolsModel))
             {
                 return false;
             }
 
-            if (type.ContainingNamespace.ToDisplayString()
-                .StartsWith("Microsoft.EntityFrameworkCore"))
+            if (type.ContainingNamespace?.ToDisplayString()
+                .StartsWith("Microsoft.EntityFrameworkCore") == true
+            )
             {
                 return true;
             }
@@ -209,10 +245,6 @@ namespace Kuker.Analyzers.Rules
             CompilationSymbolsModel compilationSymbolsModel
         )
         {
-            if (type == null)
-            {
-                return false;
-            }
             if (SymbolEqualityComparer.Default.Equals(type.OriginalDefinition, compilationSymbolsModel.IQueryableSymbol))
             {
                 return true;

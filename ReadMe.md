@@ -33,7 +33,7 @@ dotnet add package kurnakovv.kuker
 This command adds the following reference to your project:
 ```xml
 <!-- Use the latest available version -->
-<PackageReference Include="kurnakovv.kuker" Version="0.3.1">
+<PackageReference Include="kurnakovv.kuker" Version="0.4.0">
   <PrivateAssets>all</PrivateAssets>
   <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 </PackageReference>
@@ -84,8 +84,12 @@ dotnet_diagnostic.KUK0002.severity = warning # File name mismatch | https://gith
 dotnet_diagnostic.KUK0003.severity = warning # Min/Max (Async) and MinBy/MaxBy may throw InvalidOperationException on empty sequences | https://github.com/kurnakovv/kuker/wiki/KUK0003
 dotnet_diagnostic.KUK0004.severity = warning # Avoid primary constructor | https://github.com/kurnakovv/kuker/wiki/KUK0004
 dotnet_diagnostic.KUK0005.severity = warning # .TagWithCallSite() on EF Core query execution | https://github.com/kurnakovv/kuker/wiki/KUK0005
+dotnet_diagnostic.KUK0006.severity = warning # Incorrect multiline closing parenthesis placement | https://github.com/kurnakovv/kuker/wiki/KUK0006
+dotnet_diagnostic.KUK0007.severity = warning # ILogger<T> type argument does not match containing type | https://github.com/kurnakovv/kuker/wiki/KUK0007
 
 dotnet_diagnostic.KUK0001.excluded_methods = Foo,Bar # Optional | Ignore selected methods
+dotnet_diagnostic.KUK0005.code_fix_style = newline # "newline" keeps the query chain formatting; "inline" puts .TagWithCallSite() on the same line
+dotnet_diagnostic.KUK0006.syntax_kinds = method_invocation,object_creation,method_declaration,constructor_declaration,primary_constructor # Optional | comma-separated syntax kinds; default is all supported kinds
 
 # ...
 ```

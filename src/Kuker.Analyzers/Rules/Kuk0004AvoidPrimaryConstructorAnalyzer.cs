@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using Kuker.Analyzers.Constants;
+using Kuker.Core.Contants;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -17,13 +18,12 @@ namespace Kuker.Analyzers.Rules
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class Kuk0004AvoidPrimaryConstructorAnalyzer : DiagnosticAnalyzer
     {
-        private const string DIAGNOSTIC_ID = "KUK0004";
         private static readonly LocalizableString s_title = "Avoid primary constructor";
         private static readonly LocalizableString s_messageFormat = "Avoid primary constructor for '{0}'";
         private static readonly LocalizableString s_description = "Convert to regular constructor.";
 
         private static readonly DiagnosticDescriptor s_rule = new DiagnosticDescriptor(
-            id: DIAGNOSTIC_ID,
+            id: DiagnosticIdContant.KUK0004,
             title: s_title,
             messageFormat: s_messageFormat,
             category: CategoryConstant.ALL_RULES,

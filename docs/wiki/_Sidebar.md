@@ -4,6 +4,8 @@
 * [KUK0003](KUK0003)
 * [KUK0004](KUK0004)
 * [KUK0005](KUK0005)
+* [KUK0006](KUK0006)
+* [KUK0007](KUK0007)
 
 ## Analyzer releases
 * [Shipped](https://github.com/kurnakovv/kuker/blob/dev/src/Kuker.Analyzers/AnalyzerReleases.Shipped.md)

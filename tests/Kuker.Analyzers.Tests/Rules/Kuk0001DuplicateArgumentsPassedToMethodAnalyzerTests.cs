@@ -1,8 +1,9 @@
-﻿// Copyright (c) 2026 kurnakovv
+// Copyright (c) 2026 kurnakovv
 // This file is licensed under the MIT License.
 // See the LICENSE file in the project root for full license information.
 
 using Kuker.Analyzers.Rules;
+using Kuker.Core.Contants;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Testing;
@@ -47,13 +48,13 @@ public class Kuk0001DuplicateArgumentsPassedToMethodAnalyzerTests
                 }
             }
         ";
-        DiagnosticResult expected1 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected1 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(18, 32, 18, 38);
 
-        DiagnosticResult expected2 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected2 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(19, 39, 19, 45);
 
-        DiagnosticResult expected3 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected3 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(22, 27, 22, 28);
 
         await new CSharpAnalyzerTest<Kuk0001DuplicateArgumentsPassedToMethodAnalyzer, DefaultVerifier>
@@ -83,7 +84,7 @@ public class Kuk0001DuplicateArgumentsPassedToMethodAnalyzerTests
             }
         ";
 
-        DiagnosticResult expected = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(12, 46, 12, 52);
 
         await new CSharpAnalyzerTest<Kuk0001DuplicateArgumentsPassedToMethodAnalyzer, DefaultVerifier>
@@ -117,7 +118,7 @@ public class Kuk0001DuplicateArgumentsPassedToMethodAnalyzerTests
             }
         ";
 
-        DiagnosticResult expected = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(16, 46, 16, 52);
 
         await new CSharpAnalyzerTest<Kuk0001DuplicateArgumentsPassedToMethodAnalyzer, DefaultVerifier>
@@ -143,7 +144,7 @@ public class Kuk0001DuplicateArgumentsPassedToMethodAnalyzerTests
             }
         ";
 
-        DiagnosticResult expected = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(8, 30, 8, 34);
 
         await new CSharpAnalyzerTest<Kuk0001DuplicateArgumentsPassedToMethodAnalyzer, DefaultVerifier>
@@ -283,7 +284,7 @@ public class Kuk0001DuplicateArgumentsPassedToMethodAnalyzerTests
             }
         ";
 
-        DiagnosticResult expected = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(16, 34, 16, 39);
 
         await new CSharpAnalyzerTest<Kuk0001DuplicateArgumentsPassedToMethodAnalyzer, DefaultVerifier>
@@ -329,16 +330,16 @@ public class Kuk0001DuplicateArgumentsPassedToMethodAnalyzerTests
             }
         ";
 
-        DiagnosticResult expected1 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected1 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(21, 56, 21, 83);
 
-        DiagnosticResult expected2 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected2 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(22, 60, 22, 91);
 
-        DiagnosticResult expected3 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected3 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(23, 60, 23, 90);
 
-        DiagnosticResult expected4 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected4 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(24, 59, 24, 90);
 
         await new CSharpAnalyzerTest<Kuk0001DuplicateArgumentsPassedToMethodAnalyzer, DefaultVerifier>
@@ -379,16 +380,16 @@ public class Kuk0001DuplicateArgumentsPassedToMethodAnalyzerTests
             }
         ";
 
-        DiagnosticResult expected1 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected1 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(16, 36, 16, 41);
 
-        DiagnosticResult expected2 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected2 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(17, 36, 17, 43);
 
-        DiagnosticResult expected3 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected3 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(18, 34, 18, 41);
 
-        DiagnosticResult expected4 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected4 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(19, 46, 19, 65);
 
         await new CSharpAnalyzerTest<Kuk0001DuplicateArgumentsPassedToMethodAnalyzer, DefaultVerifier>
@@ -448,25 +449,25 @@ public class Kuk0001DuplicateArgumentsPassedToMethodAnalyzerTests
             }
         ";
 
-        DiagnosticResult expected1 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected1 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(20, 37, 20, 45);
 
-        DiagnosticResult expected2 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected2 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
            .WithSpan(25, 39, 25, 49);
 
-        DiagnosticResult expected3 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected3 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
            .WithSpan(30, 39, 30, 49);
 
-        DiagnosticResult expected4 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected4 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
            .WithSpan(31, 43, 31, 57);
 
-        DiagnosticResult expected5 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected5 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
            .WithSpan(32, 43, 32, 57);
 
-        // var expected6 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        // var expected6 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
         //   .WithSpan(40, 21, 40, 54);
 
-        // var expected7 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        // var expected7 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
         //   .WithSpan(41, 21, 41, 54);
 
         await new CSharpAnalyzerTest<Kuk0001DuplicateArgumentsPassedToMethodAnalyzer, DefaultVerifier>
@@ -500,13 +501,13 @@ public class Kuk0001DuplicateArgumentsPassedToMethodAnalyzerTests
             }
         ";
 
-        DiagnosticResult expected1 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected1 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(8, 36, 8, 43);
 
-        DiagnosticResult expected2 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected2 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
            .WithSpan(9, 31, 9, 38);
 
-        DiagnosticResult expected3 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected3 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(10, 36, 10, 43);
 
         await new CSharpAnalyzerTest<Kuk0001DuplicateArgumentsPassedToMethodAnalyzer, DefaultVerifier>
@@ -537,7 +538,7 @@ public class Kuk0001DuplicateArgumentsPassedToMethodAnalyzerTests
             }
         ";
 
-        DiagnosticResult expected = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(11, 45, 11, 61);
 
         await new CSharpAnalyzerTest<Kuk0001DuplicateArgumentsPassedToMethodAnalyzer, DefaultVerifier>
@@ -591,16 +592,16 @@ public class Kuk0001DuplicateArgumentsPassedToMethodAnalyzerTests
             }
         ";
 
-        DiagnosticResult expected1 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected1 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(29, 30, 29, 35);
 
-        DiagnosticResult expected2 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected2 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(30, 48, 30, 53);
 
-        DiagnosticResult expected3 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected3 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(31, 30, 31, 35);
 
-        DiagnosticResult expected4 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected4 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(32, 44, 32, 49);
 
         await new CSharpAnalyzerTest<Kuk0001DuplicateArgumentsPassedToMethodAnalyzer, DefaultVerifier>
@@ -633,10 +634,10 @@ public class Kuk0001DuplicateArgumentsPassedToMethodAnalyzerTests
             }
         ";
 
-        DiagnosticResult expected1 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected1 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(13, 32, 13, 33);
 
-        DiagnosticResult expected2 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected2 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(14, 27, 14, 28);
 
         await new CSharpAnalyzerTest<Kuk0001DuplicateArgumentsPassedToMethodAnalyzer, DefaultVerifier>
@@ -677,13 +678,13 @@ public class Kuk0001DuplicateArgumentsPassedToMethodAnalyzerTests
             }
         ";
 
-        DiagnosticResult expected1 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected1 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(15, 30, 15, 36);
 
-        DiagnosticResult expected2 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected2 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(16, 30, 16, 37);
 
-        DiagnosticResult expected3 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected3 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(17, 34, 17, 51);
 
         await new CSharpAnalyzerTest<Kuk0001DuplicateArgumentsPassedToMethodAnalyzer, DefaultVerifier>
@@ -790,10 +791,10 @@ public class Kuk0001DuplicateArgumentsPassedToMethodAnalyzerTests
             }
         ";
 
-        DiagnosticResult expected1 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected1 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(18, 30, 18, 31);
 
-        DiagnosticResult expected2 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected2 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(19, 30, 19, 31);
 
         CSharpAnalyzerTest<Kuk0001DuplicateArgumentsPassedToMethodAnalyzer, DefaultVerifier> test = new()
@@ -877,13 +878,13 @@ public class Kuk0001DuplicateArgumentsPassedToMethodAnalyzerTests
             }
         ";
 
-        DiagnosticResult expected1 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected1 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(9, 36, 9, 41);
 
-        DiagnosticResult expected2 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected2 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(16, 40, 16, 51);
 
-        DiagnosticResult expected3 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected3 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(21, 36, 21, 41);
 
         await new CSharpAnalyzerTest<Kuk0001DuplicateArgumentsPassedToMethodAnalyzer, DefaultVerifier>
@@ -966,28 +967,28 @@ public class Kuk0001DuplicateArgumentsPassedToMethodAnalyzerTests
             }
         ";
 
-        DiagnosticResult expected1 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected1 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(21, 39, 21, 40);
 
-        DiagnosticResult expected2 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected2 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(22, 39, 22, 40);
 
-        DiagnosticResult expected3 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected3 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(23, 42, 23, 43);
 
-        DiagnosticResult expected4 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected4 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(24, 42, 24, 43);
 
-        DiagnosticResult expected5 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected5 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(27, 45, 27, 46);
 
-        DiagnosticResult expected6 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected6 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(28, 45, 28, 46);
 
-        DiagnosticResult expected7 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected7 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(29, 48, 29, 49);
 
-        DiagnosticResult expected8 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected8 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(30, 48, 30, 49);
 
         await new CSharpAnalyzerTest<Kuk0001DuplicateArgumentsPassedToMethodAnalyzer, DefaultVerifier>
@@ -1026,16 +1027,16 @@ public class Kuk0001DuplicateArgumentsPassedToMethodAnalyzerTests
             }
         ";
 
-        DiagnosticResult expected1 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected1 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(19, 38, 19, 39);
 
-        DiagnosticResult expected2 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected2 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(20, 38, 20, 39);
 
-        DiagnosticResult expected3 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected3 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(21, 41, 21, 42);
 
-        DiagnosticResult expected4 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected4 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(22, 41, 22, 42);
 
         await new CSharpAnalyzerTest<Kuk0001DuplicateArgumentsPassedToMethodAnalyzer, DefaultVerifier>
@@ -1076,16 +1077,16 @@ public class Kuk0001DuplicateArgumentsPassedToMethodAnalyzerTests
             }
         ";
 
-        DiagnosticResult expected1 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected1 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(6, 57, 6, 58);
 
-        DiagnosticResult expected2 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected2 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(7, 57, 7, 58);
 
-        DiagnosticResult expected3 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected3 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(8, 44, 8, 45);
 
-        DiagnosticResult expected4 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected4 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(9, 44, 9, 45);
 
         await new CSharpAnalyzerTest<Kuk0001DuplicateArgumentsPassedToMethodAnalyzer, DefaultVerifier>
@@ -1127,10 +1128,10 @@ public class Kuk0001DuplicateArgumentsPassedToMethodAnalyzerTests
             }
         ";
 
-        DiagnosticResult expected1 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected1 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(21, 38, 21, 49);
 
-        DiagnosticResult expected2 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected2 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(24, 38, 24, 49);
 
         await new CSharpAnalyzerTest<Kuk0001DuplicateArgumentsPassedToMethodAnalyzer, DefaultVerifier>
@@ -1180,13 +1181,13 @@ public class Kuk0001DuplicateArgumentsPassedToMethodAnalyzerTests
             }
         ";
 
-        DiagnosticResult expected1 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected1 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(11, 27, 11, 28);
 
-        DiagnosticResult expected2 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected2 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(14, 34, 14, 35);
 
-        DiagnosticResult expected3 = new DiagnosticResult("KUK0001", DiagnosticSeverity.Warning)
+        DiagnosticResult expected3 = new DiagnosticResult(DiagnosticIdContant.KUK0001, DiagnosticSeverity.Warning)
             .WithSpan(23, 36, 23, 42);
 
         await new CSharpAnalyzerTest<Kuk0001DuplicateArgumentsPassedToMethodAnalyzer, DefaultVerifier>

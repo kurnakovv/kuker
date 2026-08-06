@@ -2,9 +2,12 @@
   <Folder Name="/src/">
     <File Path="Directory.Build.props" />
     <Project Path="src/Kuker.Analyzers/Kuker.Analyzers.csproj" />
+    <Project Path="src/Kuker.CodeFixes/Kuker.CodeFixes.csproj" />
+    <Project Path="src/Kuker.Core/Kuker.Core.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Kuker.Analyzers.ConsoleTests/Kuker.Analyzers.ConsoleTests.csproj" />
     <Project Path="tests/Kuker.Analyzers.Tests/Kuker.Analyzers.Tests.csproj" />
+    <Project Path="tests/Kuker.CodeFixes.Tests/Kuker.CodeFixes.Tests.csproj" />
   </Folder>
 </Solution>

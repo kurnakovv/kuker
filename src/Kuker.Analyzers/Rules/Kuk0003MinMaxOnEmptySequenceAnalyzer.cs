@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Linq;
 using Kuker.Analyzers.Constants;
+using Kuker.Core.Contants;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -18,7 +19,6 @@ namespace Kuker.Analyzers.Rules
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class Kuk0003MinMaxOnEmptySequenceAnalyzer : DiagnosticAnalyzer
     {
-        private const string DIAGNOSTIC_ID = "KUK0003";
         private static readonly LocalizableString s_title = "Min/Max (Async) and MinBy/MaxBy may throw InvalidOperationException on empty sequences";
         private static readonly LocalizableString s_messageFormat = "'{0}' on a sequence of non-nullable value types may throw InvalidOperationException if the sequence is empty. {1}.";
         private static readonly LocalizableString s_description =
@@ -27,7 +27,7 @@ namespace Kuker.Analyzers.Rules
             "MinBy/MaxBy always require DefaultIfEmpty() or check that the sequence is not empty, as a nullable selector does not prevent the exception.";
 
         private static readonly DiagnosticDescriptor s_rule = new DiagnosticDescriptor(
-            id: DIAGNOSTIC_ID,
+            id: DiagnosticIdContant.KUK0003,
             title: s_title,
             messageFormat: s_messageFormat,
             category: CategoryConstant.ALL_RULES,
@@ -336,7 +336,7 @@ namespace Kuker.Analyzers.Rules
                     ExpressionSyntax condition = statement.Condition;
 
                     if (IsNegativeCheck(condition, collectionExpression, semanticModel) &&
-                        IsExitStatement(statement.Statement)
+                        IsExitStatement(statement.Statement, invocation)
                     )
                     {
                         return true;
@@ -490,15 +490,58 @@ namespace Kuker.Analyzers.Rules
             return false;
         }
 
-        private static bool IsExitStatement(StatementSyntax statement)
+        private static bool IsExitStatement(
+            StatementSyntax statement,
+            InvocationExpressionSyntax invocation
+        )
         {
             if (statement is BlockSyntax block)
             {
-                return block.Statements.Any(IsExitStatement);
+                return block.Statements.Any(x => IsExitStatement(x, invocation));
             }
 
-            return statement is ReturnStatementSyntax ||
-                   statement is ThrowStatementSyntax;
+            if (statement is ReturnStatementSyntax ||
+                statement is ThrowStatementSyntax
+            )
+            {
+                return true;
+            }
+
+            if (statement is ContinueStatementSyntax continueStatement)
+            {
+                StatementSyntax containingLoop = continueStatement
+                    .Ancestors()
+                    .OfType<StatementSyntax>()
+                    .FirstOrDefault(IsLoopStatement);
+
+                return containingLoop?.Span.Contains(invocation.Span) == true;
+            }
+
+            if (statement is BreakStatementSyntax breakStatement)
+            {
+                StatementSyntax breakTarget = breakStatement
+                    .Ancestors()
+                    .OfType<StatementSyntax>()
+                    .FirstOrDefault(IsBreakableStatement);
+
+                return IsLoopStatement(breakTarget) && breakTarget?.Span.Contains(invocation.Span) == true;
+            }
+
+            return false;
+        }
+
+        private static bool IsLoopStatement(StatementSyntax statement)
+        {
+            return statement is WhileStatementSyntax ||
+                   statement is DoStatementSyntax ||
+                   statement is ForStatementSyntax ||
+                   statement is CommonForEachStatementSyntax;
+        }
+
+        private static bool IsBreakableStatement(StatementSyntax statement)
+        {
+            return IsLoopStatement(statement) ||
+                   statement is SwitchStatementSyntax;
         }
 
         private static bool IsCountAccess(

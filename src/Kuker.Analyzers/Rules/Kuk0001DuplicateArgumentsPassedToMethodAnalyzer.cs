@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Kuker.Analyzers.Constants;
+using Kuker.Core.Contants;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -22,7 +23,6 @@ namespace Kuker.Analyzers.Rules
     public class Kuk0001DuplicateArgumentsPassedToMethodAnalyzer : DiagnosticAnalyzer
     {
         private const string EXCLUDED_METHODS = "dotnet_diagnostic.KUK0001.excluded_methods";
-        private const string DIAGNOSTIC_ID = "KUK0001";
 
         private static readonly LocalizableString s_title = "Duplicate arguments passed to method";
         private static readonly LocalizableString s_messageFormat = "Argument '{0}' is passed multiple times to the same method call";
@@ -31,7 +31,7 @@ namespace Kuker.Analyzers.Rules
             "In most cases this is unintentional and caused by a typo or copy-paste error.";
 
         private static readonly DiagnosticDescriptor s_rule = new DiagnosticDescriptor(
-            DIAGNOSTIC_ID,
+            DiagnosticIdContant.KUK0001,
             s_title,
             s_messageFormat,
             CategoryConstant.ALL_RULES,

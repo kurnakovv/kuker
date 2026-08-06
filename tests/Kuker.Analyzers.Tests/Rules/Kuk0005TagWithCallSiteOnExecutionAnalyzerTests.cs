@@ -1,8 +1,9 @@
-﻿// Copyright (c) 2026 kurnakovv
+// Copyright (c) 2026 kurnakovv
 // This file is licensed under the MIT License.
 // See the LICENSE file in the project root for full license information.
 
 using Kuker.Analyzers.Rules;
+using Kuker.Core.Contants;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Testing;
@@ -559,7 +560,7 @@ public class Kuk0005TagWithCallSiteOnExecutionAnalyzerTests
 
         if (!(startLine == 0 && startColumn == 0 && endLine == 0 && endColumn == 0))
         {
-            DiagnosticResult expected = new DiagnosticResult("KUK0005", DiagnosticSeverity.Warning)
+            DiagnosticResult expected = new DiagnosticResult(DiagnosticIdContant.KUK0005, DiagnosticSeverity.Warning)
                 .WithSpan(startLine, startColumn, endLine, endColumn);
 
             test.ExpectedDiagnostics.Add(expected);
@@ -658,10 +659,117 @@ public class Kuk0005TagWithCallSiteOnExecutionAnalyzerTests
         CSharpAnalyzerTest<Kuk0005TagWithCallSiteOnExecutionAnalyzer, DefaultVerifier> test = new()
         {
             TestCode = testCode,
-            ExpectedDiagnostics = { new DiagnosticResult("KUK0005", DiagnosticSeverity.Warning).WithSpan(29, 24, 29, 41) },
+            ExpectedDiagnostics = { new DiagnosticResult(DiagnosticIdContant.KUK0005, DiagnosticSeverity.Warning).WithSpan(29, 24, 29, 41) },
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
             TestState = { AdditionalReferences = { _portableExecutableReference }, },
         };
+
+        await test.RunAsync();
+    }
+
+    [Theory]
+    [InlineData("foobar")]
+    [InlineData("INVALID")]
+    [InlineData("  bad value  ")]
+    public async Task InvalidCodeFixStyleOptionReportsOnlyConfigDiagnosticAsync(string invalidStyle)
+    {
+        string testCode = """
+            using System.Collections.Generic;
+            using System.Linq;
+            using System.Threading.Tasks;
+            using Microsoft.EntityFrameworkCore;
+
+            class TestDbContext : DbContext
+            {
+                public DbSet<User> Users { get; set; }
+            }
+
+            class User { public int Id { get; set; } }
+
+            class TestClass
+            {
+                async Task Test(TestDbContext db)
+                {
+                    var result = await db.Users.ToListAsync();
+                }
+            }
+        """;
+
+        CSharpAnalyzerTest<Kuk0005TagWithCallSiteOnExecutionAnalyzer, DefaultVerifier> test = new()
+        {
+            TestCode = testCode,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+            TestState = { AdditionalReferences = { _portableExecutableReference }, },
+        };
+
+        test.TestState.AnalyzerConfigFiles.Add((
+            "/.editorconfig",
+            $"""
+            root = true
+
+            [*.cs]
+            dotnet_diagnostic.KUK0005.code_fix_style = {invalidStyle}
+            """
+        ));
+
+        test.ExpectedDiagnostics.Add(
+            new DiagnosticResult(DiagnosticIdContant.KUK0005, DiagnosticSeverity.Warning).WithSpan(17, 32, 17, 54).WithArguments(invalidStyle.Trim()));
+
+        await test.RunAsync();
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData("inline")]
+    [InlineData("newline")]
+    [InlineData("INLINE")]
+    [InlineData("NEWLINE")]
+    [InlineData("  inline  ")]
+    [InlineData(" newline  ")]
+    public async Task ValidCodeFixStyleOptionDoesNotReportConfigDiagnosticAsync(string validStyle)
+    {
+        string testCode = """
+            using System.Collections.Generic;
+            using System.Linq;
+            using System.Threading.Tasks;
+            using Microsoft.EntityFrameworkCore;
+
+            class TestDbContext : DbContext
+            {
+                public DbSet<User> Users { get; set; }
+            }
+
+            class User { public int Id { get; set; } }
+
+            class TestClass
+            {
+                async Task Test(TestDbContext db)
+                {
+                    var result = await db.Users.ToListAsync();
+                }
+            }
+        """;
+
+        CSharpAnalyzerTest<Kuk0005TagWithCallSiteOnExecutionAnalyzer, DefaultVerifier> test = new()
+        {
+            TestCode = testCode,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+            TestState = { AdditionalReferences = { _portableExecutableReference }, },
+        };
+
+        test.TestState.AnalyzerConfigFiles.Add((
+            "/.editorconfig",
+            $"""
+            root = true
+
+            [*.cs]
+            dotnet_diagnostic.KUK0005.code_fix_style = {validStyle}
+            """
+        ));
+
+        test.ExpectedDiagnostics.Add(
+            new DiagnosticResult(DiagnosticIdContant.KUK0005, DiagnosticSeverity.Warning).WithSpan(17, 32, 17, 54));
 
         await test.RunAsync();
     }
