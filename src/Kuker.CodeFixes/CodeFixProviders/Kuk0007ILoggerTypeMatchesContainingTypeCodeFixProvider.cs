@@ -165,7 +165,14 @@ namespace Kuker.CodeFixes.CodeFixProviders
                 IEnumerable<(TypeSyntax Node, bool ReplaceWholeType)> memberTypeArguments = GetDirectlyAssignedMembers(constructorSyntax, parameterSymbol, semanticModel, cancellationToken)
                     .Select(memberSymbol =>
                     {
-                        return TryGetDeclaredLoggerReplacementTargetSyntax(memberSymbol, root.SyntaxTree, semanticModel, cancellationToken, out TypeSyntax memberReplacementNode, out bool memberReplaceWholeType)
+                        return TryGetDeclaredLoggerReplacementTargetSyntax(
+                            memberSymbol,
+                            root.SyntaxTree,
+                            semanticModel,
+                            cancellationToken,
+                            out TypeSyntax memberReplacementNode,
+                            out bool memberReplaceWholeType
+                        )
                             ? (memberReplacementNode, memberReplaceWholeType)
                             : ((TypeSyntax Node, bool ReplaceWholeType)?)null;
                     })
