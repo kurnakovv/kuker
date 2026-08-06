@@ -286,6 +286,178 @@ public class Kuk0007ILoggerTypeMatchesContainingTypeCodeFixProviderTests
     }
 
     [Fact]
+    public async Task CodeFixIgnoresAssignmentsWhenLeftSideIsAnotherObjectsMemberAsync()
+    {
+        // audit._logger = logger assigns to a member of a *different* object.
+        // The fix must not attempt to rewrite a declaration in another type.
+        string testCode = WrapCode(
+            """
+            private readonly ILogger<PaymentService> _logger;
+            private readonly AuditService _audit;
+
+            public OrderService(ILogger<{|#0:PaymentService|}> logger, AuditService audit)
+            {
+                _logger = logger;
+                _audit = audit;
+                audit._logger = logger;
+            }
+            """
+        );
+
+        string fixedCode = WrapCode(
+            """
+            private readonly ILogger<OrderService> _logger;
+            private readonly AuditService _audit;
+
+            public OrderService(ILogger<OrderService> logger, AuditService audit)
+            {
+                _logger = logger;
+                _audit = audit;
+                audit._logger = logger;
+            }
+            """
+        );
+
+        CSharpCodeFixTest<Kuk0007ILoggerTypeMatchesContainingTypeAnalyzer, Kuk0007ILoggerTypeMatchesContainingTypeCodeFixProvider, DefaultVerifier> test = new()
+        {
+            TestCode = testCode,
+            FixedCode = fixedCode,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        };
+
+        test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0007, DiagnosticSeverity.Warning).WithLocation(0));
+
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task CodeFixUpdatesAssignmentsToPubliclySettablePropertyWithinSameFileAsync()
+    {
+        // For constructor-chain fix, members declared in the same file are updated
+        // to keep assignment types consistent after constructor parameter rewrite.
+        string testCode = WrapCode(
+            """
+            private readonly ILogger<PaymentService> _logger;
+
+            public OrderService(ILogger<{|#0:PaymentService|}> logger)
+            {
+                _logger = logger;
+                ExternalLogger = logger;
+            }
+
+            public ILogger<PaymentService> ExternalLogger { get; set; }
+            """
+        );
+
+        string fixedCode = WrapCode(
+            """
+            private readonly ILogger<OrderService> _logger;
+
+            public OrderService(ILogger<OrderService> logger)
+            {
+                _logger = logger;
+                ExternalLogger = logger;
+            }
+
+            public ILogger<OrderService> ExternalLogger { get; set; }
+            """
+        );
+
+        CSharpCodeFixTest<Kuk0007ILoggerTypeMatchesContainingTypeAnalyzer, Kuk0007ILoggerTypeMatchesContainingTypeCodeFixProvider, DefaultVerifier> test = new()
+        {
+            TestCode = testCode,
+            FixedCode = fixedCode,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        };
+
+        test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0007, DiagnosticSeverity.Warning).WithLocation(0));
+
+        await test.RunAsync();
+    }
+
+    [Fact]
+    public async Task CodeFixDoesNotChangeMemberDeclaredInAnotherFileAsync()
+    {
+        const string ORDER_SERVICE_FILE_NAME = "OrderService.cs";
+        const string AUDIT_SERVICE_FILE_NAME = "AuditService.cs";
+
+        string orderServiceTestCode = """
+            namespace TestNamespace;
+
+            public interface ILogger<T>
+            {
+            }
+
+            public class PaymentService
+            {
+            }
+
+            public class OrderService
+            {
+                private readonly ILogger<PaymentService> _logger;
+                private readonly AuditService _audit;
+
+                public OrderService(ILogger<{|#0:PaymentService|}> logger, AuditService audit)
+                {
+                    _logger = logger;
+                    _audit = audit;
+                    _audit.Logger = logger;
+                }
+            }
+            """;
+
+        string auditServiceTestCode = """
+            namespace TestNamespace;
+
+            public class AuditService
+            {
+                public ILogger<PaymentService> Logger { get; set; }
+            }
+            """;
+
+        string orderServiceFixedCode = """
+            namespace TestNamespace;
+
+            public interface ILogger<T>
+            {
+            }
+
+            public class PaymentService
+            {
+            }
+
+            public class OrderService
+            {
+                private readonly ILogger<OrderService> _logger;
+                private readonly AuditService _audit;
+
+                public OrderService(ILogger<OrderService> logger, AuditService audit)
+                {
+                    _logger = logger;
+                    _audit = audit;
+                    _audit.Logger = logger;
+                }
+            }
+            """;
+
+        CSharpCodeFixTest<Kuk0007ILoggerTypeMatchesContainingTypeAnalyzer, Kuk0007ILoggerTypeMatchesContainingTypeCodeFixProvider, DefaultVerifier> test = new()
+        {
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        };
+
+        test.TestState.Sources.Add((ORDER_SERVICE_FILE_NAME, orderServiceTestCode));
+        test.TestState.Sources.Add((AUDIT_SERVICE_FILE_NAME, auditServiceTestCode));
+        test.FixedState.Sources.Add((ORDER_SERVICE_FILE_NAME, orderServiceFixedCode));
+        test.FixedState.Sources.Add((AUDIT_SERVICE_FILE_NAME, auditServiceTestCode));
+
+        test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0007, DiagnosticSeverity.Warning).WithLocation(0));
+        test.FixedState.ExpectedDiagnostics.Add(
+            new DiagnosticResult("CS0266", DiagnosticSeverity.Error).WithSpan(ORDER_SERVICE_FILE_NAME, 20, 25, 20, 31));
+
+        await test.RunAsync();
+    }
+
+    [Fact]
     public async Task CodeFixUpdatesPropertyOnlyAsync()
     {
         string testCode = WrapCode("public ILogger<{|#0:PaymentService|}> Logger { get; }");
@@ -322,6 +494,11 @@ public class Kuk0007ILoggerTypeMatchesContainingTypeCodeFixProviderTests
 
             public class PaymentService
             {
+            }
+
+            public class AuditService
+            {
+                public object _logger;
             }
             """;
 

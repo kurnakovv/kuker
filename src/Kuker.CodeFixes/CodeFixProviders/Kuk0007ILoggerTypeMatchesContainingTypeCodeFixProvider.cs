@@ -161,7 +161,7 @@ namespace Kuker.CodeFixes.CodeFixProviders
             IEnumerable<TypeSyntax> memberTypeArguments = GetDirectlyAssignedMembers(constructorSyntax, parameterSymbol, semanticModel, cancellationToken)
                 .Select(memberSymbol =>
                 {
-                    return TryGetDeclaredLoggerTypeArgumentSyntax(memberSymbol, out TypeSyntax memberTypeArgument)
+                    return TryGetDeclaredLoggerTypeArgumentSyntax(memberSymbol, root.SyntaxTree, out TypeSyntax memberTypeArgument)
                         ? memberTypeArgument
                         : null;
                 })
@@ -332,11 +332,11 @@ namespace Kuker.CodeFixes.CodeFixProviders
             return null;
         }
 
-        private static bool TryGetDeclaredLoggerTypeArgumentSyntax(ISymbol symbol, out TypeSyntax loggerTypeArgumentSyntax)
+        private static bool TryGetDeclaredLoggerTypeArgumentSyntax(ISymbol symbol, SyntaxTree currentSyntaxTree, out TypeSyntax loggerTypeArgumentSyntax)
         {
             loggerTypeArgumentSyntax = null;
 
-            SyntaxReference syntaxReference = symbol.DeclaringSyntaxReferences.FirstOrDefault();
+            SyntaxReference syntaxReference = symbol.DeclaringSyntaxReferences.FirstOrDefault(x => x.SyntaxTree == currentSyntaxTree);
             if (syntaxReference == null)
             {
                 return false;
