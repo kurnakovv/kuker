@@ -26,8 +26,8 @@ namespace Kuker.CodeFixes.CodeFixProviders
     {
         private const string MEMBER_ONLY_TITLE_FORMAT = "Change ILogger<T> to ILogger<{0}>";
         private const string CONSTRUCTOR_CHAIN_TITLE_FORMAT = "Change ILogger<T> to ILogger<{0}> for constructor and assigned members";
-        private const string MEMBER_ONLY_EQUIVALENCE_KEY = "KUK0007_MemberOnly";
-        private const string CONSTRUCTOR_CHAIN_EQUIVALENCE_KEY = "KUK0007_ConstructorChain";
+        private const string MEMBER_ONLY_EQUIVALENCE_KEY = DiagnosticIdContant.KUK0007 + "_MemberOnly";
+        private const string CONSTRUCTOR_CHAIN_EQUIVALENCE_KEY = DiagnosticIdContant.KUK0007 + "_ConstructorChain";
 
         /// <summary>
         /// FixableDiagnosticIds.
