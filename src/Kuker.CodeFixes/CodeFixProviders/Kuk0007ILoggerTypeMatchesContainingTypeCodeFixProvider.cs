@@ -176,8 +176,8 @@ namespace Kuker.CodeFixes.CodeFixProviders
                             ? (memberReplacementNode, memberReplaceWholeType)
                             : ((TypeSyntax Node, bool ReplaceWholeType)?)null;
                     })
-                    .Where(memberTypeArgument => memberTypeArgument != null)
-                    .Select(memberTypeArgument => memberTypeArgument.Value);
+                    .Where(x => x.HasValue)
+                    .Select(x => x.GetValueOrDefault());
 
                 targetNodes.AddRange(memberTypeArguments);
             }
