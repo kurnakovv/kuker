@@ -31,3 +31,4 @@ KUK0005 | KukerAllRules | Warning | Kuk0005TagWithCallSiteOnExecutionAnalyzer [D
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 KUK0006 | KukerAllRules | Warning | Kuk0006MultilineClosingParenthesisAnalyzer [Documentation](https://github.com/kurnakovv/kuker/wiki/KUK0006)
+KUK0007 | KukerAllRules | Warning | Kuk0007ILoggerTypeMatchesContainingTypeAnalyzer [Documentation](https://github.com/kurnakovv/kuker/wiki/KUK0007)
