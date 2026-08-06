@@ -229,8 +229,13 @@ namespace Kuker.CodeFixes.CodeFixProviders
                         ? $"ILogger<{containingType.ToMinimalDisplayString(semanticModel, originalNode.SpanStart)}>"
                         : containingType.ToMinimalDisplayString(semanticModel, originalNode.SpanStart);
 
-                    return SyntaxFactory.ParseTypeName(replacementText)
-                        .WithTriviaFrom(originalNode);
+                    TypeSyntax replacementType = SyntaxFactory.ParseTypeName(replacementText);
+                    if (replaceWholeType && originalNode is NullableTypeSyntax)
+                    {
+                        replacementType = SyntaxFactory.NullableType(replacementType);
+                    }
+
+                    return replacementType.WithTriviaFrom(originalNode);
                 });
         }
 
