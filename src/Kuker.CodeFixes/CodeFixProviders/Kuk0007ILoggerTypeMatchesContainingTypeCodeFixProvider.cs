@@ -65,7 +65,8 @@ namespace Kuker.CodeFixes.CodeFixProviders
                 context.CancellationToken,
                 out _,
                 out ConstructorDeclarationSyntax constructorSyntax,
-                out INamedTypeSymbol constructorContainingType))
+                out INamedTypeSymbol constructorContainingType
+            ))
             {
                 string containingTypeDisplayName = constructorContainingType.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
                 string title = constructorSyntax != null
@@ -89,7 +90,8 @@ namespace Kuker.CodeFixes.CodeFixProviders
                 semanticModel,
                 context.CancellationToken,
                 out _,
-                out INamedTypeSymbol memberContainingType))
+                out INamedTypeSymbol memberContainingType
+            ))
             {
                 string containingTypeDisplayName = memberContainingType.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
                 string title = string.Format(MEMBER_ONLY_TITLE_FORMAT, containingTypeDisplayName);
@@ -121,7 +123,8 @@ namespace Kuker.CodeFixes.CodeFixProviders
                 cancellationToken,
                 out ParameterSyntax parameterSyntax,
                 out ConstructorDeclarationSyntax constructorSyntax,
-                out INamedTypeSymbol containingType))
+                out INamedTypeSymbol containingType
+            ))
             {
                 return ApplyConstructorChainFix(document, root, semanticModel, parameterSyntax, constructorSyntax, containingType, cancellationToken);
             }
@@ -131,7 +134,8 @@ namespace Kuker.CodeFixes.CodeFixProviders
                 semanticModel,
                 cancellationToken,
                 out MemberDeclarationSyntax memberDeclaration,
-                out INamedTypeSymbol memberContainingType))
+                out INamedTypeSymbol memberContainingType
+            ))
             {
                 return ApplyMemberFix(document, root, semanticModel, memberDeclaration, memberContainingType, cancellationToken);
             }
@@ -146,7 +150,8 @@ namespace Kuker.CodeFixes.CodeFixProviders
             ParameterSyntax parameterSyntax,
             ConstructorDeclarationSyntax constructorSyntax,
             INamedTypeSymbol containingType,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken
+        )
         {
             IParameterSymbol parameterSymbol = semanticModel.GetDeclaredSymbol(parameterSyntax, cancellationToken);
             if (parameterSymbol == null)
@@ -192,7 +197,8 @@ namespace Kuker.CodeFixes.CodeFixProviders
             SemanticModel semanticModel,
             MemberDeclarationSyntax memberDeclaration,
             INamedTypeSymbol containingType,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken
+        )
         {
             TypeSyntax memberTypeSyntax = GetMemberTypeSyntax(memberDeclaration);
             if (memberTypeSyntax == null || !TryGetLoggerReplacementTarget(memberTypeSyntax, semanticModel, cancellationToken, out TypeSyntax memberReplacementNode, out bool memberReplaceWholeType))
@@ -208,7 +214,8 @@ namespace Kuker.CodeFixes.CodeFixProviders
             SyntaxNode root,
             SemanticModel semanticModel,
             INamedTypeSymbol containingType,
-            IEnumerable<(TypeSyntax Node, bool ReplaceWholeType)> targetNodes)
+            IEnumerable<(TypeSyntax Node, bool ReplaceWholeType)> targetNodes
+        )
         {
             Dictionary<TextSpan, (TypeSyntax Node, bool ReplaceWholeType)> uniqueTargetNodes = new Dictionary<TextSpan, (TypeSyntax Node, bool ReplaceWholeType)>();
             foreach ((TypeSyntax Node, bool ReplaceWholeType) targetNode in targetNodes)
@@ -236,14 +243,16 @@ namespace Kuker.CodeFixes.CodeFixProviders
                     }
 
                     return replacementType.WithTriviaFrom(originalNode);
-                });
+                }
+            );
         }
 
         private static IEnumerable<ISymbol> GetDirectlyAssignedMembers(
             ConstructorDeclarationSyntax constructorSyntax,
             IParameterSymbol parameterSymbol,
             SemanticModel semanticModel,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken
+        )
         {
             HashSet<ISymbol> assignedMembers = new HashSet<ISymbol>(SymbolEqualityComparer.Default);
 
@@ -291,7 +300,8 @@ namespace Kuker.CodeFixes.CodeFixProviders
             CancellationToken cancellationToken,
             out ParameterSyntax parameterSyntax,
             out ConstructorDeclarationSyntax constructorSyntax,
-            out INamedTypeSymbol containingType)
+            out INamedTypeSymbol containingType
+        )
         {
             parameterSyntax = node.FirstAncestorOrSelf<ParameterSyntax>();
             constructorSyntax = null;
@@ -325,7 +335,8 @@ namespace Kuker.CodeFixes.CodeFixProviders
             SemanticModel semanticModel,
             CancellationToken cancellationToken,
             out MemberDeclarationSyntax memberDeclaration,
-            out INamedTypeSymbol containingType)
+            out INamedTypeSymbol containingType
+        )
         {
             memberDeclaration = node.FirstAncestorOrSelf<FieldDeclarationSyntax>();
             if (memberDeclaration != null)
@@ -356,7 +367,8 @@ namespace Kuker.CodeFixes.CodeFixProviders
         private static INamedTypeSymbol GetContainingType(
             MemberDeclarationSyntax memberDeclaration,
             SemanticModel semanticModel,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken
+        )
         {
             if (memberDeclaration is FieldDeclarationSyntax fieldDeclaration)
             {
@@ -378,7 +390,8 @@ namespace Kuker.CodeFixes.CodeFixProviders
             SemanticModel semanticModel,
             CancellationToken cancellationToken,
             out TypeSyntax replacementTargetNode,
-            out bool replaceWholeType)
+            out bool replaceWholeType
+        )
         {
             replacementTargetNode = null;
             replaceWholeType = false;
@@ -424,7 +437,8 @@ namespace Kuker.CodeFixes.CodeFixProviders
             SemanticModel semanticModel,
             CancellationToken cancellationToken,
             out TypeSyntax replacementTargetNode,
-            out bool replaceWholeType)
+            out bool replaceWholeType
+        )
         {
             replacementTargetNode = null;
             replaceWholeType = false;

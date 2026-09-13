@@ -1740,7 +1740,8 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
         bool expectImplicitObjectCreationDiagnostic,
         bool expectMethodDeclarationDiagnostic,
         bool expectConstructorDeclarationDiagnostic,
-        bool expectPrimaryConstructorDiagnostic)
+        bool expectPrimaryConstructorDiagnostic
+    )
     {
         string testCode = """
             using System;
@@ -1915,7 +1916,8 @@ public class Kuk0006MultilineClosingParenthesisAnalyzerTests
         ));
 
         test.ExpectedDiagnostics.Add(
-            new DiagnosticResult(DiagnosticIdContant.KUK0006, DiagnosticSeverity.Warning).WithLocation(0).WithArguments(invalidTargetSyntax.Trim()));
+            new DiagnosticResult(DiagnosticIdContant.KUK0006, DiagnosticSeverity.Warning).WithLocation(0).WithArguments(invalidTargetSyntax.Trim())
+        );
 
         await test.RunAsync();
     }

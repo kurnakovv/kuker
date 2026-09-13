@@ -713,7 +713,8 @@ public class Kuk0005TagWithCallSiteOnExecutionAnalyzerTests
         ));
 
         test.ExpectedDiagnostics.Add(
-            new DiagnosticResult(DiagnosticIdContant.KUK0005, DiagnosticSeverity.Warning).WithSpan(17, 32, 17, 54).WithArguments(invalidStyle.Trim()));
+            new DiagnosticResult(DiagnosticIdContant.KUK0005, DiagnosticSeverity.Warning).WithSpan(17, 32, 17, 54).WithArguments(invalidStyle.Trim())
+        );
 
         await test.RunAsync();
     }
@@ -769,7 +770,8 @@ public class Kuk0005TagWithCallSiteOnExecutionAnalyzerTests
         ));
 
         test.ExpectedDiagnostics.Add(
-            new DiagnosticResult(DiagnosticIdContant.KUK0005, DiagnosticSeverity.Warning).WithSpan(17, 32, 17, 54));
+            new DiagnosticResult(DiagnosticIdContant.KUK0005, DiagnosticSeverity.Warning).WithSpan(17, 32, 17, 54)
+        );
 
         await test.RunAsync();
     }

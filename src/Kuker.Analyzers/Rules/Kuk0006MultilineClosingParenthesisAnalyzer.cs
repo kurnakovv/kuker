@@ -186,7 +186,8 @@ namespace Kuker.Analyzers.Rules
             SyntaxNodeAnalysisContext context,
             SyntaxNode node,
             ArgumentListSyntax argumentList,
-            string targetSyntax)
+            string targetSyntax
+        )
         {
             SyntaxToken openParen = argumentList.OpenParenToken;
             SyntaxToken closeParen = argumentList.CloseParenToken;
@@ -197,14 +198,16 @@ namespace Kuker.Analyzers.Rules
                 openParen,
                 closeParen,
                 targetSyntax,
-                skipCheck: (text, closeLine, placement) => ShouldSkipArgumentList(node, text, closeLine, placement, closeParen, targetSyntax));
+                skipCheck: (text, closeLine, placement) => ShouldSkipArgumentList(node, text, closeLine, placement, closeParen, targetSyntax)
+            );
         }
 
         private static void AnalyzeParameterList(
             SyntaxNodeAnalysisContext context,
             SyntaxNode node,
             ParameterListSyntax parameterList,
-            string targetSyntax)
+            string targetSyntax
+        )
         {
             AnalyzeParentheses(
                 context,
@@ -212,7 +215,8 @@ namespace Kuker.Analyzers.Rules
                 parameterList.OpenParenToken,
                 parameterList.CloseParenToken,
                 targetSyntax,
-                skipCheck: null);
+                skipCheck: null
+            );
         }
 
         private static void AnalyzeParentheses(
@@ -221,7 +225,8 @@ namespace Kuker.Analyzers.Rules
             SyntaxToken openParen,
             SyntaxToken closeParen,
             string targetSyntax,
-            Func<SourceText, TextLine, MultilineClosingParenthesisPlacement, bool> skipCheck)
+            Func<SourceText, TextLine, MultilineClosingParenthesisPlacement, bool> skipCheck
+        )
         {
             if (openParen.IsMissing || closeParen.IsMissing)
             {
@@ -260,7 +265,9 @@ namespace Kuker.Analyzers.Rules
                     context.ReportDiagnostic(Diagnostic.Create(
                         s_invalidConfigRule,
                         closeParen.GetLocation(),
-                        configuredTargetSyntax.Trim()));
+                        configuredTargetSyntax.Trim()
+                    )
+                    );
                     return;
                 }
             }
@@ -283,7 +290,8 @@ namespace Kuker.Analyzers.Rules
             TextLine closeLine,
             MultilineClosingParenthesisPlacement placement,
             SyntaxToken closeParen,
-            string targetSyntax)
+            string targetSyntax
+        )
         {
             SyntaxToken previousToken = closeParen.GetPreviousToken();
             if (previousToken.IsKind(SyntaxKind.CloseBraceToken) ||
