@@ -209,7 +209,8 @@ namespace Kuker.Analyzers.Rules
         {
             return GetMemberTypeLocation(
                 parameter,
-                syntaxNode => syntaxNode is ParameterSyntax parameterSyntax ? parameterSyntax.Type : null);
+                syntaxNode => syntaxNode is ParameterSyntax parameterSyntax ? parameterSyntax.Type : null
+            );
         }
 
         private static Location GetFieldTypeLocation(IFieldSymbol field)
@@ -220,14 +221,16 @@ namespace Kuker.Analyzers.Rules
                     syntaxNode is VariableDeclaratorSyntax variableDeclarator &&
                     variableDeclarator.Parent is VariableDeclarationSyntax variableDeclaration
                         ? variableDeclaration.Type
-                        : null);
+                        : null
+            );
         }
 
         private static Location GetPropertyTypeLocation(IPropertySymbol property)
         {
             return GetMemberTypeLocation(
                 property,
-                syntaxNode => syntaxNode is PropertyDeclarationSyntax propertyDeclarationSyntax ? propertyDeclarationSyntax.Type : null);
+                syntaxNode => syntaxNode is PropertyDeclarationSyntax propertyDeclarationSyntax ? propertyDeclarationSyntax.Type : null
+            );
         }
 
         private static Location GetMemberTypeLocation(ISymbol symbol, Func<SyntaxNode, TypeSyntax> getTypeSyntax)
@@ -277,7 +280,8 @@ namespace Kuker.Analyzers.Rules
             SymbolAnalysisContext context,
             Location location,
             ITypeSymbol loggerCategoryType,
-            INamedTypeSymbol containingType)
+            INamedTypeSymbol containingType
+        )
         {
             string loggerCategoryTypeDisplayName = loggerCategoryType.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
             string containingTypeDisplayName = containingType.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);

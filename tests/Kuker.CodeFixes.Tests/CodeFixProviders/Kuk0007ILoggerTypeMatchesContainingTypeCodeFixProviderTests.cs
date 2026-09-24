@@ -452,7 +452,8 @@ public class Kuk0007ILoggerTypeMatchesContainingTypeCodeFixProviderTests
 
         test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0007, DiagnosticSeverity.Warning).WithLocation(0));
         test.FixedState.ExpectedDiagnostics.Add(
-            new DiagnosticResult("CS0266", DiagnosticSeverity.Error).WithSpan(ORDER_SERVICE_FILE_NAME, 20, 25, 20, 31));
+            new DiagnosticResult("CS0266", DiagnosticSeverity.Error).WithSpan(ORDER_SERVICE_FILE_NAME, 20, 25, 20, 31)
+        );
 
         await test.RunAsync();
     }

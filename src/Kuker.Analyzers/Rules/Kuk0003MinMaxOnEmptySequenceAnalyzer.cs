@@ -319,10 +319,14 @@ namespace Kuker.Analyzers.Rules
             SemanticModel semanticModel
         )
         {
-            if (collectionExpression is InvocationExpressionSyntax &&
-                !TryGetSafeRoot(collectionExpression, out collectionExpression))
+            if (collectionExpression is InvocationExpressionSyntax)
             {
-                return false;
+                if (!TryGetSafeRoot(collectionExpression, out ExpressionSyntax safeRoot))
+                {
+                    return false;
+                }
+
+                collectionExpression = safeRoot;
             }
 
             StatementSyntax currentStatement = invocation.Ancestors().OfType<StatementSyntax>().FirstOrDefault();

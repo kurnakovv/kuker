@@ -1051,3 +1051,21 @@ resharper_convert_to_lambda_expression_highlighting = none
 resharper_assign_null_to_not_null_attribute_highlighting = none
 
 ## *END* ReSharper Inspect Code
+
+[*.cs]
+
+##
+## kuker
+##
+# Docs here https://github.com/kurnakovv/kuker
+
+# Setup all rules with global category
+dotnet_analyzer_diagnostic.category-KukerAllRules.severity = warning
+
+dotnet_diagnostic.KUK0001.severity = error # Duplicate arguments passed to method | https://github.com/kurnakovv/kuker/wiki/KUK0001
+dotnet_diagnostic.KUK0002.severity = error # File name mismatch | https://github.com/kurnakovv/kuker/wiki/KUK0002
+dotnet_diagnostic.KUK0003.severity = error # Min/Max (Async) and MinBy/MaxBy may throw InvalidOperationException on empty sequences | https://github.com/kurnakovv/kuker/wiki/KUK0003
+dotnet_diagnostic.KUK0004.severity = error # Avoid primary constructor | https://github.com/kurnakovv/kuker/wiki/KUK0004
+dotnet_diagnostic.KUK0005.severity = none # .TagWithCallSite() on EF Core query execution | https://github.com/kurnakovv/kuker/wiki/KUK0005
+dotnet_diagnostic.KUK0006.severity = error # Incorrect multiline closing parenthesis placement | https://github.com/kurnakovv/kuker/wiki/KUK0006
+dotnet_diagnostic.KUK0007.severity = none # ILogger<T> type argument does not match containing type | https://github.com/kurnakovv/kuker/wiki/KUK0007
