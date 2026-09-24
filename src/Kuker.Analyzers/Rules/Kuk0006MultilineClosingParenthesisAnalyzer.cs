@@ -262,11 +262,12 @@ namespace Kuker.Analyzers.Rules
             {
                 if (!Kuk0006TargetSyntaxOption.TryParse(configuredTargetSyntax, out targetSyntaxes))
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(
-                        s_invalidConfigRule,
-                        closeParen.GetLocation(),
-                        configuredTargetSyntax.Trim()
-                    )
+                    context.ReportDiagnostic(
+                        Diagnostic.Create(
+                            s_invalidConfigRule,
+                            closeParen.GetLocation(),
+                            configuredTargetSyntax.Trim()
+                        )
                     );
                     return;
                 }
