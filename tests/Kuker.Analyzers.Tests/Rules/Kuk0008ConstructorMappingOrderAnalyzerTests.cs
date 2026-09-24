@@ -105,6 +105,26 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
     }
 
     [Fact]
+    public async Task ReportWhenAssignmentUsesThisQualifierAndOrderDoesNotMatchAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                private readonly string _name;
+                private readonly int _age;
+
+                public User(string name, int age)
+                {
+                    this._age = age;
+                    this._name = name;
+                }
+            }
+            """;
+
+        await RunAsync(testCode, 8, 17, 8, 21);
+    }
+
+    [Fact]
     public async Task ReportWhenParameterOrderMatchesFieldsButAssignmentOrderDoesNotAsync()
     {
         string testCode = """
@@ -242,8 +262,90 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
 
                 public User(string name, int age)
                 {
-                    _name = name.Trim();
                     _age = age;
+                    _name = name.Trim();
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task NoReportWhenAssignmentUsesCastExpressionAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                private readonly string _name;
+                private readonly int _age;
+
+                public User(object name, int age)
+                {
+                    _age = age;
+                    _name = (string)name;
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task NoReportWhenAssignmentUsesNullCoalescingExpressionAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                private readonly string _name;
+                private readonly int _age;
+
+                public User(string name, int age)
+                {
+                    _age = age;
+                    _name = name ?? "";
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task NoReportWhenAssignmentUsesMethodCallOnAnotherTypeAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                private readonly string _name;
+                private readonly int _age;
+
+                public User(string name, int age)
+                {
+                    _age = age;
+                    _name = string.Copy(name);
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task NoReportWhenAssignmentUsesNullForgivingOperatorAsync()
+    {
+        string testCode = """
+            #nullable enable
+
+            public class User
+            {
+                private readonly string _name;
+                private readonly int _age;
+
+                public User(string? name, int age)
+                {
+                    _age = age;
+                    _name = name!;
                 }
             }
             """;
@@ -262,8 +364,8 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
 
                 public User(string name, int age)
                 {
-                    _name = "default";
                     _age = age;
+                    _name = "default";
                 }
             }
             """;
@@ -316,6 +418,46 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
     }
 
     [Fact]
+    public async Task NoReportWhenParameterHasDefaultValueAndOrderMatchesAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                private readonly string _name;
+                private readonly int _age;
+
+                public User(string name, int age = 18)
+                {
+                    _name = name;
+                    _age = age;
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task ReportWhenParameterHasDefaultValueAndOrderDoesNotMatchAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                private readonly string _name;
+                private readonly int _age;
+
+                public User(string name, int age = 18)
+                {
+                    _age = age;
+                    _name = name;
+                }
+            }
+            """;
+
+        await RunAsync(testCode, 9, 12, 9, 16);
+    }
+
+    [Fact]
     public async Task NoReportWhenParameterIsAssignedToLocalVariableNotFieldAsync()
     {
         string testCode = """
@@ -327,6 +469,27 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
                 public User(string name, int age)
                 {
                     var x = name;
+                    _age = age;
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task NoReportWhenFieldIsAssignedFromLocalVariableInsteadOfParameterDirectlyAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                private readonly string _name;
+                private readonly int _age;
+
+                public User(string name, int age)
+                {
+                    var value = name;
+                    _name = value;
                     _age = age;
                 }
             }
@@ -471,6 +634,207 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
             """;
 
         await RunAsync(testCode, 19, 12, 19, 17);
+    }
+
+    [Fact]
+    public async Task NoReportWhenThisInitializerPassesParameterAndBodyOrderMatchesAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                private readonly string _name;
+                private readonly int _age;
+
+                public User(string name)
+                {
+                    _name = name;
+                }
+
+                public User(string name, int age)
+                    : this(name)
+                {
+                    _age = age;
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task NoReportWhenThisInitializerPassesParameterAndOnlyOneAssignmentInBodyAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                private readonly string _name;
+                private readonly int _age;
+
+                public User(int age)
+                {
+                    _age = age;
+                }
+
+                public User(string name, int age)
+                    : this(age)
+                {
+                    _name = name;
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task ReportWhenDerivedClassOrderMismatchesIgnoringBaseClassFieldAsync()
+    {
+        string testCode = """
+            public class Person
+            {
+                protected readonly string _name;
+
+                public Person(string name)
+                {
+                    _name = name;
+                }
+            }
+
+            public class User : Person
+            {
+                private readonly int _age;
+                private readonly string _email;
+
+                public User(string name, int age, string email)
+                    : base(name)
+                {
+                    _email = email;
+                    _age = age;
+                }
+            }
+            """;
+
+        await RunAsync(testCode, 20, 12, 20, 18);
+    }
+
+    [Fact]
+    public async Task ReportWhenDerivedClassOwnFieldOrderDoesNotMatchIgnoringBaseFieldAsync()
+    {
+        string testCode = """
+            public class Person
+            {
+                protected readonly string _name;
+
+                public Person(string name)
+                {
+                    _name = name;
+                }
+            }
+
+            public class User : Person
+            {
+                private readonly string _email;
+                private readonly int _age;
+
+                public User(string name, string email, int age)
+                    : base(name)
+                {
+                    _age = age;
+                    _email = email;
+                }
+            }
+            """;
+
+        await RunAsync(testCode, 19, 12, 19, 16);
+    }
+
+    [Fact]
+    public async Task NoReportWhenBaseAndDerivedParametersShareSameNameAndOrderMatchesAsync()
+    {
+        string testCode = """
+            public class Person
+            {
+                protected readonly string _name;
+
+                public Person(string name)
+                {
+                    _name = name;
+                }
+            }
+
+            public class User : Person
+            {
+                private readonly string _name;
+
+                public User(string name)
+                    : base(name)
+                {
+                    _name = name;
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task NoReportWhenPrivateAndProtectedFieldsAreOrderedCorrectlyAcrossHierarchyAsync()
+    {
+        string testCode = """
+            public class Person
+            {
+                protected readonly string _name;
+
+                public Person(string name)
+                {
+                    _name = name;
+                }
+            }
+
+            public class User : Person
+            {
+                private readonly int _age;
+
+                public User(string name, int age)
+                    : base(name)
+                {
+                    _age = age;
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task ReportWhenConstructorChainingBetweenBaseAndDerivedHasDerivedOrderMismatchAsync()
+    {
+        string testCode = """
+            public class Person
+            {
+                protected readonly string _name;
+                protected readonly int _age;
+
+                public Person(string name, int age)
+                {
+                    _age = age;
+                    _name = name;
+                }
+            }
+
+            public class User : Person
+            {
+                private readonly string _email;
+
+                public User(string name, int age, string email)
+                    : base(name, age)
+                {
+                    _email = email;
+                }
+            }
+            """;
+
+        await RunAsync(testCode, 8, 12, 8, 16);
     }
 
     [Fact]
@@ -697,6 +1061,874 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
             """;
 
         await RunAsync(testCode, 10, 12, 10, 18);
+    }
+
+    [Fact]
+    public async Task NoReportWhenUnrelatedLogicBetweenAssignmentsAndOrderMatchesAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class User
+            {
+                private readonly string _name;
+                private readonly int _age;
+
+                public User(string name, int age)
+                {
+                    _name = name;
+                    Console.WriteLine("Creating user");
+                    _age = age;
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task ReportWhenUnrelatedLogicBetweenAssignmentsAndOrderDoesNotMatchAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class User
+            {
+                private readonly string _name;
+                private readonly int _age;
+
+                public User(string name, int age)
+                {
+                    _age = age;
+                    Console.WriteLine("Creating user");
+                    _name = name;
+                }
+            }
+            """;
+
+        await RunAsync(testCode, 10, 12, 10, 16);
+    }
+
+    [Fact]
+    public async Task NoReportWhenOnlySingleFieldIsAssignedAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                private readonly string _name;
+
+                public User(string name)
+                {
+                    _name = name;
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task NoReportWhenNoFieldsExistButConstructorHasParametersAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                public User(string name, int age)
+                {
+                    var displayName = name;
+                    var displayAge = age;
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task NoReportWhenMoreParametersThanFieldsAndOrderMatchesAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                private readonly string _name;
+                private readonly int _age;
+
+                public User(string name, int age, string comment)
+                {
+                    _name = name;
+                    _age = age;
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task ReportWhenMoreParametersThanFieldsAndOrderDoesNotMatchAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                private readonly string _name;
+                private readonly int _age;
+
+                public User(string name, int age, string comment)
+                {
+                    _age = age;
+                    _name = name;
+                }
+            }
+            """;
+
+        await RunAsync(testCode, 8, 12, 8, 16);
+    }
+
+    [Fact]
+    public async Task NoReportWhenMoreFieldsThanParametersAndOrderMatchesAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                private readonly string _name;
+                private readonly int _age;
+                private readonly string _comment;
+
+                public User(string name, int age)
+                {
+                    _name = name;
+                    _age = age;
+                    _comment = string.Empty;
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task ReportWhenMoreFieldsThanParametersAndOrderDoesNotMatchAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                private readonly string _name;
+                private readonly int _age;
+                private readonly string _comment;
+
+                public User(string name, int age)
+                {
+                    _age = age;
+                    _name = name;
+                    _comment = string.Empty;
+                }
+            }
+            """;
+
+        await RunAsync(testCode, 9, 12, 9, 16);
+    }
+
+    [Fact]
+    public async Task NoReportWhenSomeFieldsAreParameterInitializedAndOthersAreNotAndOrderMatchesAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                private readonly string _name;
+                private readonly int _age;
+                private readonly string _id;
+
+                public User(string name, int age)
+                {
+                    _name = name;
+                    _age = age;
+                    _id = System.Guid.NewGuid().ToString();
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task ReportWhenSomeFieldsAreParameterInitializedAndOthersAreNotAndOrderDoesNotMatchAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                private readonly string _name;
+                private readonly int _age;
+                private readonly string _id;
+
+                public User(string name, int age)
+                {
+                    _age = age;
+                    _name = name;
+                    _id = System.Guid.NewGuid().ToString();
+                }
+            }
+            """;
+
+        await RunAsync(testCode, 9, 12, 9, 16);
+    }
+
+    [Fact]
+    public async Task NoReportWhenAssignmentsAreOnSameLineAndOrderMatchesAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                private readonly string _name;
+                private readonly int _age;
+
+                public User(string name, int age)
+                {
+                    _name = name; _age = age;
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task ReportWhenAssignmentsAreOnSameLineAndOrderDoesNotMatchAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                private readonly string _name;
+                private readonly int _age;
+
+                public User(string name, int age)
+                {
+                    _age = age; _name = name;
+                }
+            }
+            """;
+
+        await RunAsync(testCode, 9, 12, 9, 16);
+    }
+
+    [Fact]
+    public async Task NoReportWhenParametersAreMultilineAndOrderMatchesAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                private readonly string _name;
+                private readonly int _age;
+
+                public User(
+                    string name,
+                    int age)
+                {
+                    _name = name;
+                    _age = age;
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task ReportWhenParametersAreMultilineAndOrderDoesNotMatchAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                private readonly string _name;
+                private readonly int _age;
+
+                public User(
+                    string name,
+                    int age)
+                {
+                    _age = age;
+                    _name = name;
+                }
+            }
+            """;
+
+        await RunAsync(testCode, 11, 12, 11, 16);
+    }
+
+    [Fact]
+    public async Task NoReportWhenSimilarlyNamedFieldsAndParametersOrderMatchesAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                private readonly string _name;
+                private readonly string _displayName;
+
+                public User(string name, string displayName)
+                {
+                    _name = name;
+                    _displayName = displayName;
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task ReportWhenSimilarlyNamedFieldsAndParametersOrderDoesNotMatchAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                private readonly string _name;
+                private readonly string _displayName;
+
+                public User(string name, string displayName)
+                {
+                    _displayName = displayName;
+                    _name = name;
+                }
+            }
+            """;
+
+        await RunAsync(testCode, 8, 12, 8, 25);
+    }
+
+    [Fact]
+    public async Task NoReportWhenFieldIsReassignedAfterDirectParameterMappingAndOrderMatchesAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                private readonly string _name;
+                private readonly int _age;
+
+                public User(string name, int age)
+                {
+                    _name = name;
+                    _age = age;
+                    _name = "override";
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task ReportWhenFieldIsReassignedAfterDirectParameterMappingAndOrderDoesNotMatchAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                private readonly string _name;
+                private readonly int _age;
+
+                public User(string name, int age)
+                {
+                    _age = age;
+                    _name = name;
+                    _name = "override";
+                }
+            }
+            """;
+
+        await RunAsync(testCode, 9, 12, 9, 16);
+    }
+
+    [Fact]
+    public async Task NoReportWhenFieldIsAssignedNonParameterValueBeforeDirectParameterMappingAndOrderMatchesAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                private readonly string _name;
+                private readonly int _age;
+
+                public User(string name, int age)
+                {
+                    _name = "default";
+                    _name = name;
+                    _age = age;
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task ReportWhenFieldIsAssignedNonParameterValueBeforeDirectParameterMappingAndOrderDoesNotMatchAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                private readonly string _name;
+                private readonly int _age;
+
+                public User(string name, int age)
+                {
+                    _name = "default";
+                    _age = age;
+                    _name = name;
+                }
+            }
+            """;
+
+        await RunAsync(testCode, 9, 12, 9, 16);
+    }
+
+    [Fact]
+    public async Task NoReportWhenAssignmentInsideIfIsFollowedByUnconditionalAssignmentAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                private readonly string _name;
+                private readonly int _age;
+
+                public User(string name, int age, bool condition)
+                {
+                    _age = age;
+
+                    if (condition)
+                        _name = name;
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task NoReportWhenUnconditionalAssignmentIsFollowedByAssignmentInsideIfAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                private readonly string _name;
+                private readonly int _age;
+
+                public User(string name, int age, bool condition)
+                {
+                    if (condition)
+                        _age = age;
+
+                    _name = name;
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task NoReportWhenBothAssignmentsAreInsideIfBlockRegardlessOfOrderAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                private readonly string _name;
+                private readonly int _age;
+
+                public User(string name, int age, bool condition)
+                {
+                    if (condition)
+                    {
+                        _age = age;
+                        _name = name;
+                    }
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task NoReportWhenAssignmentInsideSwitchIsIgnoredAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                private readonly string _name;
+                private readonly int _age;
+
+                public User(string name, int age, int mode)
+                {
+                    switch (mode)
+                    {
+                        case 1:
+                            _age = age;
+                            break;
+                    }
+
+                    _name = name;
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task NoReportWhenAssignmentInsideTryCatchIsIgnoredAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class User
+            {
+                private readonly string _name;
+                private readonly int _age;
+
+                public User(string name, int age)
+                {
+                    try
+                    {
+                        _age = age;
+                    }
+                    catch (Exception)
+                    {
+                    }
+
+                    _name = name;
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task NoReportWhenAssignmentInsideLoopIsIgnoredAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                private readonly string _name;
+                private readonly int _age;
+
+                public User(string name, int age, int count)
+                {
+                    for (int i = 0; i < count; i++)
+                    {
+                        _age = age;
+                    }
+
+                    _name = name;
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task NoReportWhenStaticFieldPrecedesInstanceFieldsAndInstanceOrderMatchesAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                private readonly string _name;
+                private static readonly int _version;
+                private readonly int _age;
+
+                public User(string name, int age)
+                {
+                    _name = name;
+                    _age = age;
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task ReportWhenStaticFieldPrecedesInstanceFieldsAndInstanceOrderDoesNotMatchAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                private readonly string _name;
+                private static readonly int _version;
+                private readonly int _age;
+
+                public User(string name, int age)
+                {
+                    _age = age;
+                    _name = name;
+                }
+            }
+            """;
+
+        await RunAsync(testCode, 9, 12, 9, 16);
+    }
+
+    [Fact]
+    public async Task NoReportWhenFieldsAndConstructorAreProtectedAndOrderMatchesAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                protected readonly string _name;
+                protected readonly int _age;
+
+                protected User(string name, int age)
+                {
+                    _name = name;
+                    _age = age;
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task ReportWhenFieldsAndConstructorAreProtectedAndOrderDoesNotMatchAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                protected readonly string _name;
+                protected readonly int _age;
+
+                protected User(string name, int age)
+                {
+                    _age = age;
+                    _name = name;
+                }
+            }
+            """;
+
+        await RunAsync(testCode, 9, 12, 9, 16);
+    }
+
+    [Fact]
+    public async Task NoReportWhenFieldsAndConstructorAreInternalAndOrderMatchesAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                internal readonly string _name;
+                internal readonly int _age;
+
+                internal User(string name, int age)
+                {
+                    _name = name;
+                    _age = age;
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task ReportWhenFieldsAndConstructorAreInternalAndOrderDoesNotMatchAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                internal readonly string _name;
+                internal readonly int _age;
+
+                internal User(string name, int age)
+                {
+                    _age = age;
+                    _name = name;
+                }
+            }
+            """;
+
+        await RunAsync(testCode, 9, 12, 9, 16);
+    }
+
+    [Fact]
+    public async Task NoReportWhenFieldsAndConstructorArePrivateAndOrderMatchesAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                private readonly string _name;
+                private readonly int _age;
+
+                private User(string name, int age)
+                {
+                    _name = name;
+                    _age = age;
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task ReportWhenFieldsAndConstructorArePrivateAndOrderDoesNotMatchAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                private readonly string _name;
+                private readonly int _age;
+
+                private User(string name, int age)
+                {
+                    _age = age;
+                    _name = name;
+                }
+            }
+            """;
+
+        await RunAsync(testCode, 9, 12, 9, 16);
+    }
+
+    [Fact]
+    public async Task NoReportWhenParameterTypesIncludeObjectAndNullableAndOrderMatchesAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                private readonly object _tag;
+                private readonly int? _age;
+                private readonly string _name;
+
+                public User(object tag, int? age, string name)
+                {
+                    _tag = tag;
+                    _age = age;
+                    _name = name;
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task ReportWhenParameterTypesIncludeObjectAndNullableAndOrderDoesNotMatchAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                private readonly object _tag;
+                private readonly int? _age;
+                private readonly string _name;
+
+                public User(object tag, int? age, string name)
+                {
+                    _tag = tag;
+                    _name = name;
+                    _age = age;
+                }
+            }
+            """;
+
+        await RunAsync(testCode, 10, 12, 10, 17);
+    }
+
+    [Fact]
+    public async Task NoReportWhenParameterUsesRefModifierAndOrderMatchesAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                private readonly int _age;
+                private readonly string _name;
+
+                public User(ref int age, string name)
+                {
+                    _age = age;
+                    _name = name;
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task ReportWhenParameterUsesRefModifierAndOrderDoesNotMatchAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                private readonly int _age;
+                private readonly string _name;
+
+                public User(ref int age, string name)
+                {
+                    _name = name;
+                    _age = age;
+                }
+            }
+            """;
+
+        await RunAsync(testCode, 8, 12, 8, 16);
+    }
+
+    [Fact]
+    public async Task NoReportWhenParameterUsesInModifierAndOrderMatchesAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                private readonly int _age;
+                private readonly string _name;
+
+                public User(in int age, string name)
+                {
+                    _age = age;
+                    _name = name;
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task ReportWhenParameterUsesInModifierAndOrderDoesNotMatchAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                private readonly int _age;
+                private readonly string _name;
+
+                public User(in int age, string name)
+                {
+                    _name = name;
+                    _age = age;
+                }
+            }
+            """;
+
+        await RunAsync(testCode, 8, 12, 8, 16);
+    }
+
+    [Fact]
+    public async Task NoReportWhenParameterUsesOutModifierAndOutFieldIsIgnoredAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                private readonly int _age;
+                private readonly string _name;
+
+                public User(string name, int age, out bool success)
+                {
+                    _age = age;
+                    _name = name;
+                    success = true;
+                }
+            }
+            """;
+
+        await RunAsync(testCode, 8, 12, 8, 16);
     }
 
     private static async Task RunAsync(
