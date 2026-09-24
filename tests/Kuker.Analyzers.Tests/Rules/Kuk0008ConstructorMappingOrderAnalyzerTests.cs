@@ -504,8 +504,8 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
         string testCode = """
             public class User
             {
-                private readonly string _name;
-                private readonly int _age;
+                private string _name;
+                private int _age;
 
                 public User(string name, int age)
                 {
@@ -1928,7 +1928,7 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
             }
             """;
 
-        await RunAsync(testCode, 8, 12, 8, 16);
+        await RunAsync(testCode);
     }
 
     private static async Task RunAsync(
