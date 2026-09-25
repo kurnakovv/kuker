@@ -229,7 +229,9 @@ namespace Kuker.Analyzers.Rules
 
             AssignmentExpressionSyntax firstMismatchedAssignment = FindFirstMismatchedAssignment(
                 directAssignments,
-                fieldDeclarationIndex
+                orderedByFieldDeclaration,
+                fieldDeclarationIndex,
+                parameterIndexByName
             );
 
             if (firstMismatchedAssignment == null)
@@ -242,7 +244,9 @@ namespace Kuker.Analyzers.Rules
 
         private static AssignmentExpressionSyntax FindFirstMismatchedAssignment(
             List<(string FieldName, string ParameterName, AssignmentExpressionSyntax Assignment)> directAssignments,
-            Dictionary<string, int> fieldDeclarationIndex
+            List<(string FieldName, string ParameterName, AssignmentExpressionSyntax Assignment)> orderedByFieldDeclaration,
+            Dictionary<string, int> fieldDeclarationIndex,
+            Dictionary<string, int> parameterIndexByName
         )
         {
             int previousFieldDeclarationIndex = -1;
@@ -257,6 +261,20 @@ namespace Kuker.Analyzers.Rules
                 }
 
                 previousFieldDeclarationIndex = currentFieldDeclarationIndex;
+            }
+
+            int previousParameterIndex = -1;
+
+            foreach ((string _, string parameterName, AssignmentExpressionSyntax assignment) in orderedByFieldDeclaration)
+            {
+                int currentParameterIndex = parameterIndexByName[parameterName];
+
+                if (currentParameterIndex < previousParameterIndex)
+                {
+                    return assignment;
+                }
+
+                previousParameterIndex = currentParameterIndex;
             }
 
             return null;

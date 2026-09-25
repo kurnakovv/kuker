@@ -169,7 +169,7 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
             }
             """;
 
-        await RunAsync(testCode, 9, 12, 9, 16);
+        await RunAsync(testCode, 13, 9, 13, 12);
     }
 
     [Fact]
@@ -956,7 +956,7 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
             }
             """;
 
-        await RunAsync(testCode, 14, 12, 14, 15);
+        await RunAsync(testCode, 15, 9, 15, 11);
     }
 
     [Fact]
@@ -1911,7 +1911,7 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
     }
 
     [Fact]
-    public async Task NoReportWhenParameterUsesOutModifierAndOutFieldIsIgnoredAsync()
+    public async Task ReportWhenParameterUsesOutModifierAndOutFieldIsIgnoredAsync()
     {
         string testCode = """
             public class User
@@ -1928,7 +1928,7 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
             }
             """;
 
-        await RunAsync(testCode);
+        await RunAsync(testCode, 9, 9, 9, 14);
     }
 
     private static async Task RunAsync(
