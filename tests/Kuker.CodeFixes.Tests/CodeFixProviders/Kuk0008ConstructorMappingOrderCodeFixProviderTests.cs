@@ -212,7 +212,7 @@ public class Kuk0008ConstructorMappingOrderCodeFixProviderTests
     }
 
     [Fact]
-    public async Task CodeFixOnlyAffectsTheReportedConstructorWhenClassHasMultipleConstructorsAsync()
+    public async Task CodeFixIsNotOfferedWhenClassHasMultipleConstructorsAsync()
     {
         string testCode = """
             public class Point
@@ -234,7 +234,15 @@ public class Kuk0008ConstructorMappingOrderCodeFixProviderTests
             }
             """;
 
-        string fixedCode = """
+#pragma warning disable KUK0001 // Duplicate arguments passed to method
+        await RunAsync(testCode, testCode);
+#pragma warning restore KUK0001 // Duplicate arguments passed to method
+    }
+
+    [Fact]
+    public async Task CodeFixIsNotOfferedWhenConstructorsHaveConflictingParameterOrderAsync()
+    {
+        string testCode = """
             public class Point
             {
                 private readonly int _x;
@@ -246,15 +254,17 @@ public class Kuk0008ConstructorMappingOrderCodeFixProviderTests
                     _y = y;
                 }
 
-                public Point(int x, int y, int c)
+                public Point(int y, int x, int c)
                 {
                     _x = x;
-                    _y = y;
+                    {|#0:_y|} = y;
                 }
             }
             """;
 
-        await RunAsync(testCode, fixedCode);
+#pragma warning disable KUK0001 // Duplicate arguments passed to method
+        await RunAsync(testCode, testCode);
+#pragma warning restore KUK0001 // Duplicate arguments passed to method
     }
 
     private static async Task RunAsync(string testCode, string fixedCode)

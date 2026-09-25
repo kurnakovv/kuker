@@ -69,6 +69,13 @@ namespace Kuker.CodeFixes.CodeFixProviders
                 return;
             }
 
+            SyntaxList<MemberDeclarationSyntax> members = GetMembers(constructorDeclaration.Parent);
+            int constructorCount = members.Count(x => x is ConstructorDeclarationSyntax);
+            if (constructorCount > 1)
+            {
+                return;
+            }
+
             context.RegisterCodeFix(
                 CodeAction.Create(
                     title: TITLE,
