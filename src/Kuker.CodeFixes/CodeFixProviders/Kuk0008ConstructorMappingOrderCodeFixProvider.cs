@@ -234,13 +234,14 @@ namespace Kuker.CodeFixes.CodeFixProviders
                     !(expressionStatement.Expression is AssignmentExpressionSyntax assignment) ||
                     !assignment.IsKind(SyntaxKind.SimpleAssignmentExpression))
                 {
-                    return;
+                    continue;
                 }
 
-                if (!TryGetParameterName(assignment.Right, out string parameterName) ||
+                if (!TryGetFieldName(assignment.Left, out _) ||
+                    !TryGetParameterName(assignment.Right, out string parameterName) ||
                     !parameterIndexByName.TryGetValue(parameterName, out int parameterIndex))
                 {
-                    return;
+                    continue;
                 }
 
                 assignmentStatements.Add(expressionStatement);

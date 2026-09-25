@@ -267,6 +267,46 @@ public class Kuk0008ConstructorMappingOrderCodeFixProviderTests
 #pragma warning restore KUK0001 // Duplicate arguments passed to method
     }
 
+    [Fact]
+    public async Task CodeFixReordersAssignmentsAndIgnoresUnrelatedStatementsInBetweenAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Point
+            {
+                private readonly int _y;
+                private readonly int _x;
+
+                public Point(int x, int y)
+                {
+                    if (x < 0) throw new ArgumentException();
+                    _y = y;
+                    {|#0:_x|} = x;
+                }
+            }
+            """;
+
+        string fixedCode = """
+            using System;
+
+            public class Point
+            {
+                private readonly int _x;
+                private readonly int _y;
+
+                public Point(int x, int y)
+                {
+                    if (x < 0) throw new ArgumentException();
+                    _x = x;
+                    _y = y;
+                }
+            }
+            """;
+
+        await RunAsync(testCode, fixedCode);
+    }
+
     private static async Task RunAsync(string testCode, string fixedCode)
     {
         CSharpCodeFixTest<Kuk0008ConstructorMappingOrderAnalyzer, Kuk0008ConstructorMappingOrderCodeFixProvider, DefaultVerifier> test = new()
