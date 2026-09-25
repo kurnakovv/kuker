@@ -57,7 +57,7 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
             }
             """;
 
-        await RunAsync(testCode, 9, 12, 9, 16);
+        await RunAsync(testCode, 13, 9, 13, 13);
     }
 
     [Fact]
@@ -224,7 +224,7 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
             }
             """;
 
-        await RunAsync(testCode, 12, 9, 12, 14);
+        await RunAsync(testCode, 12, 9, 12, 13);
     }
 
     [Fact]
@@ -392,7 +392,7 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
             }
             """;
 
-        await RunAsync(testCode, 9, 12, 9, 16);
+        await RunAsync(testCode, 10, 9, 10, 14);
     }
 
     [Fact]
@@ -414,7 +414,7 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
             }
             """;
 
-        await RunAsync(testCode, 9, 12, 9, 16);
+        await RunAsync(testCode, 10, 9, 10, 14);
     }
 
     [Fact]
@@ -454,7 +454,7 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
             }
             """;
 
-        await RunAsync(testCode, 9, 12, 9, 16);
+        await RunAsync(testCode, 9, 9, 9, 14);
     }
 
     [Fact]
@@ -602,7 +602,7 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
             }
             """;
 
-        await RunAsync(testCode, 10, 12, 10, 15);
+        await RunAsync(testCode, 11, 9, 11, 14);
     }
 
     [Fact]
@@ -714,7 +714,7 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
             }
             """;
 
-        await RunAsync(testCode, 20, 12, 20, 18);
+        await RunAsync(testCode, 20, 9, 20, 13);
     }
 
     [Fact]
@@ -745,7 +745,7 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
             }
             """;
 
-        await RunAsync(testCode, 19, 12, 19, 16);
+        await RunAsync(testCode, 20, 9, 20, 15);
     }
 
     [Fact]
@@ -874,7 +874,7 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
             }
             """;
 
-        await RunAsync(testCode, 7, 12, 7, 15);
+        await RunAsync(testCode, 9, 9, 9, 11);
     }
 
     [Fact]
@@ -904,7 +904,7 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
             }
             """;
 
-        await RunAsync(testCode, 7, 12, 7, 16);
+        await RunAsync(testCode, 9, 9, 9, 14);
     }
 
     [Fact]
@@ -996,7 +996,7 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
             }
             """;
 
-        await RunAsync(testCode, 9, 12, 9, 16);
+        await RunAsync(testCode, 9, 9, 9, 14);
     }
 
     [Fact]
@@ -1106,7 +1106,7 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
             }
             """;
 
-        await RunAsync(testCode, 10, 12, 10, 16);
+        await RunAsync(testCode, 12, 9, 12, 14);
     }
 
     [Fact]
@@ -1181,7 +1181,7 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
             }
             """;
 
-        await RunAsync(testCode, 8, 12, 8, 16);
+        await RunAsync(testCode, 9, 9, 9, 14);
     }
 
     [Fact]
@@ -1307,7 +1307,7 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
             }
             """;
 
-        await RunAsync(testCode, 9, 12, 9, 16);
+        await RunAsync(testCode, 8, 21, 8, 26);
     }
 
     [Fact]
@@ -1351,7 +1351,7 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
             }
             """;
 
-        await RunAsync(testCode, 11, 12, 11, 16);
+        await RunAsync(testCode, 11, 9, 11, 14);
     }
 
     [Fact]
@@ -1475,7 +1475,7 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
             }
             """;
 
-        await RunAsync(testCode, 9, 12, 9, 16);
+        await RunAsync(testCode, 10, 9, 10, 14);
     }
 
     [Fact]
@@ -1663,7 +1663,7 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
             }
             """;
 
-        await RunAsync(testCode, 9, 12, 9, 16);
+        await RunAsync(testCode, 10, 9, 10, 14);
     }
 
     [Fact]
@@ -1703,7 +1703,7 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
             }
             """;
 
-        await RunAsync(testCode, 9, 12, 9, 16);
+        await RunAsync(testCode, 9, 9, 9, 14);
     }
 
     [Fact]
@@ -1743,7 +1743,7 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
             }
             """;
 
-        await RunAsync(testCode, 9, 12, 9, 16);
+        await RunAsync(testCode, 9, 9, 9, 14);
     }
 
     [Fact]
