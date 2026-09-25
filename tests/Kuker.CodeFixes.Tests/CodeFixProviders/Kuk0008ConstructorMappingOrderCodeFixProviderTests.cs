@@ -167,6 +167,96 @@ public class Kuk0008ConstructorMappingOrderCodeFixProviderTests
         await RunAsync(testCode, fixedCode);
     }
 
+    [Fact]
+    public async Task CodeFixPreservesAttributesWhenReorderingFieldsAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Point
+            {
+                [Obsolete("x is obsolete")]
+                private readonly int _x;
+
+                [Obsolete("y is obsolete")]
+                private readonly int _y;
+
+                public Point(int y, int x)
+                {
+                    _x = x;
+                    {|#0:_y|} = y;
+                }
+            }
+            """;
+
+        string fixedCode = """
+            using System;
+
+            public class Point
+            {
+                [Obsolete("y is obsolete")]
+                private readonly int _y;
+
+                [Obsolete("x is obsolete")]
+                private readonly int _x;
+
+                public Point(int y, int x)
+                {
+                    _y = y;
+                    _x = x;
+                }
+            }
+            """;
+
+        await RunAsync(testCode, fixedCode);
+    }
+
+    [Fact]
+    public async Task CodeFixOnlyAffectsTheReportedConstructorWhenClassHasMultipleConstructorsAsync()
+    {
+        string testCode = """
+            public class Point
+            {
+                private readonly int _x;
+                private readonly int _y;
+
+                public Point(int x, int y)
+                {
+                    _x = x;
+                    _y = y;
+                }
+
+                public Point(int x, int y, int c)
+                {
+                    _y = y;
+                    {|#0:_x|} = x;
+                }
+            }
+            """;
+
+        string fixedCode = """
+            public class Point
+            {
+                private readonly int _x;
+                private readonly int _y;
+
+                public Point(int x, int y)
+                {
+                    _x = x;
+                    _y = y;
+                }
+
+                public Point(int x, int y, int c)
+                {
+                    _x = x;
+                    _y = y;
+                }
+            }
+            """;
+
+        await RunAsync(testCode, fixedCode);
+    }
+
     private static async Task RunAsync(string testCode, string fixedCode)
     {
         CSharpCodeFixTest<Kuk0008ConstructorMappingOrderAnalyzer, Kuk0008ConstructorMappingOrderCodeFixProvider, DefaultVerifier> test = new()

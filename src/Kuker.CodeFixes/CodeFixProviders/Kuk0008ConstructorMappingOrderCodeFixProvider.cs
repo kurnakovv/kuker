@@ -171,6 +171,7 @@ namespace Kuker.CodeFixes.CodeFixProviders
                 FieldDeclarationSyntax sourceField = reorderedFields[i];
 
                 FieldDeclarationSyntax replacementField = originalField
+                    .WithAttributeLists(sourceField.AttributeLists)
                     .WithDeclaration(sourceField.Declaration)
                     .WithModifiers(sourceField.Modifiers)
                     .WithLeadingTrivia(NormalizeLeadingTrivia(originalField.GetLeadingTrivia(), sourceField.GetLeadingTrivia()))
