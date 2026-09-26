@@ -141,11 +141,11 @@ namespace Kuker.Analyzers.Rules
             }
 
             HashSet<string> fieldNames = new HashSet<string>(instanceFields.Select(x => x.Name), StringComparer.Ordinal);
-            List<string> parameterOrder = constructor.Parameters.Select(x => x.Name).ToList();
+            List<string> parameterNames = constructor.Parameters.Select(x => x.Name).ToList();
             Dictionary<string, int> parameterIndexByName = new Dictionary<string, int>(StringComparer.Ordinal);
-            for (int i = 0; i < parameterOrder.Count; i++)
+            for (int i = 0; i < parameterNames.Count; i++)
             {
-                parameterIndexByName[parameterOrder[i]] = i;
+                parameterIndexByName[parameterNames[i]] = i;
             }
 
             List<(string FieldName, string ParameterName, AssignmentExpressionSyntax Assignment)> directAssignments =

@@ -71,8 +71,7 @@ namespace Kuker.CodeFixes.CodeFixProviders
                 return;
             }
 
-            SyntaxList<MemberDeclarationSyntax> members = GetMembers(constructorDeclaration.Parent);
-            int constructorCount = members.Count(x => x is ConstructorDeclarationSyntax);
+            int constructorCount = GetMembers(constructorDeclaration.Parent).Count(x => x is ConstructorDeclarationSyntax);
             if (constructorCount > 1)
             {
                 return;
@@ -108,13 +107,13 @@ namespace Kuker.CodeFixes.CodeFixProviders
 
             SyntaxList<MemberDeclarationSyntax> members = GetMembers(typeDeclaration);
 
-            List<string> parameterOrder = constructorDeclaration.ParameterList.Parameters
+            List<string> parameterNames = constructorDeclaration.ParameterList.Parameters
                 .Select(x => x.Identifier.ValueText)
                 .ToList();
             Dictionary<string, int> parameterIndexByName = new Dictionary<string, int>(StringComparer.Ordinal);
-            for (int i = 0; i < parameterOrder.Count; i++)
+            for (int i = 0; i < parameterNames.Count; i++)
             {
-                parameterIndexByName[parameterOrder[i]] = i;
+                parameterIndexByName[parameterNames[i]] = i;
             }
 
             List<SimpleFieldAssignment> simpleFieldAssignments = ConstructorAssignmentHelper.GetSimpleFieldAssignments(body, parameterIndexByName);
