@@ -25,7 +25,7 @@ public class Kuk0008ConstructorMappingOrderCodeFixProviderTests
                 public Point(int y, int x)
                 {
                     _x = x;
-                    {|#0:_y|} = y;
+                    {|#0:_y = y;|}
                 }
             }
             """;
@@ -59,7 +59,7 @@ public class Kuk0008ConstructorMappingOrderCodeFixProviderTests
                 public Point(int y, int x)
                 {
                     _x = x;
-                    {|#0:_y|} = y;
+                    {|#0:_y = y;|}
                 }
             }
             """;
@@ -100,7 +100,7 @@ public class Kuk0008ConstructorMappingOrderCodeFixProviderTests
                 public Point(int y, int x)
                 {
                     _x = x;
-                    {|#0:_y|} = y;
+                    {|#0:_y = y;|}
                 }
             }
             """;
@@ -142,7 +142,7 @@ public class Kuk0008ConstructorMappingOrderCodeFixProviderTests
                 public User(string email, int age, string name)
                 {
                     _name = name;
-                    {|#0:_age|} = age;
+                    {|#0:_age = age;|}
                     _email = email;
                 }
             }
@@ -184,7 +184,7 @@ public class Kuk0008ConstructorMappingOrderCodeFixProviderTests
                 public Point(int y, int x)
                 {
                     _x = x;
-                    {|#0:_y|} = y;
+                    {|#0:_y = y;|}
                 }
             }
             """;
@@ -229,7 +229,7 @@ public class Kuk0008ConstructorMappingOrderCodeFixProviderTests
                 public Point(int x, int y, int c)
                 {
                     _y = y;
-                    {|#0:_x|} = x;
+                    {|#0:_x = x;|}
                 }
             }
             """;
@@ -257,7 +257,7 @@ public class Kuk0008ConstructorMappingOrderCodeFixProviderTests
                 public Point(int y, int x, int c)
                 {
                     _x = x;
-                    {|#0:_y|} = y;
+                    {|#0:_y = y;|}
                 }
             }
             """;
@@ -282,7 +282,7 @@ public class Kuk0008ConstructorMappingOrderCodeFixProviderTests
                 {
                     if (x < 0) throw new ArgumentException();
                     _y = y;
-                    {|#0:_x|} = x;
+                    {|#0:_x = x;|}
                 }
             }
             """;
@@ -318,7 +318,7 @@ public class Kuk0008ConstructorMappingOrderCodeFixProviderTests
                 public Point(int y, int x)
                 {
                     _x = x;
-                    {|#0:_y|} = y;
+                    {|#0:_y = y;|}
                 }
             }
             """;

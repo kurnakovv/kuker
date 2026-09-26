@@ -176,22 +176,22 @@ namespace Kuker.Analyzers.Rules
                 .OrderBy(x => fieldDeclarationIndexByName[x.FieldName])
                 .ToList();
 
-            AssignmentExpressionSyntax firstMismatchedAssignment = FindFirstMismatchedAssignment(
+            ExpressionStatementSyntax firstMismatchedStatement = FindFirstMismatchedStatement(
                 directAssignments,
                 orderedByFieldDeclaration,
                 fieldDeclarationIndexByName,
                 parameterIndexByName
             );
 
-            if (firstMismatchedAssignment == null)
+            if (firstMismatchedStatement == null)
             {
                 return;
             }
 
-            context.ReportDiagnostic(Diagnostic.Create(s_rule, firstMismatchedAssignment.Left.GetLocation()));
+            context.ReportDiagnostic(Diagnostic.Create(s_rule, firstMismatchedStatement.GetLocation()));
         }
 
-        private static AssignmentExpressionSyntax FindFirstMismatchedAssignment(
+        private static ExpressionStatementSyntax FindFirstMismatchedStatement(
             List<SimpleFieldAssignment> directAssignments,
             List<SimpleFieldAssignment> orderedByFieldDeclaration,
             Dictionary<string, int> fieldDeclarationIndexByName,
@@ -206,7 +206,7 @@ namespace Kuker.Analyzers.Rules
 
                 if (currentFieldDeclarationIndex < previousFieldDeclarationIndex)
                 {
-                    return directAssignment.Assignment;
+                    return directAssignment.Statement;
                 }
 
                 previousFieldDeclarationIndex = currentFieldDeclarationIndex;
@@ -220,7 +220,7 @@ namespace Kuker.Analyzers.Rules
 
                 if (currentParameterIndex < previousParameterIndex)
                 {
-                    return orderedAssignment.Assignment;
+                    return orderedAssignment.Statement;
                 }
 
                 previousParameterIndex = currentParameterIndex;
