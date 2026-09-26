@@ -57,7 +57,7 @@ namespace Kuker.Core.Formatting
         /// <param name="expression">Left-hand side expression.</param>
         /// <param name="fieldName">Resolved field name, if any.</param>
         /// <returns><see langword="true"/> if a field name could be extracted.</returns>
-        public static bool TryGetFieldName(ExpressionSyntax expression, out string fieldName)
+        private static bool TryGetFieldName(ExpressionSyntax expression, out string fieldName)
         {
             fieldName = null;
 
@@ -84,7 +84,7 @@ namespace Kuker.Core.Formatting
         /// <param name="expression">Right-hand side expression.</param>
         /// <param name="parameterName">Resolved parameter name, if any.</param>
         /// <returns><see langword="true"/> if a parameter name could be extracted.</returns>
-        public static bool TryGetParameterName(ExpressionSyntax expression, out string parameterName)
+        private static bool TryGetParameterName(ExpressionSyntax expression, out string parameterName)
         {
             parameterName = null;
 
