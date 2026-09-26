@@ -10,7 +10,6 @@ using Kuker.Analyzers.Constants;
 using Kuker.Core.Contants;
 using Kuker.Core.Formatting;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
