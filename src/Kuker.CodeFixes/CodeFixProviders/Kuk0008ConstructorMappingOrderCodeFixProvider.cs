@@ -2,6 +2,7 @@
 // This file is licensed under the MIT License.
 // See the LICENSE file in the project root for full license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -109,13 +110,13 @@ namespace Kuker.CodeFixes.CodeFixProviders
             List<string> parameterOrder = constructorDeclaration.ParameterList.Parameters
                 .Select(x => x.Identifier.ValueText)
                 .ToList();
-            Dictionary<string, int> parameterIndexByName = new Dictionary<string, int>(System.StringComparer.Ordinal);
+            Dictionary<string, int> parameterIndexByName = new Dictionary<string, int>(StringComparer.Ordinal);
             for (int i = 0; i < parameterOrder.Count; i++)
             {
                 parameterIndexByName[parameterOrder[i]] = i;
             }
 
-            Dictionary<string, int> fieldParameterIndexByFieldName = new Dictionary<string, int>(System.StringComparer.Ordinal);
+            Dictionary<string, int> fieldParameterIndexByFieldName = new Dictionary<string, int>(StringComparer.Ordinal);
 
             foreach (StatementSyntax statement in body.Statements)
             {
@@ -171,11 +172,17 @@ namespace Kuker.CodeFixes.CodeFixProviders
                 .OrderBy(x => fieldParameterIndex[x])
                 .ToList();
 
+            List<FieldDeclarationSyntax> fieldsRequiringReplacement = new List<FieldDeclarationSyntax>();
             List<FieldDeclarationSyntax> replacementFields = new List<FieldDeclarationSyntax>();
             for (int i = 0; i < fieldsToReorder.Count; i++)
             {
                 FieldDeclarationSyntax originalField = fieldsToReorder[i];
                 FieldDeclarationSyntax sourceField = reorderedFields[i];
+
+                if (ReferenceEquals(originalField, sourceField))
+                {
+                    continue;
+                }
 
                 FieldDeclarationSyntax replacementField = originalField
                     .WithAttributeLists(sourceField.AttributeLists)
@@ -184,14 +191,15 @@ namespace Kuker.CodeFixes.CodeFixProviders
                     .WithLeadingTrivia(NormalizeLeadingTrivia(originalField.GetLeadingTrivia(), sourceField.GetLeadingTrivia()))
                     .WithTrailingTrivia(sourceField.GetTrailingTrivia());
 
+                fieldsRequiringReplacement.Add(originalField);
                 replacementFields.Add(replacementField);
             }
 
             DocumentEditor editor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
-            for (int i = 0; i < fieldsToReorder.Count; i++)
+            for (int i = 0; i < fieldsRequiringReplacement.Count; i++)
             {
-                editor.ReplaceNode(fieldsToReorder[i], replacementFields[i]);
+                editor.ReplaceNode(fieldsRequiringReplacement[i], replacementFields[i]);
             }
 
             ReorderAssignmentsInEditor(editor, constructorDeclaration, parameterIndexByName);
@@ -257,23 +265,30 @@ namespace Kuker.CodeFixes.CodeFixProviders
                 .OrderBy(x => assignmentParameterIndex[x])
                 .ToList();
 
+            List<ExpressionStatementSyntax> statementsRequiringReplacement = new List<ExpressionStatementSyntax>();
             List<ExpressionStatementSyntax> replacementStatements = new List<ExpressionStatementSyntax>();
             for (int i = 0; i < assignmentStatements.Count; i++)
             {
                 ExpressionStatementSyntax originalStatement = assignmentStatements[i];
                 ExpressionStatementSyntax sourceStatement = reorderedStatements[i];
 
+                if (ReferenceEquals(originalStatement, sourceStatement))
+                {
+                    continue;
+                }
+
                 ExpressionStatementSyntax replacementStatement = originalStatement
                     .WithExpression(sourceStatement.Expression)
                     .WithLeadingTrivia(sourceStatement.GetLeadingTrivia())
                     .WithTrailingTrivia(sourceStatement.GetTrailingTrivia());
 
+                statementsRequiringReplacement.Add(originalStatement);
                 replacementStatements.Add(replacementStatement);
             }
 
-            for (int i = 0; i < assignmentStatements.Count; i++)
+            for (int i = 0; i < statementsRequiringReplacement.Count; i++)
             {
-                editor.ReplaceNode(assignmentStatements[i], replacementStatements[i]);
+                editor.ReplaceNode(statementsRequiringReplacement[i], replacementStatements[i]);
             }
         }
 
