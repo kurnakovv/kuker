@@ -126,7 +126,7 @@ namespace Kuker.CodeFixes.CodeFixProviders
             }
 
             List<FieldDeclarationSyntax> fieldsToReorder = new List<FieldDeclarationSyntax>();
-            Dictionary<FieldDeclarationSyntax, int> fieldParameterIndex = new Dictionary<FieldDeclarationSyntax, int>();
+            Dictionary<FieldDeclarationSyntax, int> parameterIndexByFieldDeclaration = new Dictionary<FieldDeclarationSyntax, int>();
 
             foreach (MemberDeclarationSyntax member in members)
             {
@@ -147,7 +147,7 @@ namespace Kuker.CodeFixes.CodeFixProviders
                 }
 
                 fieldsToReorder.Add(fieldDeclaration);
-                fieldParameterIndex[fieldDeclaration] = parameterIndex;
+                parameterIndexByFieldDeclaration[fieldDeclaration] = parameterIndex;
             }
 
             if (fieldsToReorder.Count < 2)
@@ -157,7 +157,7 @@ namespace Kuker.CodeFixes.CodeFixProviders
             }
 
             List<FieldDeclarationSyntax> reorderedFields = fieldsToReorder
-                .OrderBy(x => fieldParameterIndex[x])
+                .OrderBy(x => parameterIndexByFieldDeclaration[x])
                 .ToList();
 
             List<FieldDeclarationSyntax> fieldsRequiringReplacement = new List<FieldDeclarationSyntax>();

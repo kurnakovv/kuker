@@ -166,14 +166,14 @@ namespace Kuker.Analyzers.Rules
                 return;
             }
 
-            Dictionary<string, int> fieldDeclarationIndex = new Dictionary<string, int>(StringComparer.Ordinal);
+            Dictionary<string, int> fieldDeclarationIndexByName = new Dictionary<string, int>(StringComparer.Ordinal);
             for (int i = 0; i < instanceFields.Count; i++)
             {
-                fieldDeclarationIndex[instanceFields[i].Name] = i;
+                fieldDeclarationIndexByName[instanceFields[i].Name] = i;
             }
 
             List<SimpleFieldAssignment> orderedByFieldDeclaration = directAssignments
-                .OrderBy(x => fieldDeclarationIndex[x.FieldName])
+                .OrderBy(x => fieldDeclarationIndexByName[x.FieldName])
                 .ToList();
 
             bool assignmentOrderMatches = true;
@@ -211,7 +211,7 @@ namespace Kuker.Analyzers.Rules
             AssignmentExpressionSyntax firstMismatchedAssignment = FindFirstMismatchedAssignment(
                 directAssignments,
                 orderedByFieldDeclaration,
-                fieldDeclarationIndex,
+                fieldDeclarationIndexByName,
                 parameterIndexByName
             );
 
@@ -226,7 +226,7 @@ namespace Kuker.Analyzers.Rules
         private static AssignmentExpressionSyntax FindFirstMismatchedAssignment(
             List<SimpleFieldAssignment> directAssignments,
             List<SimpleFieldAssignment> orderedByFieldDeclaration,
-            Dictionary<string, int> fieldDeclarationIndex,
+            Dictionary<string, int> fieldDeclarationIndexByName,
             Dictionary<string, int> parameterIndexByName
         )
         {
@@ -234,7 +234,7 @@ namespace Kuker.Analyzers.Rules
 
             foreach (SimpleFieldAssignment directAssignment in directAssignments)
             {
-                int currentFieldDeclarationIndex = fieldDeclarationIndex[directAssignment.FieldName];
+                int currentFieldDeclarationIndex = fieldDeclarationIndexByName[directAssignment.FieldName];
 
                 if (currentFieldDeclarationIndex < previousFieldDeclarationIndex)
                 {
