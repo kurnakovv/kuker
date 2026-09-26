@@ -32,3 +32,12 @@ Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 KUK0006 | KukerAllRules | Warning | Kuk0006MultilineClosingParenthesisAnalyzer [Documentation](https://github.com/kurnakovv/kuker/wiki/KUK0006)
 KUK0007 | KukerAllRules | Warning | Kuk0007ILoggerTypeMatchesContainingTypeAnalyzer [Documentation](https://github.com/kurnakovv/kuker/wiki/KUK0007)
+
+
+## Release 0.5.0
+
+### New Rules
+
+Rule ID | Category | Severity | Notes
+--------|----------|----------|-------
+KUK0008 | KukerAllRules | Warning | Kuk0008ConstructorMappingOrderAnalyzer [Documentation](https://github.com/kurnakovv/kuker/wiki/KUK0008)
