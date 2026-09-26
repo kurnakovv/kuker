@@ -177,7 +177,6 @@ namespace Kuker.Analyzers.Rules
                 .ToList();
 
             bool assignmentOrderMatches = true;
-            bool parameterOrderMatches = true;
 
             for (int i = 0; i < orderedByFieldDeclaration.Count; i++)
             {
@@ -193,6 +192,8 @@ namespace Kuker.Analyzers.Rules
             List<int> parameterIndexesInFieldDeclarationOrder = parameterNamesInFieldDeclarationOrder
                 .Select(x => parameterIndexByName[x])
                 .ToList();
+
+            bool parameterOrderMatches = true;
 
             for (int i = 1; i < parameterIndexesInFieldDeclarationOrder.Count; i++)
             {
