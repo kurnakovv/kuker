@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Kuker.Analyzers.Constants;
 using Kuker.Core.Contants;
+using Kuker.Core.Formatting;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -151,32 +152,15 @@ namespace Kuker.Analyzers.Rules
             List<(string FieldName, string ParameterName, AssignmentExpressionSyntax Assignment)> directAssignments =
                 new List<(string FieldName, string ParameterName, AssignmentExpressionSyntax Assignment)>();
 
-            foreach (StatementSyntax statement in body.Statements)
+            foreach (SimpleFieldAssignment simpleAssignment in ConstructorAssignmentHelper.GetSimpleFieldAssignments(body, parameterIndexByName))
             {
-                if (!(statement is ExpressionStatementSyntax expressionStatement))
+                if (!fieldNames.Contains(simpleAssignment.FieldName))
                 {
                     continue;
                 }
 
-                if (!(expressionStatement.Expression is AssignmentExpressionSyntax assignment) ||
-                    !assignment.IsKind(SyntaxKind.SimpleAssignmentExpression))
-                {
-                    continue;
-                }
-
-                if (!TryGetFieldName(assignment.Left, out string fieldName) || !fieldNames.Contains(fieldName))
-                {
-                    continue;
-                }
-
-                if (!TryGetParameterName(assignment.Right, out string parameterName) ||
-                    !parameterIndexByName.ContainsKey(parameterName))
-                {
-                    continue;
-                }
-
-                directAssignments.RemoveAll(x => string.Equals(x.FieldName, fieldName, StringComparison.Ordinal));
-                directAssignments.Add((fieldName, parameterName, assignment));
+                directAssignments.RemoveAll(x => string.Equals(x.FieldName, simpleAssignment.FieldName, StringComparison.Ordinal));
+                directAssignments.Add((simpleAssignment.FieldName, simpleAssignment.ParameterName, simpleAssignment.Assignment));
             }
 
             if (directAssignments.Count < 2)
@@ -278,40 +262,6 @@ namespace Kuker.Analyzers.Rules
             }
 
             return null;
-        }
-
-        private static bool TryGetFieldName(ExpressionSyntax expression, out string fieldName)
-        {
-            fieldName = null;
-
-            if (expression is IdentifierNameSyntax identifierName)
-            {
-                fieldName = identifierName.Identifier.ValueText;
-                return true;
-            }
-
-            if (expression is MemberAccessExpressionSyntax memberAccess &&
-                memberAccess.Expression.IsKind(SyntaxKind.ThisExpression) &&
-                memberAccess.Name is IdentifierNameSyntax memberIdentifierName)
-            {
-                fieldName = memberIdentifierName.Identifier.ValueText;
-                return true;
-            }
-
-            return false;
-        }
-
-        private static bool TryGetParameterName(ExpressionSyntax expression, out string parameterName)
-        {
-            parameterName = null;
-
-            if (expression is IdentifierNameSyntax identifierName)
-            {
-                parameterName = identifierName.Identifier.ValueText;
-                return true;
-            }
-
-            return false;
         }
     }
 }

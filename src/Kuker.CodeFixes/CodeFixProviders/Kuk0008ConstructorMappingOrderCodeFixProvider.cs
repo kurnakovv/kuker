@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Kuker.Core.Contants;
+using Kuker.Core.Formatting;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -118,23 +119,9 @@ namespace Kuker.CodeFixes.CodeFixProviders
 
             Dictionary<string, int> fieldParameterIndexByFieldName = new Dictionary<string, int>(StringComparer.Ordinal);
 
-            foreach (StatementSyntax statement in body.Statements)
+            foreach (SimpleFieldAssignment simpleAssignment in ConstructorAssignmentHelper.GetSimpleFieldAssignments(body, parameterIndexByName))
             {
-                if (!(statement is ExpressionStatementSyntax expressionStatement) ||
-                    !(expressionStatement.Expression is AssignmentExpressionSyntax assignment) ||
-                    !assignment.IsKind(SyntaxKind.SimpleAssignmentExpression))
-                {
-                    continue;
-                }
-
-                if (!TryGetFieldName(assignment.Left, out string fieldName) ||
-                    !TryGetParameterName(assignment.Right, out string parameterName) ||
-                    !parameterIndexByName.TryGetValue(parameterName, out int parameterIndex))
-                {
-                    continue;
-                }
-
-                fieldParameterIndexByFieldName[fieldName] = parameterIndex;
+                fieldParameterIndexByFieldName[simpleAssignment.FieldName] = simpleAssignment.ParameterIndex;
             }
 
             List<FieldDeclarationSyntax> fieldsToReorder = new List<FieldDeclarationSyntax>();
@@ -236,24 +223,10 @@ namespace Kuker.CodeFixes.CodeFixProviders
             List<ExpressionStatementSyntax> assignmentStatements = new List<ExpressionStatementSyntax>();
             Dictionary<ExpressionStatementSyntax, int> assignmentParameterIndex = new Dictionary<ExpressionStatementSyntax, int>();
 
-            foreach (StatementSyntax statement in body.Statements)
+            foreach (SimpleFieldAssignment simpleAssignment in ConstructorAssignmentHelper.GetSimpleFieldAssignments(body, parameterIndexByName))
             {
-                if (!(statement is ExpressionStatementSyntax expressionStatement) ||
-                    !(expressionStatement.Expression is AssignmentExpressionSyntax assignment) ||
-                    !assignment.IsKind(SyntaxKind.SimpleAssignmentExpression))
-                {
-                    continue;
-                }
-
-                if (!TryGetFieldName(assignment.Left, out _) ||
-                    !TryGetParameterName(assignment.Right, out string parameterName) ||
-                    !parameterIndexByName.TryGetValue(parameterName, out int parameterIndex))
-                {
-                    continue;
-                }
-
-                assignmentStatements.Add(expressionStatement);
-                assignmentParameterIndex[expressionStatement] = parameterIndex;
+                assignmentStatements.Add(simpleAssignment.Statement);
+                assignmentParameterIndex[simpleAssignment.Statement] = simpleAssignment.ParameterIndex;
             }
 
             if (assignmentStatements.Count < 2)
@@ -329,40 +302,6 @@ namespace Kuker.CodeFixes.CodeFixProviders
             }
 
             return count;
-        }
-
-        private static bool TryGetFieldName(ExpressionSyntax expression, out string fieldName)
-        {
-            fieldName = null;
-
-            if (expression is IdentifierNameSyntax identifierName)
-            {
-                fieldName = identifierName.Identifier.ValueText;
-                return true;
-            }
-
-            if (expression is MemberAccessExpressionSyntax memberAccess &&
-                memberAccess.Expression.IsKind(SyntaxKind.ThisExpression) &&
-                memberAccess.Name is IdentifierNameSyntax memberIdentifierName)
-            {
-                fieldName = memberIdentifierName.Identifier.ValueText;
-                return true;
-            }
-
-            return false;
-        }
-
-        private static bool TryGetParameterName(ExpressionSyntax expression, out string parameterName)
-        {
-            parameterName = null;
-
-            if (expression is IdentifierNameSyntax identifierName)
-            {
-                parameterName = identifierName.Identifier.ValueText;
-                return true;
-            }
-
-            return false;
         }
     }
 }
