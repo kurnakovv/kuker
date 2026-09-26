@@ -74,6 +74,32 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
     }
 
     [Fact]
+    public async Task NoReportWhenAssignmentLeftSideIsNotFieldOrThisMemberAccessAsync()
+    {
+        string testCode = """
+            public class Address
+            {
+                public string City;
+            }
+
+            public class User
+            {
+                private readonly string _name;
+                private readonly int _age;
+
+                public User(string name, int age, Address address)
+                {
+                    address.City = name;
+                    _name = name;
+                    _age = age;
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
     public async Task NoReportWhenNamedTypeIsInterfaceAsync()
     {
         string testCode = """
