@@ -148,8 +148,7 @@ namespace Kuker.Analyzers.Rules
                 parameterIndexByName[parameterNames[i]] = i;
             }
 
-            List<(string FieldName, string ParameterName, AssignmentExpressionSyntax Assignment)> directAssignments =
-                new List<(string FieldName, string ParameterName, AssignmentExpressionSyntax Assignment)>();
+            List<SimpleFieldAssignment> directAssignments = new List<SimpleFieldAssignment>();
 
             foreach (SimpleFieldAssignment simpleAssignment in ConstructorAssignmentHelper.GetSimpleFieldAssignments(body, parameterIndexByName))
             {
@@ -159,7 +158,7 @@ namespace Kuker.Analyzers.Rules
                 }
 
                 directAssignments.RemoveAll(x => string.Equals(x.FieldName, simpleAssignment.FieldName, StringComparison.Ordinal));
-                directAssignments.Add((simpleAssignment.FieldName, simpleAssignment.ParameterName, simpleAssignment.Assignment));
+                directAssignments.Add(simpleAssignment);
             }
 
             if (directAssignments.Count < 2)
@@ -173,10 +172,9 @@ namespace Kuker.Analyzers.Rules
                 fieldDeclarationIndex[instanceFields[i].Name] = i;
             }
 
-            List<(string FieldName, string ParameterName, AssignmentExpressionSyntax Assignment)> orderedByFieldDeclaration =
-                directAssignments
-                    .OrderBy(x => fieldDeclarationIndex[x.FieldName])
-                    .ToList();
+            List<SimpleFieldAssignment> orderedByFieldDeclaration = directAssignments
+                .OrderBy(x => fieldDeclarationIndex[x.FieldName])
+                .ToList();
 
             bool assignmentOrderMatches = true;
             bool parameterOrderMatches = true;
@@ -226,21 +224,21 @@ namespace Kuker.Analyzers.Rules
         }
 
         private static AssignmentExpressionSyntax FindFirstMismatchedAssignment(
-            List<(string FieldName, string ParameterName, AssignmentExpressionSyntax Assignment)> directAssignments,
-            List<(string FieldName, string ParameterName, AssignmentExpressionSyntax Assignment)> orderedByFieldDeclaration,
+            List<SimpleFieldAssignment> directAssignments,
+            List<SimpleFieldAssignment> orderedByFieldDeclaration,
             Dictionary<string, int> fieldDeclarationIndex,
             Dictionary<string, int> parameterIndexByName
         )
         {
             int previousFieldDeclarationIndex = -1;
 
-            foreach ((string fieldName, string _, AssignmentExpressionSyntax assignment) in directAssignments)
+            foreach (SimpleFieldAssignment directAssignment in directAssignments)
             {
-                int currentFieldDeclarationIndex = fieldDeclarationIndex[fieldName];
+                int currentFieldDeclarationIndex = fieldDeclarationIndex[directAssignment.FieldName];
 
                 if (currentFieldDeclarationIndex < previousFieldDeclarationIndex)
                 {
-                    return assignment;
+                    return directAssignment.Assignment;
                 }
 
                 previousFieldDeclarationIndex = currentFieldDeclarationIndex;
@@ -248,13 +246,13 @@ namespace Kuker.Analyzers.Rules
 
             int previousParameterIndex = -1;
 
-            foreach ((string _, string parameterName, AssignmentExpressionSyntax assignment) in orderedByFieldDeclaration)
+            foreach (SimpleFieldAssignment orderedAssignment in orderedByFieldDeclaration)
             {
-                int currentParameterIndex = parameterIndexByName[parameterName];
+                int currentParameterIndex = parameterIndexByName[orderedAssignment.ParameterName];
 
                 if (currentParameterIndex < previousParameterIndex)
                 {
-                    return assignment;
+                    return orderedAssignment.Assignment;
                 }
 
                 previousParameterIndex = currentParameterIndex;
