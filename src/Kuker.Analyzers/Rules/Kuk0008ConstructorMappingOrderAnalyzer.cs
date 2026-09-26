@@ -176,39 +176,6 @@ namespace Kuker.Analyzers.Rules
                 .OrderBy(x => fieldDeclarationIndexByName[x.FieldName])
                 .ToList();
 
-            bool assignmentOrderMatches = true;
-
-            for (int i = 0; i < orderedByFieldDeclaration.Count; i++)
-            {
-                if (!string.Equals(orderedByFieldDeclaration[i].FieldName, directAssignments[i].FieldName, StringComparison.Ordinal))
-                {
-                    assignmentOrderMatches = false;
-                }
-            }
-
-            List<string> parameterNamesInFieldDeclarationOrder = orderedByFieldDeclaration
-                .Select(x => x.ParameterName)
-                .ToList();
-            List<int> parameterIndexesInFieldDeclarationOrder = parameterNamesInFieldDeclarationOrder
-                .Select(x => parameterIndexByName[x])
-                .ToList();
-
-            bool parameterOrderMatches = true;
-
-            for (int i = 1; i < parameterIndexesInFieldDeclarationOrder.Count; i++)
-            {
-                if (parameterIndexesInFieldDeclarationOrder[i] < parameterIndexesInFieldDeclarationOrder[i - 1])
-                {
-                    parameterOrderMatches = false;
-                    break;
-                }
-            }
-
-            if (assignmentOrderMatches && parameterOrderMatches)
-            {
-                return;
-            }
-
             AssignmentExpressionSyntax firstMismatchedAssignment = FindFirstMismatchedAssignment(
                 directAssignments,
                 orderedByFieldDeclaration,
