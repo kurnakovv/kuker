@@ -37,6 +37,33 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
     }
 
     [Fact]
+    public async Task NoReportWhenNamedTypeIsInterfaceAsync()
+    {
+        string testCode = """
+            public interface IUser
+            {
+                string Name { get; }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task NoReportWhenNamedTypeIsEnumAsync()
+    {
+        string testCode = """
+            public enum UserRole
+            {
+                Admin,
+                Guest,
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
     public async Task ReportWhenConstructorParameterAndAssignmentOrderDoNotMatchFieldOrderAsync()
     {
         string testCode = """
