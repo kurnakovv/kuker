@@ -1958,6 +1958,20 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
         await RunAsync(testCode, 9, 9, 9, 14);
     }
 
+    [Fact]
+    public async Task NoReportWhenConstructorIsPrimaryConstructorAsync()
+    {
+        string testCode = """
+            public class User(string name, int age)
+            {
+                private readonly int _age = age;
+                private readonly string _name = name;
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
     private static async Task RunAsync(
         string testCode,
         int startLine = 0,
