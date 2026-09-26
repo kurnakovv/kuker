@@ -45,7 +45,7 @@ namespace Kuker.Core.Formatting
                     continue;
                 }
 
-                assignments.Add(new SimpleFieldAssignment(expressionStatement, assignment, fieldName, parameterName, parameterIndex));
+                assignments.Add(new SimpleFieldAssignment(expressionStatement, fieldName, parameterName, parameterIndex));
             }
 
             return assignments;

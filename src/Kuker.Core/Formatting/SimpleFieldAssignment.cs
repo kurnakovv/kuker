@@ -15,20 +15,17 @@ namespace Kuker.Core.Formatting
         /// Initializes a new instance of the <see cref="SimpleFieldAssignment"/> class.
         /// </summary>
         /// <param name="statement">The statement containing the assignment.</param>
-        /// <param name="assignment">The assignment expression.</param>
         /// <param name="fieldName">The assigned field name.</param>
         /// <param name="parameterName">The constructor parameter name used as the assignment source.</param>
         /// <param name="parameterIndex">The declaration index of the constructor parameter.</param>
         public SimpleFieldAssignment(
             ExpressionStatementSyntax statement,
-            AssignmentExpressionSyntax assignment,
             string fieldName,
             string parameterName,
             int parameterIndex
         )
         {
             Statement = statement;
-            Assignment = assignment;
             FieldName = fieldName;
             ParameterName = parameterName;
             ParameterIndex = parameterIndex;
@@ -38,11 +35,6 @@ namespace Kuker.Core.Formatting
         /// Gets the statement containing the assignment.
         /// </summary>
         public ExpressionStatementSyntax Statement { get; }
-
-        /// <summary>
-        /// Gets the assignment expression.
-        /// </summary>
-        public AssignmentExpressionSyntax Assignment { get; }
 
         /// <summary>
         /// Gets the assigned field name.
