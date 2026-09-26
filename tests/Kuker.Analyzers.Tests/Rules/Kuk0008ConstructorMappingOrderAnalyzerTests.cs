@@ -37,6 +37,21 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
     }
 
     [Fact]
+    public async Task NoReportWhenConstructorIsExpressionBodiedAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                private readonly string _name;
+
+                public User(string name) => _name = name;
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
     public async Task NoReportWhenNamedTypeIsInterfaceAsync()
     {
         string testCode = """
