@@ -117,9 +117,11 @@ namespace Kuker.CodeFixes.CodeFixProviders
                 parameterIndexByName[parameterOrder[i]] = i;
             }
 
+            List<SimpleFieldAssignment> simpleFieldAssignments = ConstructorAssignmentHelper.GetSimpleFieldAssignments(body, parameterIndexByName);
+
             Dictionary<string, int> fieldParameterIndexByFieldName = new Dictionary<string, int>(StringComparer.Ordinal);
 
-            foreach (SimpleFieldAssignment simpleAssignment in ConstructorAssignmentHelper.GetSimpleFieldAssignments(body, parameterIndexByName))
+            foreach (SimpleFieldAssignment simpleAssignment in simpleFieldAssignments)
             {
                 fieldParameterIndexByFieldName[simpleAssignment.FieldName] = simpleAssignment.ParameterIndex;
             }
@@ -151,7 +153,7 @@ namespace Kuker.CodeFixes.CodeFixProviders
 
             if (fieldsToReorder.Count < 2)
             {
-                return await ReorderAssignmentsOnlyAsync(document, constructorDeclaration, parameterIndexByName, cancellationToken)
+                return await ReorderAssignmentsOnlyAsync(document, simpleFieldAssignments, cancellationToken)
                     .ConfigureAwait(false);
             }
 
@@ -189,41 +191,33 @@ namespace Kuker.CodeFixes.CodeFixProviders
                 editor.ReplaceNode(fieldsRequiringReplacement[i], replacementFields[i]);
             }
 
-            ReorderAssignmentsInEditor(editor, constructorDeclaration, parameterIndexByName);
+            ReorderAssignmentsInEditor(editor, simpleFieldAssignments);
 
             return editor.GetChangedDocument();
         }
 
         private static async Task<Document> ReorderAssignmentsOnlyAsync(
             Document document,
-            ConstructorDeclarationSyntax constructorDeclaration,
-            Dictionary<string, int> parameterIndexByName,
+            List<SimpleFieldAssignment> simpleFieldAssignments,
             CancellationToken cancellationToken
         )
         {
             DocumentEditor editor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
-            ReorderAssignmentsInEditor(editor, constructorDeclaration, parameterIndexByName);
+            ReorderAssignmentsInEditor(editor, simpleFieldAssignments);
 
             return editor.GetChangedDocument();
         }
 
         private static void ReorderAssignmentsInEditor(
             DocumentEditor editor,
-            ConstructorDeclarationSyntax constructorDeclaration,
-            Dictionary<string, int> parameterIndexByName
+            List<SimpleFieldAssignment> simpleFieldAssignments
         )
         {
-            BlockSyntax body = constructorDeclaration.Body;
-            if (body == null)
-            {
-                return;
-            }
-
             List<ExpressionStatementSyntax> assignmentStatements = new List<ExpressionStatementSyntax>();
             Dictionary<ExpressionStatementSyntax, int> assignmentParameterIndex = new Dictionary<ExpressionStatementSyntax, int>();
 
-            foreach (SimpleFieldAssignment simpleAssignment in ConstructorAssignmentHelper.GetSimpleFieldAssignments(body, parameterIndexByName))
+            foreach (SimpleFieldAssignment simpleAssignment in simpleFieldAssignments)
             {
                 assignmentStatements.Add(simpleAssignment.Statement);
                 assignmentParameterIndex[simpleAssignment.Statement] = simpleAssignment.ParameterIndex;
