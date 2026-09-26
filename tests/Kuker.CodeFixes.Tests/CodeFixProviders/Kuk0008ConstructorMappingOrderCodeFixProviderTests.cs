@@ -307,6 +307,38 @@ public class Kuk0008ConstructorMappingOrderCodeFixProviderTests
         await RunAsync(testCode, fixedCode);
     }
 
+    [Fact]
+    public async Task CodeFixReordersOnlyAssignmentsWhenFieldsAreDeclaredInSameStatementAsync()
+    {
+        string testCode = """
+            public class Point
+            {
+                private readonly int _y, _x;
+
+                public Point(int y, int x)
+                {
+                    _x = x;
+                    {|#0:_y|} = y;
+                }
+            }
+            """;
+
+        string fixedCode = """
+            public class Point
+            {
+                private readonly int _y, _x;
+
+                public Point(int y, int x)
+                {
+                    _y = y;
+                    _x = x;
+                }
+            }
+            """;
+
+        await RunAsync(testCode, fixedCode);
+    }
+
     private static async Task RunAsync(string testCode, string fixedCode)
     {
         CSharpCodeFixTest<Kuk0008ConstructorMappingOrderAnalyzer, Kuk0008ConstructorMappingOrderCodeFixProvider, DefaultVerifier> test = new()
