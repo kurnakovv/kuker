@@ -52,6 +52,28 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
     }
 
     [Fact]
+    public async Task NoReportWhenConstructorAssignsStaticFieldAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                private static string s_lastName;
+                private readonly string _name;
+                private readonly int _age;
+
+                public User(string name, int age)
+                {
+                    s_lastName = name;
+                    _name = name;
+                    _age = age;
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
     public async Task NoReportWhenNamedTypeIsInterfaceAsync()
     {
         string testCode = """
