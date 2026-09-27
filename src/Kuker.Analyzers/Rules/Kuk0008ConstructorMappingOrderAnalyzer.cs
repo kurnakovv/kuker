@@ -217,6 +217,7 @@ namespace Kuker.Analyzers.Rules
             }
 
             List<SimpleFieldAssignment> directAssignments = new List<SimpleFieldAssignment>();
+            HashSet<string> assignedFieldNames = new HashSet<string>(StringComparer.Ordinal);
 
             foreach (SimpleFieldAssignment simpleAssignment in ConstructorAssignmentHelper.GetSimpleFieldAssignments(body, parameterIndexByName, context.SemanticModel))
             {
@@ -225,7 +226,11 @@ namespace Kuker.Analyzers.Rules
                     continue;
                 }
 
-                directAssignments.RemoveAll(x => string.Equals(x.FieldName, simpleAssignment.FieldName, StringComparison.Ordinal));
+                if (!assignedFieldNames.Add(simpleAssignment.FieldName))
+                {
+                    return;
+                }
+
                 directAssignments.Add(simpleAssignment);
             }
 

@@ -151,6 +151,27 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
     }
 
     [Fact]
+    public async Task NoReportWhenFieldIsAssignedMoreThanOnceFromDifferentParametersAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                private readonly string _a;
+                private readonly string _b;
+
+                public User(string a, string b)
+                {
+                    _a = a;
+                    _b = b;
+                    _a = b;
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
     public async Task NoReportWhenFieldNotInitializedFromConstructorParameterIsIgnoredAsync()
     {
         string testCode = """
