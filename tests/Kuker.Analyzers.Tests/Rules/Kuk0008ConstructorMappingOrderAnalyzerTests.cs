@@ -2036,6 +2036,27 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
     }
 
     [Fact]
+    public async Task NoReportWhenAssignmentTargetsLocalVariableShadowingFieldAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                private string _first;
+                private string _second;
+
+                public User(string second, string first)
+                {
+                    string _first;
+                    _second = second;
+                    _first = first;
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
     public async Task NoReportWhenFieldsAreDeclaredInAnotherPartialFileThanTheConstructorAsync()
     {
         string fieldsFile = """

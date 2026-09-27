@@ -118,7 +118,9 @@ namespace Kuker.CodeFixes.CodeFixProviders
                 parameterIndexByName[parameterNames[i]] = i;
             }
 
-            List<SimpleFieldAssignment> simpleFieldAssignments = ConstructorAssignmentHelper.GetSimpleFieldAssignments(body, parameterIndexByName)
+            SemanticModel semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+            List<SimpleFieldAssignment> simpleFieldAssignments = ConstructorAssignmentHelper.GetSimpleFieldAssignments(body, parameterIndexByName, semanticModel)
                 .Where(x => instanceFieldNames.Contains(x.FieldName))
                 .ToList();
 

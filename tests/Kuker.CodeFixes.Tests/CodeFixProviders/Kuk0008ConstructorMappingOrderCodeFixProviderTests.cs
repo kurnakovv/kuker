@@ -450,6 +450,46 @@ public class Kuk0008ConstructorMappingOrderCodeFixProviderTests
         await RunAsync(testCode, fixedCode);
     }
 
+    [Fact]
+    public async Task CodeFixDoesNotTouchAssignmentToLocalVariableShadowingFieldAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                private string _second;
+                private string _third;
+                private string _first;
+
+                public User(string third, string second, string first)
+                {
+                    string _first;
+                    _third = third;
+                    {|#0:_second = second;|}
+                    _first = first;
+                }
+            }
+            """;
+
+        string fixedCode = """
+            public class User
+            {
+                private string _third;
+                private string _second;
+                private string _first;
+
+                public User(string third, string second, string first)
+                {
+                    string _first;
+                    _third = third;
+                    _second = second;
+                    _first = first;
+                }
+            }
+            """;
+
+        await RunAsync(testCode, fixedCode);
+    }
+
     private static async Task RunAsync(string testCode, string fixedCode)
     {
         CSharpCodeFixTest<Kuk0008ConstructorMappingOrderAnalyzer, Kuk0008ConstructorMappingOrderCodeFixProvider, DefaultVerifier> test = new()

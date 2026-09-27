@@ -10,6 +10,7 @@ using Kuker.Analyzers.Constants;
 using Kuker.Core.Contants;
 using Kuker.Core.Formatting;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -54,14 +55,23 @@ namespace Kuker.Analyzers.Rules
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
             context.EnableConcurrentExecution();
 
-            context.RegisterSymbolAction(AnalyzeNamedType, SymbolKind.NamedType);
+            context.RegisterSyntaxNodeAction(AnalyzeConstructorDeclaration, SyntaxKind.ConstructorDeclaration);
         }
 
-        private static void AnalyzeNamedType(SymbolAnalysisContext context)
+        private static void AnalyzeConstructorDeclaration(SyntaxNodeAnalysisContext context)
         {
-            INamedTypeSymbol namedType = (INamedTypeSymbol)context.Symbol;
+            ConstructorDeclarationSyntax constructorDeclaration = (ConstructorDeclarationSyntax)context.Node;
 
-            if (namedType.TypeKind != TypeKind.Class && namedType.TypeKind != TypeKind.Struct)
+            if (!(context.SemanticModel.GetDeclaredSymbol(constructorDeclaration, context.CancellationToken) is IMethodSymbol constructor) ||
+                constructor.IsImplicitlyDeclared ||
+                constructor.IsStatic)
+            {
+                return;
+            }
+
+            INamedTypeSymbol namedType = constructor.ContainingType;
+            if (namedType == null ||
+                (namedType.TypeKind != TypeKind.Class && namedType.TypeKind != TypeKind.Struct))
             {
                 return;
             }
@@ -73,15 +83,7 @@ namespace Kuker.Analyzers.Rules
                 return;
             }
 
-            foreach (IMethodSymbol constructor in namedType.InstanceConstructors)
-            {
-                if (constructor.IsImplicitlyDeclared || constructor.IsStatic)
-                {
-                    continue;
-                }
-
-                AnalyzeConstructor(context, constructor, instanceFields);
-            }
+            AnalyzeConstructor(context, constructorDeclaration, constructor, instanceFields);
         }
 
         private static List<IFieldSymbol> GetInstanceFields(INamedTypeSymbol namedType)
@@ -149,21 +151,12 @@ namespace Kuker.Analyzers.Rules
         }
 
         private static void AnalyzeConstructor(
-            SymbolAnalysisContext context,
+            SyntaxNodeAnalysisContext context,
+            ConstructorDeclarationSyntax constructorDeclaration,
             IMethodSymbol constructor,
             List<IFieldSymbol> instanceFields
         )
         {
-            if (constructor.DeclaringSyntaxReferences.Length == 0)
-            {
-                return;
-            }
-
-            if (!(constructor.DeclaringSyntaxReferences[0].GetSyntax() is ConstructorDeclarationSyntax constructorDeclaration))
-            {
-                return;
-            }
-
             BlockSyntax body = constructorDeclaration.Body;
             if (body == null)
             {
@@ -190,7 +183,7 @@ namespace Kuker.Analyzers.Rules
 
             List<SimpleFieldAssignment> directAssignments = new List<SimpleFieldAssignment>();
 
-            foreach (SimpleFieldAssignment simpleAssignment in ConstructorAssignmentHelper.GetSimpleFieldAssignments(body, parameterIndexByName))
+            foreach (SimpleFieldAssignment simpleAssignment in ConstructorAssignmentHelper.GetSimpleFieldAssignments(body, parameterIndexByName, context.SemanticModel))
             {
                 if (!fieldNames.Contains(simpleAssignment.FieldName))
                 {

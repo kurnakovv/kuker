@@ -21,10 +21,16 @@ namespace Kuker.Core.Formatting
         /// </summary>
         /// <param name="body">Constructor body to scan.</param>
         /// <param name="parameterIndexByName">Map of constructor parameter name to its declaration index.</param>
+        /// <param name="semanticModel">
+        /// Optional semantic model used to verify that the left-hand side actually binds to a field and the
+        /// right-hand side actually binds to a constructor parameter, so that locals or parameters shadowing a
+        /// field name are not mistaken for a field assignment.
+        /// </param>
         /// <returns>Every matching assignment, in source order.</returns>
         public static List<SimpleFieldAssignment> GetSimpleFieldAssignments(
             BlockSyntax body,
-            IReadOnlyDictionary<string, int> parameterIndexByName
+            IReadOnlyDictionary<string, int> parameterIndexByName,
+            SemanticModel semanticModel = null
         )
         {
             List<SimpleFieldAssignment> assignments = new List<SimpleFieldAssignment>();
@@ -45,10 +51,29 @@ namespace Kuker.Core.Formatting
                     continue;
                 }
 
+                if (semanticModel != null &&
+                    !IsFieldAndParameterAssignment(semanticModel, assignment.Left, assignment.Right))
+                {
+                    continue;
+                }
+
                 assignments.Add(new SimpleFieldAssignment(expressionStatement, fieldName, parameterName, parameterIndex));
             }
 
             return assignments;
+        }
+
+        /// <summary>
+        /// Verifies that <paramref name="left"/> binds to a field symbol and <paramref name="right"/> binds to a
+        /// parameter symbol, guarding against locals or other members that merely share a name with a field or
+        /// constructor parameter.
+        /// </summary>
+        private static bool IsFieldAndParameterAssignment(SemanticModel semanticModel, ExpressionSyntax left, ExpressionSyntax right)
+        {
+            ISymbol leftSymbol = semanticModel.GetSymbolInfo(left).Symbol;
+            ISymbol rightSymbol = semanticModel.GetSymbolInfo(right).Symbol;
+
+            return leftSymbol is IFieldSymbol && rightSymbol is IParameterSymbol;
         }
 
         /// <summary>
