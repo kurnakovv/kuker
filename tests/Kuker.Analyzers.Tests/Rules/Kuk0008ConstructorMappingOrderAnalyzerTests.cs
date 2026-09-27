@@ -2035,6 +2035,141 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
         await RunAsync(testCode);
     }
 
+    [Fact]
+    public async Task NoReportWhenFieldsAreDeclaredInAnotherPartialFileThanTheConstructorAsync()
+    {
+        string fieldsFile = """
+            public partial class User
+            {
+                private readonly int _age;
+                private readonly string _name;
+            }
+            """;
+
+        string constructorFile = """
+            public partial class User
+            {
+                public User(string name, int age)
+                {
+                    _name = name;
+                    _age = age;
+                }
+            }
+            """;
+
+        await RunAsync([fieldsFile, constructorFile]);
+    }
+
+    [Fact]
+    public async Task ReportWhenMismatchedFieldsAreDeclaredInSameFileAsConstructorInPartialClassAsync()
+    {
+        string otherFile = """
+            public partial class User
+            {
+                private readonly System.Guid _id;
+            }
+            """;
+
+        string constructorFile = """
+            public partial class User
+            {
+                private readonly string _name;
+                private readonly int _age;
+
+                public User(string name, int age)
+                {
+                    _age = age;
+                    _name = name;
+                }
+            }
+            """;
+
+        await RunAsync([otherFile, constructorFile], 9, 9, 9, 22);
+    }
+
+    [Fact]
+    public async Task NoReportWhenOnlyFieldsFromOtherPartialFileAreUnorderedRelativeToConstructorFileFieldsAsync()
+    {
+        string fieldsFileA = """
+            public partial class User
+            {
+                private readonly int _age;
+                private readonly string _name;
+            }
+            """;
+
+        string fieldsFileB = """
+            public partial class User
+            {
+                private readonly System.Guid _id;
+
+                public User(string name, int age, System.Guid id)
+                {
+                    _id = id;
+                    _name = name;
+                    _age = age;
+                }
+            }
+            """;
+
+        await RunAsync([fieldsFileA, fieldsFileB]);
+    }
+
+    [Fact]
+    public async Task NoReportWhenFieldsAreDeclaredInDifferentPartialBlockThanConstructorInSameFileAsync()
+    {
+        string testCode = """
+            using System;
+
+            public partial class User
+            {
+                private readonly string _name;
+                private readonly int _age;
+            }
+
+            public partial class User
+            {
+                private readonly Guid _id;
+
+                public User(string name, int age, Guid id)
+                {
+                    _name = name;
+                    _id = id;
+                    _age = age;
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task ReportWhenFieldsAndConstructorAreInSamePartialBlockAndOrderDoesNotMatchAsync()
+    {
+        string testCode = """
+            using System;
+
+            public partial class User
+            {
+                private readonly Guid _id;
+            }
+
+            public partial class User
+            {
+                private readonly string _name;
+                private readonly int _age;
+
+                public User(string name, int age)
+                {
+                    _age = age;
+                    _name = name;
+                }
+            }
+            """;
+
+        await RunAsync(testCode, 16, 9, 16, 22);
+    }
+
     private static async Task RunAsync(
         string testCode,
         int startLine = 0,
@@ -2053,6 +2188,39 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
         {
             DiagnosticResult expected = new DiagnosticResult(DiagnosticIdContant.KUK0008, DiagnosticSeverity.Warning)
                 .WithSpan(startLine, startColumn, endLine, endColumn);
+
+            test.ExpectedDiagnostics.Add(expected);
+        }
+
+        await test.RunAsync();
+    }
+
+    private static async Task RunAsync(
+        string[] testSources,
+        int startLine = 0,
+        int startColumn = 0,
+        int endLine = 0,
+        int endColumn = 0
+    )
+    {
+        CSharpAnalyzerTest<Kuk0008ConstructorMappingOrderAnalyzer, DefaultVerifier> test = new()
+        {
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        };
+
+        string? lastFileName = null;
+
+        for (int i = 0; i < testSources.Length; i++)
+        {
+            string fileName = $"/0/Test{i}.cs";
+            lastFileName = fileName;
+            test.TestState.Sources.Add((fileName, testSources[i]));
+        }
+
+        if (startLine > 0 && lastFileName != null)
+        {
+            DiagnosticResult expected = new DiagnosticResult(DiagnosticIdContant.KUK0008, DiagnosticSeverity.Warning)
+                .WithSpan(lastFileName, startLine, startColumn, endLine, endColumn);
 
             test.ExpectedDiagnostics.Add(expected);
         }

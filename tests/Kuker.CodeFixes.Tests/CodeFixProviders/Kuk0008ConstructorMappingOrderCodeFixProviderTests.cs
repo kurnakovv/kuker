@@ -339,6 +339,79 @@ public class Kuk0008ConstructorMappingOrderCodeFixProviderTests
         await RunAsync(testCode, fixedCode);
     }
 
+    [Fact]
+    public async Task CodeFixReordersOnlyFieldsFromSamePartialBlockAsConstructorAsync()
+    {
+        string testCode = """
+            using System;
+
+            public partial class User
+            {
+                private readonly Guid _id;
+            }
+
+            public partial class User
+            {
+                private readonly int _age;
+                private readonly string _name;
+
+                public User(string name, int age)
+                {
+                    _age = age;
+                    {|#0:_name = name;|}
+                }
+            }
+            """;
+
+        string fixedCode = """
+            using System;
+
+            public partial class User
+            {
+                private readonly Guid _id;
+            }
+
+            public partial class User
+            {
+                private readonly string _name;
+                private readonly int _age;
+
+                public User(string name, int age)
+                {
+                    _name = name;
+                    _age = age;
+                }
+            }
+            """;
+
+        await RunAsync(testCode, fixedCode);
+    }
+
+    [Fact]
+    public async Task CodeFixIsNotOfferedWhenFieldsAreDeclaredInAnotherPartialFileThanTheConstructorAsync()
+    {
+        string fieldsFile = """
+            public partial class User
+            {
+                private readonly int _age;
+                private readonly string _name;
+            }
+            """;
+
+        string constructorFile = """
+            public partial class User
+            {
+                public User(string name, int age)
+                {
+                    _name = name;
+                    _age = age;
+                }
+            }
+            """;
+
+        await RunNoDiagnosticAsync([fieldsFile, constructorFile]);
+    }
+
     private static async Task RunAsync(string testCode, string fixedCode)
     {
         CSharpCodeFixTest<Kuk0008ConstructorMappingOrderAnalyzer, Kuk0008ConstructorMappingOrderCodeFixProvider, DefaultVerifier> test = new()
@@ -349,6 +422,23 @@ public class Kuk0008ConstructorMappingOrderCodeFixProviderTests
         };
 
         test.ExpectedDiagnostics.Add(new DiagnosticResult(DiagnosticIdContant.KUK0008, DiagnosticSeverity.Warning).WithLocation(0));
+
+        await test.RunAsync();
+    }
+
+    private static async Task RunNoDiagnosticAsync(string[] testSources)
+    {
+        CSharpCodeFixTest<Kuk0008ConstructorMappingOrderAnalyzer, Kuk0008ConstructorMappingOrderCodeFixProvider, DefaultVerifier> test = new()
+        {
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        };
+
+        for (int i = 0; i < testSources.Length; i++)
+        {
+            string fileName = $"/0/Test{i}.cs";
+            test.TestState.Sources.Add((fileName, testSources[i]));
+            test.FixedState.Sources.Add((fileName, testSources[i]));
+        }
 
         await test.RunAsync();
     }

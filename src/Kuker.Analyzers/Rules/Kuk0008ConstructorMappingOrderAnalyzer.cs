@@ -66,7 +66,7 @@ namespace Kuker.Analyzers.Rules
                 return;
             }
 
-            List<IFieldSymbol> instanceFields = GetOrderedInstanceFields(namedType);
+            List<IFieldSymbol> instanceFields = GetInstanceFields(namedType);
 
             if (instanceFields.Count == 0)
             {
@@ -84,9 +84,9 @@ namespace Kuker.Analyzers.Rules
             }
         }
 
-        private static List<IFieldSymbol> GetOrderedInstanceFields(INamedTypeSymbol namedType)
+        private static List<IFieldSymbol> GetInstanceFields(INamedTypeSymbol namedType)
         {
-            List<(IFieldSymbol Field, int Order)> orderedFields = new List<(IFieldSymbol Field, int Order)>();
+            List<IFieldSymbol> fields = new List<IFieldSymbol>();
 
             foreach (ISymbol member in namedType.GetMembers())
             {
@@ -100,11 +100,41 @@ namespace Kuker.Analyzers.Rules
                     continue;
                 }
 
-                SyntaxNode declaringSyntax = field.DeclaringSyntaxReferences.Length > 0
-                    ? field.DeclaringSyntaxReferences[0].GetSyntax()
+                fields.Add(field);
+            }
+
+            return fields;
+        }
+
+        // Fields declared in a different partial-type declaration block than the constructor cannot be
+        // ordered relative to each other, because SpanStart is only meaningful within the same syntax
+        // node hierarchy. Only fields declared in the same type declaration block (the same partial
+        // "{ }" block) as the constructor are considered, and they are ordered by their position within it.
+        private static List<IFieldSymbol> GetOrderedInstanceFieldsForConstructor(
+            List<IFieldSymbol> instanceFields,
+            SyntaxNode constructorTypeDeclaration
+        )
+        {
+            List<(IFieldSymbol Field, int Order)> orderedFields = new List<(IFieldSymbol Field, int Order)>();
+
+            foreach (IFieldSymbol field in instanceFields)
+            {
+                SyntaxReference declaringSyntaxReference = field.DeclaringSyntaxReferences.Length > 0
+                    ? field.DeclaringSyntaxReferences[0]
                     : null;
 
-                if (!(declaringSyntax is VariableDeclaratorSyntax variableDeclarator))
+                if (declaringSyntaxReference == null)
+                {
+                    continue;
+                }
+
+                if (!(declaringSyntaxReference.GetSyntax() is VariableDeclaratorSyntax variableDeclarator))
+                {
+                    continue;
+                }
+
+                if (!(variableDeclarator.FirstAncestorOrSelf<FieldDeclarationSyntax>()?.Parent is SyntaxNode fieldTypeDeclaration) ||
+                    fieldTypeDeclaration != constructorTypeDeclaration)
                 {
                     continue;
                 }
@@ -140,7 +170,17 @@ namespace Kuker.Analyzers.Rules
                 return;
             }
 
-            HashSet<string> fieldNames = new HashSet<string>(instanceFields.Select(x => x.Name), StringComparer.Ordinal);
+            List<IFieldSymbol> orderedFields = GetOrderedInstanceFieldsForConstructor(
+                instanceFields,
+                constructorDeclaration.Parent
+            );
+
+            if (orderedFields.Count == 0)
+            {
+                return;
+            }
+
+            HashSet<string> fieldNames = new HashSet<string>(orderedFields.Select(x => x.Name), StringComparer.Ordinal);
             List<string> parameterNames = constructor.Parameters.Select(x => x.Name).ToList();
             Dictionary<string, int> parameterIndexByName = new Dictionary<string, int>(StringComparer.Ordinal);
             for (int i = 0; i < parameterNames.Count; i++)
@@ -167,9 +207,9 @@ namespace Kuker.Analyzers.Rules
             }
 
             Dictionary<string, int> fieldDeclarationIndexByName = new Dictionary<string, int>(StringComparer.Ordinal);
-            for (int i = 0; i < instanceFields.Count; i++)
+            for (int i = 0; i < orderedFields.Count; i++)
             {
-                fieldDeclarationIndexByName[instanceFields[i].Name] = i;
+                fieldDeclarationIndexByName[orderedFields[i].Name] = i;
             }
 
             List<SimpleFieldAssignment> orderedByFieldDeclaration = directAssignments
