@@ -71,8 +71,13 @@ namespace Kuker.CodeFixes.CodeFixProviders
                 return;
             }
 
-            int constructorCount = GetMembers(constructorDeclaration.Parent).Count(x => x is ConstructorDeclarationSyntax);
-            if (constructorCount > 1)
+            SyntaxList<MemberDeclarationSyntax> members = GetMembers(constructorDeclaration.Parent);
+            if (members.Count(x => x is ConstructorDeclarationSyntax) > 1)
+            {
+                return;
+            }
+
+            if (members.OfType<FieldDeclarationSyntax>().Any(x => x.Declaration.Variables.Count > 1))
             {
                 return;
             }

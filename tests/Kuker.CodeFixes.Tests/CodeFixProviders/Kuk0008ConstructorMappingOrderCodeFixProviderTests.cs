@@ -308,7 +308,7 @@ public class Kuk0008ConstructorMappingOrderCodeFixProviderTests
     }
 
     [Fact]
-    public async Task CodeFixReordersOnlyAssignmentsWhenFieldsAreDeclaredInSameStatementAsync()
+    public async Task CodeFixIsNotOfferedWhenFieldsAreDeclaredInSameStatementAsync()
     {
         string testCode = """
             public class Point
@@ -323,20 +323,9 @@ public class Kuk0008ConstructorMappingOrderCodeFixProviderTests
             }
             """;
 
-        string fixedCode = """
-            public class Point
-            {
-                private readonly int _y, _x;
-
-                public Point(int y, int x)
-                {
-                    _y = y;
-                    _x = x;
-                }
-            }
-            """;
-
-        await RunAsync(testCode, fixedCode);
+#pragma warning disable KUK0001 // Duplicate arguments passed to method
+        await RunAsync(testCode, testCode);
+#pragma warning restore KUK0001 // Duplicate arguments passed to method
     }
 
     [Fact]
@@ -556,6 +545,50 @@ public class Kuk0008ConstructorMappingOrderCodeFixProviderTests
             """;
 
         await RunAsync(testCode, fixedCode);
+    }
+
+    [Fact]
+    public async Task CodeFixIsNotOfferedWhenFieldIsDeclaredWithMultipleVariablesAsync()
+    {
+        string testCode = """
+            public class Point
+            {
+                private readonly int _x, _y;
+
+                public Point(int y, int x)
+                {
+                    _x = x;
+                    {|#0:_y = y;|}
+                }
+            }
+            """;
+
+#pragma warning disable KUK0001 // Duplicate arguments passed to method
+        await RunAsync(testCode, testCode);
+#pragma warning restore KUK0001 // Duplicate arguments passed to method
+    }
+
+    [Fact]
+    public async Task CodeFixIsNotOfferedWhenAnyFieldIsDeclaredWithMultipleVariablesAsync()
+    {
+        string testCode = """
+            public class Point
+            {
+                private readonly int _x, _unused;
+                private readonly int _y;
+
+                public Point(int x, int y)
+                {
+                    _unused = 0;
+                    _y = y;
+                    {|#0:_x = x;|}
+                }
+            }
+            """;
+
+#pragma warning disable KUK0001 // Duplicate arguments passed to method
+        await RunAsync(testCode, testCode);
+#pragma warning restore KUK0001 // Duplicate arguments passed to method
     }
 
     private static async Task RunAsync(string testCode, string fixedCode)
