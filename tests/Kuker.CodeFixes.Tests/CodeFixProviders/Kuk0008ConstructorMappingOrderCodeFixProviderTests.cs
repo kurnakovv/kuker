@@ -413,6 +413,74 @@ public class Kuk0008ConstructorMappingOrderCodeFixProviderTests
     }
 
     [Fact]
+    public async Task CodeFixIsNotOfferedWhenTypeIsStructAsync()
+    {
+        string testCode = """
+            public struct Point
+            {
+                private readonly int _x;
+                private readonly int _y;
+
+                public Point(int x, int y)
+                {
+                    _y = y;
+                    _x = x;
+                }
+            }
+            """;
+
+        await RunNoDiagnosticAsync([testCode]);
+    }
+
+    [Fact]
+    public async Task CodeFixIsNotOfferedWhenClassHasSequentialStructLayoutAsync()
+    {
+        string testCode = """
+            using System.Runtime.InteropServices;
+
+            [StructLayout(LayoutKind.Sequential)]
+            public class Point
+            {
+                private readonly int _x;
+                private readonly int _y;
+
+                public Point(int x, int y)
+                {
+                    _y = y;
+                    _x = x;
+                }
+            }
+            """;
+
+        await RunNoDiagnosticAsync([testCode]);
+    }
+
+    [Fact]
+    public async Task CodeFixIsNotOfferedWhenClassHasExplicitStructLayoutAsync()
+    {
+        string testCode = """
+            using System.Runtime.InteropServices;
+
+            [StructLayout(LayoutKind.Explicit)]
+            public class Point
+            {
+                [FieldOffset(0)]
+                private readonly int _x;
+                [FieldOffset(4)]
+                private readonly int _y;
+
+                public Point(int x, int y)
+                {
+                    _y = y;
+                    _x = x;
+                }
+            }
+            """;
+
+        await RunNoDiagnosticAsync([testCode]);
+    }
+
+    [Fact]
     public async Task CodeFixDoesNotTouchStaticFieldAssignedWithSameParameterNamePatternAsync()
     {
         string testCode = """

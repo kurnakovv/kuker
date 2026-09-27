@@ -948,7 +948,7 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
     }
 
     [Fact]
-    public async Task ReportWhenStructConstructorOrderDoesNotMatchFieldOrderAsync()
+    public async Task NoReportWhenStructConstructorOrderDoesNotMatchFieldOrderAsync()
     {
         string testCode = """
             public struct Point
@@ -964,7 +964,101 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
             }
             """;
 
-        await RunAsync(testCode, 9, 9, 9, 16);
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task NoReportWhenClassHasSequentialStructLayoutAndConstructorOrderDoesNotMatchFieldOrderAsync()
+    {
+        string testCode = """
+            using System.Runtime.InteropServices;
+
+            [StructLayout(LayoutKind.Sequential)]
+            public class Point
+            {
+                private readonly int _x;
+                private readonly int _y;
+
+                public Point(int x, int y)
+                {
+                    _y = y;
+                    _x = x;
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task ReportWhenClassHasAutoStructLayoutAndConstructorOrderDoesNotMatchFieldOrderAsync()
+    {
+        string testCode = """
+            using System.Runtime.InteropServices;
+
+            [StructLayout(LayoutKind.Auto)]
+            public class Point
+            {
+                private readonly int _x;
+                private readonly int _y;
+
+                public Point(int x, int y)
+                {
+                    _y = y;
+                    _x = x;
+                }
+            }
+            """;
+
+        await RunAsync(testCode, 12, 9, 12, 16);
+    }
+
+    [Fact]
+    public async Task NoReportWhenClassHasExplicitStructLayoutAndConstructorOrderDoesNotMatchFieldOrderAsync()
+    {
+        string testCode = """
+            using System.Runtime.InteropServices;
+
+            [StructLayout(LayoutKind.Explicit)]
+            public class Point
+            {
+                [FieldOffset(0)]
+                private readonly int _x;
+                [FieldOffset(4)]
+                private readonly int _y;
+
+                public Point(int x, int y)
+                {
+                    _y = y;
+                    _x = x;
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task ReportWhenClassHasUnrelatedAttributeAndConstructorOrderDoesNotMatchFieldOrderAsync()
+    {
+        string testCode = """
+            using System;
+
+            [Serializable]
+            public class Point
+            {
+                private readonly int _x;
+                private readonly int _y;
+
+                public Point(int x, int y)
+                {
+                    _y = y;
+                    _x = x;
+                }
+            }
+            """;
+
+        await RunAsync(testCode, 12, 9, 12, 16);
     }
 
     [Fact]

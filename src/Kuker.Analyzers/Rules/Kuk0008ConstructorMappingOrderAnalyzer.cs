@@ -75,6 +75,11 @@ namespace Kuker.Analyzers.Rules
                 return;
             }
 
+            if (IsLayoutSensitiveType(namedType))
+            {
+                return;
+            }
+
             List<IFieldSymbol> instanceFields = GetInstanceFields(namedType);
 
             if (instanceFields.Count == 0)
@@ -83,6 +88,37 @@ namespace Kuker.Analyzers.Rules
             }
 
             AnalyzeConstructor(context, constructorDeclaration, constructor, instanceFields);
+        }
+
+        // Structs use sequential layout by default, and classes/structs marked with an explicit
+        // [StructLayout(LayoutKind.Sequential)] or [StructLayout(LayoutKind.Explicit)] rely on field
+        // declaration order (or explicit offsets) to determine their in-memory layout. Reordering field
+        // declarations for such types could change field offsets and break interop or persisted binary
+        // layouts, so they are excluded from this rule entirely.
+        private static bool IsLayoutSensitiveType(INamedTypeSymbol namedType)
+        {
+            if (namedType.TypeKind == TypeKind.Struct)
+            {
+                return true;
+            }
+
+            foreach (AttributeData attribute in namedType.GetAttributes())
+            {
+                if (attribute.AttributeClass?.ToDisplayString() != "System.Runtime.InteropServices.StructLayoutAttribute")
+                {
+                    continue;
+                }
+
+                object layoutKindValue = attribute.ConstructorArguments[0].Value;
+                if (layoutKindValue is int layoutKind &&
+                    (layoutKind == (int)System.Runtime.InteropServices.LayoutKind.Sequential ||
+                     layoutKind == (int)System.Runtime.InteropServices.LayoutKind.Explicit))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static List<IFieldSymbol> GetInstanceFields(INamedTypeSymbol namedType)
