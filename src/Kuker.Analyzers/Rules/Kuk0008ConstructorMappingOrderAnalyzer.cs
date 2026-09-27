@@ -109,6 +109,11 @@ namespace Kuker.Analyzers.Rules
                     continue;
                 }
 
+                if (attribute.ConstructorArguments.Length == 0)
+                {
+                    continue;
+                }
+
                 object layoutKindValue = attribute.ConstructorArguments[0].Value;
                 if (layoutKindValue is int layoutKind &&
                     (layoutKind == (int)System.Runtime.InteropServices.LayoutKind.Sequential ||

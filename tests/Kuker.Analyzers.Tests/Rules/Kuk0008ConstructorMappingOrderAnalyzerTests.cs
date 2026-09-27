@@ -1060,6 +1060,45 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
     }
 
     [Fact]
+    public async Task NoCrashWhenClassHasMalformedStructLayoutAttributeAsync()
+    {
+        string testCode = """
+            using System.Runtime.InteropServices;
+
+            [StructLayout]
+            public class Point
+            {
+                private readonly int _x;
+                private readonly int _y;
+
+                public Point(int x, int y)
+                {
+                    _y = y;
+                    _x = x;
+                }
+            }
+            """;
+
+        CSharpAnalyzerTest<Kuk0008ConstructorMappingOrderAnalyzer, DefaultVerifier> test = new()
+        {
+            TestCode = testCode,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        };
+
+        test.ExpectedDiagnostics.Add(
+            new DiagnosticResult(DiagnosticIdContant.KUK0008, DiagnosticSeverity.Warning)
+                .WithSpan(12, 9, 12, 16)
+        );
+        test.ExpectedDiagnostics.Add(
+            DiagnosticResult.CompilerError("CS1729")
+                .WithSpan(3, 2, 3, 14)
+                .WithArguments("System.Runtime.InteropServices.StructLayoutAttribute", "0")
+        );
+
+        await test.RunAsync();
+    }
+
+    [Fact]
     public async Task ReportWhenClassHasUnrelatedAttributeAndConstructorOrderDoesNotMatchFieldOrderAsync()
     {
         string testCode = """
