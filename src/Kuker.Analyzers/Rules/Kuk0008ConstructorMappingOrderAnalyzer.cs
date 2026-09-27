@@ -70,8 +70,7 @@ namespace Kuker.Analyzers.Rules
             }
 
             INamedTypeSymbol namedType = constructor.ContainingType;
-            if (namedType == null ||
-                (namedType.TypeKind != TypeKind.Class && namedType.TypeKind != TypeKind.Struct))
+            if (namedType == null)
             {
                 return;
             }
