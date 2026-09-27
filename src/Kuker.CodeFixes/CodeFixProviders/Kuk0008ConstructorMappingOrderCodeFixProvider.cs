@@ -107,6 +107,8 @@ namespace Kuker.CodeFixes.CodeFixProviders
 
             SyntaxList<MemberDeclarationSyntax> members = GetMembers(typeDeclaration);
 
+            HashSet<string> instanceFieldNames = GetInstanceFieldNames(members);
+
             List<string> parameterNames = constructorDeclaration.ParameterList.Parameters
                 .Select(x => x.Identifier.ValueText)
                 .ToList();
@@ -116,7 +118,9 @@ namespace Kuker.CodeFixes.CodeFixProviders
                 parameterIndexByName[parameterNames[i]] = i;
             }
 
-            List<SimpleFieldAssignment> simpleFieldAssignments = ConstructorAssignmentHelper.GetSimpleFieldAssignments(body, parameterIndexByName);
+            List<SimpleFieldAssignment> simpleFieldAssignments = ConstructorAssignmentHelper.GetSimpleFieldAssignments(body, parameterIndexByName)
+                .Where(x => instanceFieldNames.Contains(x.FieldName))
+                .ToList();
 
             Dictionary<string, int> fieldParameterIndexByFieldName = new Dictionary<string, int>(StringComparer.Ordinal);
 
@@ -271,6 +275,31 @@ namespace Kuker.CodeFixes.CodeFixProviders
                 default:
                     return default;
             }
+        }
+
+        // Restricts assignment candidates to names that actually resolve to a non-static instance field
+        // declared in this type declaration block. Without this, a syntactic "identifier = parameter" match
+        // could also pick up static fields, properties, or other members that share a name with an instance
+        // field, and reorder statements that KUK0008 never analyzed.
+        private static HashSet<string> GetInstanceFieldNames(SyntaxList<MemberDeclarationSyntax> members)
+        {
+            HashSet<string> instanceFieldNames = new HashSet<string>(StringComparer.Ordinal);
+
+            foreach (MemberDeclarationSyntax member in members)
+            {
+                if (!(member is FieldDeclarationSyntax fieldDeclaration) ||
+                    fieldDeclaration.Modifiers.Any(SyntaxKind.StaticKeyword))
+                {
+                    continue;
+                }
+
+                foreach (VariableDeclaratorSyntax variableDeclarator in fieldDeclaration.Declaration.Variables)
+                {
+                    instanceFieldNames.Add(variableDeclarator.Identifier.ValueText);
+                }
+            }
+
+            return instanceFieldNames;
         }
 
         private static SyntaxTriviaList NormalizeLeadingTrivia(SyntaxTriviaList originalLeadingTrivia, SyntaxTriviaList sourceLeadingTrivia)

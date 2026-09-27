@@ -412,6 +412,44 @@ public class Kuk0008ConstructorMappingOrderCodeFixProviderTests
         await RunNoDiagnosticAsync([fieldsFile, constructorFile]);
     }
 
+    [Fact]
+    public async Task CodeFixDoesNotTouchStaticFieldAssignedWithSameParameterNamePatternAsync()
+    {
+        string testCode = """
+            public class User
+            {
+                private static int s_age;
+                private readonly string _name;
+                private readonly int _age;
+
+                public User(string name, int age)
+                {
+                    _age = age;
+                    {|#0:_name = name;|}
+                    s_age = age;
+                }
+            }
+            """;
+
+        string fixedCode = """
+            public class User
+            {
+                private static int s_age;
+                private readonly string _name;
+                private readonly int _age;
+
+                public User(string name, int age)
+                {
+                    _name = name;
+                    _age = age;
+                    s_age = age;
+                }
+            }
+            """;
+
+        await RunAsync(testCode, fixedCode);
+    }
+
     private static async Task RunAsync(string testCode, string fixedCode)
     {
         CSharpCodeFixTest<Kuk0008ConstructorMappingOrderAnalyzer, Kuk0008ConstructorMappingOrderCodeFixProvider, DefaultVerifier> test = new()
