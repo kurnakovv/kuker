@@ -82,6 +82,16 @@ namespace Kuker.CodeFixes.CodeFixProviders
                 return;
             }
 
+            if (members.OfType<FieldDeclarationSyntax>().Any(HasDirectiveTrivia))
+            {
+                return;
+            }
+
+            if (constructorDeclaration.Body?.Statements.Any(HasDirectiveTrivia) == true)
+            {
+                return;
+            }
+
             context.RegisterCodeFix(
                 CodeAction.Create(
                     title: TITLE,
@@ -307,6 +317,12 @@ namespace Kuker.CodeFixes.CodeFixProviders
             }
 
             return instanceFieldNames;
+        }
+
+        private static bool HasDirectiveTrivia(SyntaxNode node)
+        {
+            return node.GetLeadingTrivia().Any(x => x.IsDirective) ||
+                node.GetTrailingTrivia().Any(x => x.IsDirective);
         }
 
         private static SyntaxTriviaList NormalizeLeadingTrivia(SyntaxTriviaList originalLeadingTrivia, SyntaxTriviaList sourceLeadingTrivia)

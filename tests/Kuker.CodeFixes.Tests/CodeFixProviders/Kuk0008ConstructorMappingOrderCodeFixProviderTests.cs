@@ -591,6 +591,79 @@ public class Kuk0008ConstructorMappingOrderCodeFixProviderTests
 #pragma warning restore KUK0001 // Duplicate arguments passed to method
     }
 
+    [Fact]
+    public async Task CodeFixIsNotOfferedWhenFieldToReorderHasPreprocessorDirectiveTriviaAsync()
+    {
+        string testCode = """
+            public class Point
+            {
+                private readonly int _x;
+            #if true
+                private readonly int _y;
+            #endif
+
+                public Point(int y, int x)
+                {
+                    _x = x;
+                    {|#0:_y = y;|}
+                }
+            }
+            """;
+
+#pragma warning disable KUK0001 // Duplicate arguments passed to method
+        await RunAsync(testCode, testCode);
+#pragma warning restore KUK0001 // Duplicate arguments passed to method
+    }
+
+    [Fact]
+    public async Task CodeFixIsNotOfferedWhenFieldToReorderIsInsideRegionDirectiveAsync()
+    {
+        string testCode = """
+            public class Point
+            {
+                private readonly int _x;
+
+                #region Fields
+                private readonly int _y;
+                #endregion
+
+                public Point(int y, int x)
+                {
+                    _x = x;
+                    {|#0:_y = y;|}
+                }
+            }
+            """;
+
+#pragma warning disable KUK0001 // Duplicate arguments passed to method
+        await RunAsync(testCode, testCode);
+#pragma warning restore KUK0001 // Duplicate arguments passed to method
+    }
+
+    [Fact]
+    public async Task CodeFixIsNotOfferedWhenAssignmentToReorderHasPreprocessorDirectiveTriviaAsync()
+    {
+        string testCode = """
+            public class Point
+            {
+                private readonly int _x;
+                private readonly int _y;
+
+                public Point(int y, int x)
+                {
+                    _x = x;
+            #if true
+                    {|#0:_y = y;|}
+            #endif
+                }
+            }
+            """;
+
+#pragma warning disable KUK0001 // Duplicate arguments passed to method
+        await RunAsync(testCode, testCode);
+#pragma warning restore KUK0001 // Duplicate arguments passed to method
+    }
+
     private static async Task RunAsync(string testCode, string fixedCode)
     {
         CSharpCodeFixTest<Kuk0008ConstructorMappingOrderAnalyzer, Kuk0008ConstructorMappingOrderCodeFixProvider, DefaultVerifier> test = new()
