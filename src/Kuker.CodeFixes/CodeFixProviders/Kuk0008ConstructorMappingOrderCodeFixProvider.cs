@@ -294,10 +294,6 @@ namespace Kuker.CodeFixes.CodeFixProviders
             }
         }
 
-        // Restricts assignment candidates to names that actually resolve to a non-static instance field
-        // declared in this type declaration block. Without this, a syntactic "identifier = parameter" match
-        // could also pick up static fields, properties, or other members that share a name with an instance
-        // field, and reorder statements that KUK0008 never analyzed.
         private static HashSet<string> GetInstanceFieldNames(SyntaxList<MemberDeclarationSyntax> members)
         {
             HashSet<string> instanceFieldNames = new HashSet<string>(StringComparer.Ordinal);

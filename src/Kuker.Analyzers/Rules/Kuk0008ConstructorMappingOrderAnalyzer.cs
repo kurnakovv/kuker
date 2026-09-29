@@ -90,11 +90,6 @@ namespace Kuker.Analyzers.Rules
             AnalyzeConstructor(context, constructorDeclaration, constructor, instanceFields);
         }
 
-        // Structs use sequential layout by default, and classes/structs marked with an explicit
-        // [StructLayout(LayoutKind.Sequential)] or [StructLayout(LayoutKind.Explicit)] rely on field
-        // declaration order (or explicit offsets) to determine their in-memory layout. Reordering field
-        // declarations for such types could change field offsets and break interop or persisted binary
-        // layouts, so they are excluded from this rule entirely.
         private static bool IsLayoutSensitiveType(INamedTypeSymbol namedType)
         {
             if (namedType.TypeKind == TypeKind.Struct)
@@ -148,10 +143,6 @@ namespace Kuker.Analyzers.Rules
             return fields;
         }
 
-        // Fields declared in a different partial-type declaration block than the constructor cannot be
-        // ordered relative to each other, because SpanStart is only meaningful within the same syntax
-        // node hierarchy. Only fields declared in the same type declaration block (the same partial
-        // "{ }" block) as the constructor are considered, and they are ordered by their position within it.
         private static List<IFieldSymbol> GetOrderedInstanceFieldsForConstructor(
             List<IFieldSymbol> instanceFields,
             SyntaxNode constructorTypeDeclaration
