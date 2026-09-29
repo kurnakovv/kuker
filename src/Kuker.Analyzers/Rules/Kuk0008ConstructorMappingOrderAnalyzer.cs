@@ -215,19 +215,19 @@ namespace Kuker.Analyzers.Rules
             List<SimpleFieldAssignment> directAssignments = new List<SimpleFieldAssignment>();
             HashSet<string> assignedFieldNames = new HashSet<string>(StringComparer.Ordinal);
 
-            foreach (SimpleFieldAssignment simpleAssignment in ConstructorAssignmentHelper.GetSimpleFieldAssignments(body, parameterIndexByName, context.SemanticModel))
+            foreach (SimpleFieldAssignment item in ConstructorAssignmentHelper.GetSimpleFieldAssignments(body, parameterIndexByName, context.SemanticModel))
             {
-                if (!fieldNames.Contains(simpleAssignment.FieldName))
+                if (!fieldNames.Contains(item.FieldName))
                 {
                     continue;
                 }
 
-                if (!assignedFieldNames.Add(simpleAssignment.FieldName))
+                if (!assignedFieldNames.Add(item.FieldName))
                 {
                     return;
                 }
 
-                directAssignments.Add(simpleAssignment);
+                directAssignments.Add(item);
             }
 
             if (directAssignments.Count < 2)
@@ -269,13 +269,13 @@ namespace Kuker.Analyzers.Rules
         {
             int previousFieldDeclarationIndex = -1;
 
-            foreach (SimpleFieldAssignment directAssignment in directAssignments)
+            foreach (SimpleFieldAssignment item in directAssignments)
             {
-                int currentFieldDeclarationIndex = fieldDeclarationIndexByName[directAssignment.FieldName];
+                int currentFieldDeclarationIndex = fieldDeclarationIndexByName[item.FieldName];
 
                 if (currentFieldDeclarationIndex < previousFieldDeclarationIndex)
                 {
-                    return directAssignment.Statement;
+                    return item.Statement;
                 }
 
                 previousFieldDeclarationIndex = currentFieldDeclarationIndex;
@@ -283,13 +283,13 @@ namespace Kuker.Analyzers.Rules
 
             int previousParameterIndex = -1;
 
-            foreach (SimpleFieldAssignment orderedAssignment in orderedByFieldDeclaration)
+            foreach (SimpleFieldAssignment item in orderedByFieldDeclaration)
             {
-                int currentParameterIndex = parameterIndexByName[orderedAssignment.ParameterName];
+                int currentParameterIndex = parameterIndexByName[item.ParameterName];
 
                 if (currentParameterIndex < previousParameterIndex)
                 {
-                    return orderedAssignment.Statement;
+                    return item.Statement;
                 }
 
                 previousParameterIndex = currentParameterIndex;
