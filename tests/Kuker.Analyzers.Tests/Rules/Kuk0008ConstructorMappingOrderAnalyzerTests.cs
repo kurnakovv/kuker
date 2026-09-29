@@ -57,9 +57,9 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
         string testCode = """
             public class User
             {
-                private static string s_lastName;
                 private readonly string _name;
                 private readonly int _age;
+                private static string s_lastName;
 
                 public User(string name, int age)
                 {
@@ -156,8 +156,8 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
         string testCode = """
             public class User
             {
-                private readonly string _a;
                 private readonly string _b;
+                private readonly string _a;
 
                 public User(string a, string b)
                 {
@@ -661,35 +661,6 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
     }
 
     [Fact]
-    public async Task NoReportWhenConstructorUsesBaseInitializerAndBodyOrderMatchesAsync()
-    {
-        string testCode = """
-            public class Person
-            {
-                protected readonly string _name;
-
-                public Person(string name)
-                {
-                    _name = name;
-                }
-            }
-
-            public class User : Person
-            {
-                private readonly int _age;
-
-                public User(string name, int age)
-                    : base(name)
-                {
-                    _age = age;
-                }
-            }
-            """;
-
-        await RunAsync(testCode);
-    }
-
-    [Fact]
     public async Task ReportWhenConstructorUsesThisInitializerAndBodyOrderDoesNotMatchAsync()
     {
         string testCode = """
@@ -714,37 +685,6 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
             """;
 
         await RunAsync(testCode, 11, 9, 11, 22);
-    }
-
-    [Fact]
-    public async Task ReportWhenConstructorUsesBaseInitializerAndBodyOrderDoesNotMatchAsync()
-    {
-        string testCode = """
-            public class Person
-            {
-                protected readonly string _name;
-
-                public Person(string name)
-                {
-                    _name = name;
-                }
-            }
-
-            public class User : Person
-            {
-                private readonly int _age;
-                private readonly string _email;
-
-                public User(string name, int age, string email)
-                    : base(name)
-                {
-                    _email = email;
-                    _age = age;
-                }
-            }
-            """;
-
-        await RunAsync(testCode, 20, 9, 20, 20);
     }
 
     [Fact]
@@ -795,6 +735,66 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
             """;
 
         await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task NoReportWhenConstructorUsesBaseInitializerAndBodyOrderMatchesAsync()
+    {
+        string testCode = """
+            public class Person
+            {
+                protected readonly string _name;
+
+                public Person(string name)
+                {
+                    _name = name;
+                }
+            }
+
+            public class User : Person
+            {
+                private readonly int _age;
+
+                public User(string name, int age)
+                    : base(name)
+                {
+                    _age = age;
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task ReportWhenConstructorUsesBaseInitializerAndBodyOrderDoesNotMatchAsync()
+    {
+        string testCode = """
+            public class Person
+            {
+                protected readonly string _name;
+
+                public Person(string name)
+                {
+                    _name = name;
+                }
+            }
+
+            public class User : Person
+            {
+                private readonly int _age;
+                private readonly string _email;
+
+                public User(string name, int age, string email)
+                    : base(name)
+                {
+                    _email = email;
+                    _age = age;
+                }
+            }
+            """;
+
+        await RunAsync(testCode, 20, 9, 20, 20);
     }
 
     [Fact]
@@ -1565,7 +1565,8 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
 
                 public User(
                     string name,
-                    int age)
+                    int age
+                )
                 {
                     _name = name;
                     _age = age;
@@ -1587,7 +1588,8 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
 
                 public User(
                     string name,
-                    int age)
+                    int age
+                )
                 {
                     _age = age;
                     _name = name;
@@ -1595,7 +1597,7 @@ public class Kuk0008ConstructorMappingOrderAnalyzerTests
             }
             """;
 
-        await RunAsync(testCode, 11, 9, 11, 22);
+        await RunAsync(testCode, 12, 9, 12, 22);
     }
 
     [Fact]
