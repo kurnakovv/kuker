@@ -48,5 +48,10 @@ namespace Kuker.Core.Contants
         /// KUK0008 - <c>Kuk0008ConstructorMappingOrderAnalyzer</c>.
         /// </summary>
         public const string KUK0008 = "KUK0008";
+
+        /// <summary>
+        /// KUK0009 - <c>Kuk0009DeclarationHeaderSeparationAnalyzer</c>.
+        /// </summary>
+        public const string KUK0009 = "KUK0009";
     }
 }
