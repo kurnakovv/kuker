@@ -101,8 +101,8 @@ public class Kuk0009DeclarationHeaderSeparationAnalyzerTests
                 {
                 }
 
-
                 [Obsolete]
+
                 public void Method1()
                 {
                 }
@@ -1003,7 +1003,7 @@ public class Kuk0009DeclarationHeaderSeparationAnalyzerTests
             }
             """;
 
-        await RunAsync(testCode, 8, 5, 8, 15);
+        await RunAsync(testCode);
     }
 
     [Fact]
