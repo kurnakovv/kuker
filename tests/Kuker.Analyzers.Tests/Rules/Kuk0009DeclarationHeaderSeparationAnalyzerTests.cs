@@ -127,6 +127,72 @@ public class Kuk0009DeclarationHeaderSeparationAnalyzerTests
     }
 
     [Fact]
+    public async Task NoReportWhenFieldWithMultipleDeclaratorsHasNoHeaderAsync()
+    {
+        string testCode = """
+            public class Test
+            {
+                private int _value0, _value1;
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task NoReportWhenFieldWithMultipleDeclaratorsIsFirstDeclarationWithHeaderAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Test
+            {
+                [Obsolete]
+                private int _value0, _value1;
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task ReportWhenFieldWithMultipleDeclaratorsIsSecondDeclarationWithoutBlankLineAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Test
+            {
+                [Obsolete]
+                private int _value0;
+                [Obsolete]
+                private int _value1, _value2;
+            }
+            """;
+
+        await RunAsync(testCode, 8, 5, 8, 15);
+    }
+
+    [Fact]
+    public async Task NoReportWhenFieldWithMultipleDeclaratorsIsSecondDeclarationWithBlankLineAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Test
+            {
+                [Obsolete]
+                private int _value0;
+
+                [Obsolete]
+                private int _value1, _value2;
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
     public async Task NoReportWhenPropertiesHaveNoHeaderAsync()
     {
         string testCode = """
@@ -680,6 +746,938 @@ public class Kuk0009DeclarationHeaderSeparationAnalyzerTests
                 [Obsolete]
                 private int _value1;
             }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task ReportWhenBlockCommentIsBeforeSecondDeclarationWithoutBlankLineAsync()
+    {
+        string testCode = """
+            public class Test
+            {
+                public void Method0()
+                {
+                }
+                /* Comment1. */
+                public void Method1()
+                {
+                }
+            }
+            """;
+
+        await RunAsync(testCode, 5, 5, 5, 20);
+    }
+
+    [Fact]
+    public async Task NoReportWhenBlockCommentIsBeforeSecondDeclarationWithBlankLineAsync()
+    {
+        string testCode = """
+            public class Test
+            {
+                public void Method0()
+                {
+                }
+
+                /* Comment1. */
+                public void Method1()
+                {
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task ReportWhenMultilineBlockCommentIsBeforeSecondDeclarationWithoutBlankLineAsync()
+    {
+        string testCode = """
+            public class Test
+            {
+                public void Method0()
+                {
+                }
+                /* Comment1.
+                Continuation. */
+                public void Method1()
+                {
+                }
+            }
+            """;
+
+        await RunAsync(testCode, 5, 5, 6, 21);
+    }
+
+    [Fact]
+    public async Task NoReportWhenMultilineBlockCommentIsBeforeSecondDeclarationWithBlankLineAsync()
+    {
+        string testCode = """
+            public class Test
+            {
+                public void Method0()
+                {
+                }
+
+                /* Comment1.
+                Continuation. */
+                public void Method1()
+                {
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task ReportWhenCommentAndAttributeAreBeforeSecondDeclarationWithoutBlankLineAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Test
+            {
+                public void Method0()
+                {
+                }
+                // Comment1.
+                [Obsolete]
+                public void Method1()
+                {
+                }
+            }
+            """;
+
+        await RunAsync(testCode, 8, 5, 9, 15);
+    }
+
+    [Fact]
+    public async Task NoReportWhenCommentAndAttributeAreBeforeSecondDeclarationWithBlankLineAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Test
+            {
+                public void Method0()
+                {
+                }
+
+                // Comment1.
+                [Obsolete]
+                public void Method1()
+                {
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task ReportWhenMultipleCommentsInARowAreBeforeSecondDeclarationWithoutBlankLineAsync()
+    {
+        string testCode = """
+            public class Test
+            {
+                public void Method0()
+                {
+                }
+                // Comment1.
+                // Comment2.
+                public void Method1()
+                {
+                }
+            }
+            """;
+
+        await RunAsync(testCode, 5, 5, 6, 17);
+    }
+
+    [Fact]
+    public async Task NoReportWhenMultipleCommentsInARowAreBeforeSecondDeclarationWithBlankLineAsync()
+    {
+        string testCode = """
+            public class Test
+            {
+                public void Method0()
+                {
+                }
+
+                // Comment1.
+                // Comment2.
+                public void Method1()
+                {
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task ReportWhenCommentIsBetweenAttributesWithoutBlankLineBeforeStackAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Test
+            {
+                [Obsolete]
+                public class Nested0
+                {
+                }
+                [Obsolete]
+                // Comment1.
+                [Serializable]
+                public class Nested1
+                {
+                }
+            }
+            """;
+
+        await RunAsync(testCode, 9, 5, 9, 15);
+    }
+
+    [Fact]
+    public async Task NoReportWhenCommentIsBetweenAttributesWithBlankLineBeforeStackAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Test
+            {
+                [Obsolete]
+                public class Nested0
+                {
+                }
+
+                [Obsolete]
+                // Comment1.
+                [Serializable]
+                public class Nested1
+                {
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task NoReportWhenAssemblyAttributeIsBeforeFirstDeclarationAsync()
+    {
+        string testCode = """
+            using System.Reflection;
+
+            [assembly: AssemblyTitle("Test")]
+
+            public class Test
+            {
+                public void Method0()
+                {
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task NoReportWhenAssemblyAttributeIsBeforeSecondDeclarationWithoutBlankLineAsync()
+    {
+        string testCode = """
+            using System.Reflection;
+
+            [assembly: AssemblyTitle("Test")]
+            public class Test
+            {
+                public void Method0()
+                {
+                }
+                public void Method1()
+                {
+                }
+            }
+            """;
+
+        await RunAsync(testCode, 8, 5, 8, 15);
+    }
+
+    [Fact]
+    public async Task NoReportWhenMethodTargetedAttributeIsBeforeFirstDeclarationAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Test
+            {
+                [method: Obsolete]
+                public void Method0()
+                {
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task ReportWhenMethodTargetedAttributeIsBeforeSecondDeclarationWithoutBlankLineAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Test
+            {
+                public void Method0()
+                {
+                }
+                [method: Obsolete]
+                public void Method1()
+                {
+                }
+            }
+            """;
+
+        await RunAsync(testCode, 8, 5, 8, 23);
+    }
+
+    [Fact]
+    public async Task NoReportWhenMethodTargetedAttributeIsBeforeSecondDeclarationWithBlankLineAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Test
+            {
+                public void Method0()
+                {
+                }
+
+                [method: Obsolete]
+                public void Method1()
+                {
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task NoReportWhenReturnTargetedAttributeDoesNotActAsHeaderForNextDeclarationAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Test
+            {
+                [return: Obsolete]
+                public int Method0()
+                {
+                    return 0;
+                }
+                public void Method1()
+                {
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task NoReportWhenMixedDeclarationKindsAllHaveBlankLineBeforeTheirHeaderAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Test
+            {
+                public int Value0 { get; set; }
+
+                [Obsolete]
+                private int _value1;
+
+                // Comment
+                public void Method()
+                {
+                }
+
+                /// <summary>
+                /// Nested type.
+                /// </summary>
+                public class Nested
+                {
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task ReportWhenHeaderlessDeclarationIsFollowedByHeaderedDeclarationWithoutBlankLineAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Test
+            {
+                public int Value { get; set; }
+                [Obsolete]
+                private int _field;
+            }
+            """;
+
+        await RunAsync(testCode, 6, 5, 6, 15);
+    }
+
+    [Fact]
+    public async Task NoReportWhenHeaderlessDeclarationIsFollowedByHeaderedDeclarationWithBlankLineAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Test
+            {
+                public int Value { get; set; }
+
+                [Obsolete]
+                private int _field;
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task ReportWhenMixedDeclarationKindsAlternateWithAndWithoutHeadersAndLastHasNoBlankLineAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Test
+            {
+                [Obsolete]
+                public void Method()
+                {
+                }
+
+                public int Value { get; set; }
+
+                [Obsolete]
+                private int _field;
+                [Obsolete]
+                public class Nested
+                {
+                }
+            }
+            """;
+
+        await RunAsync(testCode, 14, 5, 14, 15);
+    }
+
+    [Fact]
+    public async Task NoReportWhenMixedDeclarationKindsAlternateWithAndWithoutHeadersAndEachHasBlankLineWhereNeededAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Test
+            {
+                [Obsolete]
+                public void Method()
+                {
+                }
+
+                public int Value { get; set; }
+
+                [Obsolete]
+                private int _field;
+
+                public class Nested
+                {
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task ReportWhenPreviousDeclarationIsMultilineAndHeaderHasNoBlankLineAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Test
+            {
+                public void Method(
+                    int value)
+                {
+                }
+                [Obsolete]
+                public void Method2()
+                {
+                }
+            }
+            """;
+
+        await RunAsync(testCode, 9, 5, 9, 15);
+    }
+
+    [Fact]
+    public async Task NoReportWhenPreviousDeclarationIsMultilineAndHeaderHasBlankLineAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Test
+            {
+                public void Method(
+                    int value)
+                {
+                }
+
+                [Obsolete]
+                public void Method2()
+                {
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task ReportWhenBlankLineIsBetweenStackedAttributesWithoutBlankLineBeforeFirstAttributeAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Test
+            {
+                public void Method0()
+                {
+                }
+                [Obsolete]
+
+                [Serializable]
+                public void Method1()
+                {
+                }
+            }
+            """;
+
+        await RunAsync(testCode, 8, 5, 10, 19);
+    }
+
+    [Fact]
+    public async Task NoReportWhenBlankLineIsBetweenStackedAttributesAndBlankLineIsBeforeFirstAttributeAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Test
+            {
+                public void Method0()
+                {
+                }
+
+                [Obsolete]
+
+                [Serializable]
+                public void Method1()
+                {
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task ReportWhenBlankLineIsBetweenXmlDocAndAttributeWithoutBlankLineBeforeXmlDocAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Test
+            {
+                public void Method0()
+                {
+                }
+                /// <summary>
+                /// Test.
+                /// </summary>
+
+                [Obsolete]
+                public void Method1()
+                {
+                }
+            }
+            """;
+
+        await RunAsync(testCode, 8, 5, 12, 15);
+    }
+
+    [Fact]
+    public async Task NoReportWhenBlankLineIsBetweenXmlDocAndAttributeAndBlankLineIsBeforeXmlDocAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Test
+            {
+                public void Method0()
+                {
+                }
+
+                /// <summary>
+                /// Test.
+                /// </summary>
+
+                [Obsolete]
+                public void Method1()
+                {
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task NoReportWhenCommentSeparatedByBlankLineFromAttributeIsNotPartOfHeaderAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Test
+            {
+                public void Method0()
+                {
+                }
+                // Comment1.
+
+                [Obsolete]
+                public void Method1()
+                {
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task ReportWhenAttributeInsidePreprocessorDirectiveHasNoBlankLineBeforeDirectiveAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Test
+            {
+                public void Method0()
+                {
+                }
+            #if DEBUG
+                [Obsolete]
+            #endif
+                public void Method1()
+                {
+                }
+            }
+            """;
+
+        await RunAsync(testCode, 8, 1, 10, 7);
+    }
+
+    [Fact]
+    public async Task NoReportWhenAttributeInsidePreprocessorDirectiveHasBlankLineBeforeDirectiveAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Test
+            {
+                public void Method0()
+                {
+                }
+
+            #if DEBUG
+                [Obsolete]
+            #endif
+                public void Method1()
+                {
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task NoReportWhenFirstDeclarationInsideConditionalDirectiveHasHeaderDirectlyAfterDirectiveAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Test
+            {
+            #if true
+                [Obsolete]
+                public void Method0()
+                {
+                }
+            #endif
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task ReportWhenSecondDeclarationInsideConditionalDirectiveHasNoBlankLineBeforeHeaderAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Test
+            {
+            #if true
+                [Obsolete]
+                public void Method0()
+                {
+                }
+                [Obsolete]
+                public void Method1()
+                {
+                }
+            #endif
+            }
+            """;
+
+        await RunAsync(testCode, 10, 5, 10, 15);
+    }
+
+    [Fact]
+    public async Task NoReportWhenSecondDeclarationInsideConditionalDirectiveHasBlankLineBeforeHeaderAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Test
+            {
+            #if true
+                [Obsolete]
+                public void Method0()
+                {
+                }
+
+                [Obsolete]
+                public void Method1()
+                {
+                }
+            #endif
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task NoReportWhenEnumMembersAlternateWithAndWithoutHeadersAndEachHasBlankLineWhereNeededAsync()
+    {
+        string testCode = """
+            using System;
+
+            public enum Test
+            {
+                Value0 = 0,
+
+                [Obsolete]
+                Value1 = 1,
+
+                Value2 = 2,
+
+                [Obsolete]
+                Value3 = 3,
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task ReportWhenEnumMemberHeaderHasNoBlankLineRegardlessOfPreviousMemberHavingNoHeaderAsync()
+    {
+        string testCode = """
+            using System;
+
+            public enum Test
+            {
+                [Obsolete]
+                Value0 = 0,
+
+                Value1 = 1,
+                [Obsolete]
+                Value2 = 2,
+            }
+            """;
+
+        await RunAsync(testCode, 9, 5, 9, 15);
+    }
+
+    [Fact]
+    public async Task ReportWhenSecondRecordPropertyHeaderHasNoBlankLineAsync()
+    {
+        string testCode = """
+            using System;
+
+            public record Test
+            {
+                [Obsolete]
+                public int Value0 { get; init; }
+                [Obsolete]
+                public int Value1 { get; init; }
+            }
+            """;
+
+        await RunAsync(testCode, 7, 5, 7, 15);
+    }
+
+    [Fact]
+    public async Task NoReportWhenSecondRecordPropertyHeaderHasBlankLineAsync()
+    {
+        string testCode = """
+            using System;
+
+            public record Test
+            {
+                [Obsolete]
+                public int Value0 { get; init; }
+
+                [Obsolete]
+                public int Value1 { get; init; }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task ReportWhenSecondConstructorHeaderHasNoBlankLineAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Test
+            {
+                [Obsolete]
+                public Test()
+                {
+                }
+                [Obsolete]
+                public Test(int value)
+                {
+                }
+            }
+            """;
+
+        await RunAsync(testCode, 9, 5, 9, 15);
+    }
+
+    [Fact]
+    public async Task NoReportWhenSecondConstructorHeaderHasBlankLineAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Test
+            {
+                [Obsolete]
+                public Test()
+                {
+                }
+
+                [Obsolete]
+                public Test(int value)
+                {
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task ReportWhenSecondOperatorHeaderHasNoBlankLineAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Test
+            {
+                [Obsolete]
+                public static Test operator +(Test a, Test b) => a;
+                [Obsolete]
+                public static Test operator -(Test a, Test b) => a;
+            }
+            """;
+
+        await RunAsync(testCode, 7, 5, 7, 15);
+    }
+
+    [Fact]
+    public async Task NoReportWhenSecondOperatorHeaderHasBlankLineAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Test
+            {
+                [Obsolete]
+                public static Test operator +(Test a, Test b) => a;
+
+                [Obsolete]
+                public static Test operator -(Test a, Test b) => a;
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task ReportWhenSecondTopLevelDelegateHeaderHasNoBlankLineAsync()
+    {
+        string testCode = """
+            using System;
+
+            [Obsolete]
+            public delegate void Method0();
+            [Obsolete]
+            public delegate void Method1();
+            """;
+
+        await RunAsync(testCode, 5, 1, 5, 11);
+    }
+
+    [Fact]
+    public async Task NoReportWhenSecondTopLevelDelegateHeaderHasBlankLineAsync()
+    {
+        string testCode = """
+            using System;
+
+            [Obsolete]
+            public delegate void Method0();
+
+            [Obsolete]
+            public delegate void Method1();
             """;
 
         await RunAsync(testCode);
