@@ -1683,6 +1683,145 @@ public class Kuk0009DeclarationHeaderSeparationAnalyzerTests
         await RunAsync(testCode);
     }
 
+    [Fact]
+    public async Task NoReportWhenInlineAttributeSharesLineWithFirstEnumMemberAsync()
+    {
+        string testCode = """
+            using System;
+
+            public enum Test
+            {
+                [Obsolete] Value0 = 0,
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task NoReportWhenInlineAttributeSharesLineWithSubsequentEnumMemberAsync()
+    {
+        string testCode = """
+            using System;
+
+            public enum Test
+            {
+                Value0 = 0,
+                [Obsolete] Value1 = 1,
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task NoReportWhenMultipleInlineAttributesShareLineWithEnumMemberAsync()
+    {
+        string testCode = """
+            using System;
+
+            public enum Test
+            {
+                Value0 = 0,
+                [Obsolete, Serializable] Value1 = 1,
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task ReportWhenStackedAttributesEndWithLastAttributeInlineWithEnumMemberAsync()
+    {
+        string testCode = """
+            using System;
+
+            public enum Test
+            {
+                Value0 = 0,
+                [Obsolete]
+                [Serializable] Value1 = 1,
+            }
+            """;
+
+        await RunAsync(testCode, 6, 5, 7, 19);
+    }
+
+    [Fact]
+    public async Task NoReportWhenMultipleConsecutiveEnumMembersHaveInlineAttributesAsync()
+    {
+        string testCode = """
+            using System;
+
+            public enum Test
+            {
+                [Obsolete] Value0 = 0,
+                [Obsolete] Value1 = 1,
+                [Obsolete] Value2 = 2,
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task ReportWhenCommentIsBeforeInlineAttributeWithoutBlankLineAsync()
+    {
+        string testCode = """
+            using System;
+
+            public enum Test
+            {
+                Value0 = 0,
+                // Comment
+                [Obsolete] Value1 = 1,
+            }
+            """;
+
+        await RunAsync(testCode, 6, 5, 6, 15);
+    }
+
+    [Fact]
+    public async Task ReportWhenInlineAttributeSharesLineWithSubsequentMethodAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Test
+            {
+                public void Method0()
+                {
+                }
+                [Obsolete] public void Method1()
+                {
+                }
+            }
+            """;
+
+        await RunAsync(testCode, 8, 5, 8, 15);
+    }
+
+    [Fact]
+    public async Task NoReportWhenInlineAttributeSharesLineWithSubsequentMethodAndHasBlankLineAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Test
+            {
+                public void Method0()
+                {
+                }
+
+                [Obsolete] public void Method1()
+                {
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
     private static async Task RunAsync(
         string testCode,
         int startLine = 0,
