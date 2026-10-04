@@ -4,7 +4,6 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using Kuker.Analyzers.Constants;
 using Kuker.Core.Contants;
 using Microsoft.CodeAnalysis;
@@ -203,9 +202,7 @@ namespace Kuker.Analyzers.Rules
                 }
 
                 int effectiveTopLine = topHeaderLine ??
-                    (hasAttributes
-                        ? sourceText.Lines.GetLineFromPosition(attributeLists.First().SpanStart).LineNumber
-                        : coreLine);
+                    sourceText.Lines.GetLineFromPosition(attributeLists.First().SpanStart).LineNumber;
 
                 bool hasBlankLineAbove = effectiveTopLine > gapStartLine + 1;
 
@@ -220,7 +217,7 @@ namespace Kuker.Analyzers.Rules
 
                 int spanEnd;
 
-                if (!hasPrecedingHeaderLines && hasAttributes)
+                if (!hasPrecedingHeaderLines)
                 {
                     spanEnd = attributeLists.Last().Span.End;
 
