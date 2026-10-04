@@ -111,94 +111,176 @@ namespace Kuker.Analyzers.Rules
         )
             where TMember : SyntaxNode
         {
-            if (members == null)
+            if (members == null || members.Count == 0)
             {
                 return;
             }
 
+            SourceText sourceText = context.Node.SyntaxTree.GetText();
+
             for (int i = 1; i < members.Count; i++)
             {
                 TMember member = members[i];
-
-                SyntaxTriviaList leadingTrivia = member.GetLeadingTrivia();
+                TMember previousMember = members[i - 1];
                 SyntaxList<AttributeListSyntax> attributeLists = getAttributeLists(member);
 
-                List<SyntaxTrivia> commentTrivia = leadingTrivia.Where(IsCommentTrivia).ToList();
+                SyntaxToken coreToken = GetCoreToken(member, attributeLists);
+                SyntaxToken previousLastToken = previousMember.GetLastToken();
 
-                if (commentTrivia.Count > 0)
+                int gapStartPos = previousLastToken.Span.End;
+                int gapStartLine = sourceText.Lines.GetLineFromPosition(gapStartPos).LineNumber;
+                int coreLine = sourceText.Lines.GetLineFromPosition(coreToken.SpanStart).LineNumber;
+
+                bool hasAttributes = attributeLists.Count > 0;
+
+                int bottomScanLine = hasAttributes
+                    ? sourceText.Lines.GetLineFromPosition(attributeLists.First().SpanStart).LineNumber - 1
+                    : coreLine - 1;
+
+                int? topHeaderLine = null;
+                int? bottomHeaderLine = null;
+                int topHeaderPos = 0;
+
+                for (int line = bottomScanLine; line > gapStartLine; line--)
                 {
-                    SyntaxTrivia firstComment = commentTrivia[0];
-                    SyntaxTrivia lastComment = commentTrivia[commentTrivia.Count - 1];
+                    TextLine textLine = sourceText.Lines[line];
+                    string lineText = textLine.ToString();
+                    string trimmed = lineText.Trim();
 
-                    if (!HasBlankLineBeforeIndex(leadingTrivia, firstComment))
+                    if (trimmed.Length == 0)
                     {
-                        TextSpan span = TextSpan.FromBounds(
-                            firstComment.FullSpan.Start,
-                            GetTrimmedTriviaEnd(lastComment)
-                        );
-                        ReportDiagnostic(context, span);
+                        break;
+                    }
+
+                    if (bottomHeaderLine == null)
+                    {
+                        bottomHeaderLine = line;
+                    }
+
+                    topHeaderLine = line;
+                    topHeaderPos = textLine.Start + (lineText.Length - lineText.TrimStart().Length);
+                }
+
+                bool hasPrecedingHeaderLines = topHeaderLine.HasValue;
+
+                bool attributeInlineWithCore = hasAttributes &&
+                    sourceText.Lines.GetLineFromPosition(attributeLists.First().SpanStart).LineNumber == coreLine &&
+                    sourceText.Lines.GetLineFromPosition(attributeLists.Last().Span.End - 1).LineNumber == coreLine;
+
+                if (!hasAttributes && !hasPrecedingHeaderLines)
+                {
+                    continue;
+                }
+
+                if (member is EnumMemberDeclarationSyntax && hasAttributes && attributeInlineWithCore && !hasPrecedingHeaderLines)
+                {
+                    continue;
+                }
+
+                SyntaxTrivia? documentationTrivia = FindDocumentationCommentTrivia(member.GetLeadingTrivia());
+
+                if (documentationTrivia.HasValue)
+                {
+                    SyntaxTrivia docTrivia = documentationTrivia.Value;
+                    string docText = docTrivia.ToFullString();
+                    int docTrimmedLength = docText.Length;
+
+                    while (docTrimmedLength > 0 && (docText[docTrimmedLength - 1] == '\r' || docText[docTrimmedLength - 1] == '\n'))
+                    {
+                        docTrimmedLength--;
+                    }
+
+                    int docStart = docTrivia.FullSpan.Start;
+                    int docEnd = docTrivia.FullSpan.Start + docTrimmedLength;
+                    int docStartLine = sourceText.Lines.GetLineFromPosition(docStart).LineNumber;
+
+                    if (docStartLine <= gapStartLine + 1)
+                    {
+                        ReportDiagnostic(context, TextSpan.FromBounds(docStart, docEnd));
+                    }
+
+                    continue;
+                }
+
+                int effectiveTopLine = topHeaderLine ??
+                    (hasAttributes
+                        ? sourceText.Lines.GetLineFromPosition(attributeLists.First().SpanStart).LineNumber
+                        : coreLine);
+
+                bool hasBlankLineAbove = effectiveTopLine > gapStartLine + 1;
+
+                if (hasBlankLineAbove)
+                {
+                    continue;
+                }
+
+                int spanStart = hasPrecedingHeaderLines
+                    ? topHeaderPos
+                    : attributeLists.First().SpanStart;
+
+                int spanEnd;
+
+                if (!hasPrecedingHeaderLines && hasAttributes)
+                {
+                    spanEnd = attributeLists.Last().Span.End;
+
+                    int attrEndLine = sourceText.Lines.GetLineFromPosition(spanEnd - 1).LineNumber;
+
+                    for (int line = attrEndLine + 1; line < coreLine; line++)
+                    {
+                        TextLine textLine = sourceText.Lines[line];
+                        string trimmed = textLine.ToString().Trim();
+
+                        if (trimmed.Length == 0)
+                        {
+                            break;
+                        }
+
+                        spanEnd = textLine.Start + textLine.ToString().TrimEnd().Length;
                     }
                 }
-                else if (attributeLists.Count > 0)
+                else
                 {
-                    if (!HasBlankLine(leadingTrivia))
-                    {
-                        TextSpan span = TextSpan.FromBounds(
-                            attributeLists.First().SpanStart,
-                            attributeLists.Last().Span.End
-                        );
-                        ReportDiagnostic(context, span);
-                    }
+                    TextLine bottomLine = sourceText.Lines[bottomHeaderLine.Value];
+                    spanEnd = bottomLine.Start + bottomLine.ToString().TrimEnd().Length;
                 }
+
+                ReportDiagnostic(context, TextSpan.FromBounds(spanStart, spanEnd));
             }
         }
 
-        private static bool IsCommentTrivia(SyntaxTrivia trivia)
+        private static SyntaxTrivia? FindDocumentationCommentTrivia(SyntaxTriviaList leadingTrivia)
         {
-            return trivia.IsKind(SyntaxKind.SingleLineCommentTrivia) ||
-                trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) ||
-                trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia) ||
-                trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia);
-        }
-
-        private static int GetTrimmedTriviaEnd(SyntaxTrivia trivia)
-        {
-            string text = trivia.ToFullString();
-            int trimmedLength = text.Length;
-
-            while (trimmedLength > 0 && (text[trimmedLength - 1] == '\r' || text[trimmedLength - 1] == '\n'))
-            {
-                trimmedLength--;
-            }
-
-            return trivia.FullSpan.Start + trimmedLength;
-        }
-
-        private static bool HasBlankLineBeforeIndex(SyntaxTriviaList leadingTrivia, SyntaxTrivia beforeTrivia)
-        {
-            int endOfLineCount = 0;
-
             foreach (SyntaxTrivia trivia in leadingTrivia)
             {
-                if (trivia == beforeTrivia)
+                if (trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia) ||
+                    trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
                 {
-                    break;
-                }
-
-                if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-                {
-                    endOfLineCount++;
+                    return trivia;
                 }
             }
 
-            return endOfLineCount >= 1;
+            return null;
         }
 
-        private static bool HasBlankLine(SyntaxTriviaList leadingTrivia)
+        private static SyntaxToken GetCoreToken(SyntaxNode member, SyntaxList<AttributeListSyntax> attributeLists)
         {
-            int endOfLineCount = leadingTrivia.Count(t => t.IsKind(SyntaxKind.EndOfLineTrivia));
+            if (attributeLists.Count == 0)
+            {
+                return member.GetFirstToken();
+            }
 
-            return endOfLineCount >= 1;
+            int afterAttributesPos = attributeLists.Last().Span.End;
+
+            foreach (SyntaxToken token in member.DescendantTokens())
+            {
+                if (token.SpanStart >= afterAttributesPos)
+                {
+                    return token;
+                }
+            }
+
+            return member.GetFirstToken();
         }
 
         private static void ReportDiagnostic(SyntaxNodeAnalysisContext context, TextSpan span)
