@@ -170,7 +170,7 @@ public class Kuk0009DeclarationHeaderSeparationAnalyzerTests
             }
             """;
 
-        await RunAsync(testCode, 8, 5, 8, 15);
+        await RunAsync(testCode, 7, 5, 7, 15);
     }
 
     [Fact]
@@ -386,7 +386,7 @@ public class Kuk0009DeclarationHeaderSeparationAnalyzerTests
             }
             """;
 
-        await RunAsync(testCode, 9, 5, 9, 15);
+        await RunAsync(testCode, 9, 5, 10, 19);
     }
 
     [Fact]
@@ -767,7 +767,7 @@ public class Kuk0009DeclarationHeaderSeparationAnalyzerTests
             }
             """;
 
-        await RunAsync(testCode, 5, 5, 5, 20);
+        await RunAsync(testCode, 6, 5, 6, 20);
     }
 
     [Fact]
@@ -807,7 +807,7 @@ public class Kuk0009DeclarationHeaderSeparationAnalyzerTests
             }
             """;
 
-        await RunAsync(testCode, 5, 5, 6, 21);
+        await RunAsync(testCode, 6, 5, 7, 21);
     }
 
     [Fact]
@@ -850,7 +850,7 @@ public class Kuk0009DeclarationHeaderSeparationAnalyzerTests
             }
             """;
 
-        await RunAsync(testCode, 8, 5, 9, 15);
+        await RunAsync(testCode, 8, 5, 8, 17);
     }
 
     [Fact]
@@ -893,7 +893,7 @@ public class Kuk0009DeclarationHeaderSeparationAnalyzerTests
             }
             """;
 
-        await RunAsync(testCode, 5, 5, 6, 17);
+        await RunAsync(testCode, 6, 5, 7, 17);
     }
 
     [Fact]
@@ -938,7 +938,7 @@ public class Kuk0009DeclarationHeaderSeparationAnalyzerTests
             }
             """;
 
-        await RunAsync(testCode, 9, 5, 9, 15);
+        await RunAsync(testCode, 9, 5, 11, 19);
     }
 
     [Fact]
@@ -1075,7 +1075,7 @@ public class Kuk0009DeclarationHeaderSeparationAnalyzerTests
 
             public class Test
             {
-                [return: Obsolete]
+                [method: Obsolete]
                 public int Method0()
                 {
                     return 0;
@@ -1258,6 +1258,7 @@ public class Kuk0009DeclarationHeaderSeparationAnalyzerTests
     {
         string testCode = """
             using System;
+            using System.Runtime.CompilerServices;
 
             public class Test
             {
@@ -1266,14 +1267,14 @@ public class Kuk0009DeclarationHeaderSeparationAnalyzerTests
                 }
                 [Obsolete]
 
-                [Serializable]
+                [MethodImpl(MethodImplOptions.NoInlining)]
                 public void Method1()
                 {
                 }
             }
             """;
 
-        await RunAsync(testCode, 8, 5, 10, 19);
+        await RunAsync(testCode, 9, 5, 11, 47);
     }
 
     [Fact]
@@ -1281,6 +1282,7 @@ public class Kuk0009DeclarationHeaderSeparationAnalyzerTests
     {
         string testCode = """
             using System;
+            using System.Runtime.CompilerServices;
 
             public class Test
             {
@@ -1290,7 +1292,7 @@ public class Kuk0009DeclarationHeaderSeparationAnalyzerTests
 
                 [Obsolete]
 
-                [Serializable]
+                [MethodImpl(MethodImplOptions.NoInlining)]
                 public void Method1()
                 {
                 }
@@ -1322,7 +1324,7 @@ public class Kuk0009DeclarationHeaderSeparationAnalyzerTests
             }
             """;
 
-        await RunAsync(testCode, 8, 5, 12, 15);
+        await RunAsync(testCode, 8, 5, 10, 19);
     }
 
     [Fact]
@@ -1723,7 +1725,7 @@ public class Kuk0009DeclarationHeaderSeparationAnalyzerTests
             public enum Test
             {
                 Value0 = 0,
-                [Obsolete, Serializable] Value1 = 1,
+                [Obsolete, CLSCompliant(true)] Value1 = 1,
             }
             """;
 
@@ -1740,11 +1742,11 @@ public class Kuk0009DeclarationHeaderSeparationAnalyzerTests
             {
                 Value0 = 0,
                 [Obsolete]
-                [Serializable] Value1 = 1,
+                [CLSCompliant(true)] Value1 = 1,
             }
             """;
 
-        await RunAsync(testCode, 6, 5, 7, 19);
+        await RunAsync(testCode, 6, 5, 7, 25);
     }
 
     [Fact]
