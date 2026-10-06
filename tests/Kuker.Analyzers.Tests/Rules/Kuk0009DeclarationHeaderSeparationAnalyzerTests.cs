@@ -1824,6 +1824,94 @@ public class Kuk0009DeclarationHeaderSeparationAnalyzerTests
         await RunAsync(testCode);
     }
 
+    [Fact]
+    public async Task ReportWhenMemberInsideBlockScopedNamespaceHasNoBlankLineBeforeHeaderAsync()
+    {
+        string testCode = """
+            using System;
+
+            namespace MyNamespace
+            {
+                [Obsolete]
+                public class Test0
+                {
+                }
+                [Obsolete]
+                public class Test1
+                {
+                }
+            }
+            """;
+
+        await RunAsync(testCode, 9, 5, 9, 15);
+    }
+
+    [Fact]
+    public async Task NoReportWhenMemberInsideBlockScopedNamespaceHasBlankLineBeforeHeaderAsync()
+    {
+        string testCode = """
+            using System;
+
+            namespace MyNamespace
+            {
+                [Obsolete]
+                public class Test0
+                {
+                }
+
+                [Obsolete]
+                public class Test1
+                {
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task ReportWhenMemberInsideFileScopedNamespaceHasNoBlankLineBeforeHeaderAsync()
+    {
+        string testCode = """
+            using System;
+
+            namespace MyNamespace;
+
+            [Obsolete]
+            public class Test0
+            {
+            }
+            [Obsolete]
+            public class Test1
+            {
+            }
+            """;
+
+        await RunAsync(testCode, 9, 1, 9, 11);
+    }
+
+    [Fact]
+    public async Task NoReportWhenMemberInsideFileScopedNamespaceHasBlankLineBeforeHeaderAsync()
+    {
+        string testCode = """
+            using System;
+
+            namespace MyNamespace;
+
+            [Obsolete]
+            public class Test0
+            {
+            }
+
+            [Obsolete]
+            public class Test1
+            {
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
     private static async Task RunAsync(
         string testCode,
         int startLine = 0,
