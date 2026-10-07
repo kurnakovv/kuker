@@ -1912,6 +1912,51 @@ public class Kuk0009DeclarationHeaderSeparationAnalyzerTests
         await RunAsync(testCode);
     }
 
+    [Fact]
+    public async Task ReportWhenPlainCommentIsBetweenAttributeAndCoreDeclarationWithoutBlankLineAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Test
+            {
+                public void Method0()
+                {
+                }
+                [Obsolete]
+                // Some comment
+                public void Method1()
+                {
+                }
+            }
+            """;
+
+        await RunAsync(testCode, 8, 5, 9, 20);
+    }
+
+    [Fact]
+    public async Task NoReportWhenPlainCommentIsBetweenAttributeAndCoreDeclarationWithBlankLineAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Test
+            {
+                public void Method0()
+                {
+                }
+
+                [Obsolete]
+                // Some comment
+                public void Method1()
+                {
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
     private static async Task RunAsync(
         string testCode,
         int startLine = 0,
