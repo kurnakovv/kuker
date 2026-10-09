@@ -1957,12 +1957,77 @@ public class Kuk0009DeclarationHeaderSeparationAnalyzerTests
         await RunAsync(testCode);
     }
 
+    [Fact]
+    public async Task NoReportWhenMemberWithAttributeIsIncompleteAndHasNoFollowingDeclarationAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Test
+            {
+                public void Method0()
+                {
+                }
+                [Obsolete]
+            }
+            """;
+
+        await RunAsync(testCode, compilerDiagnostics: CompilerDiagnostics.None);
+    }
+
+    [Fact]
+    public async Task NoReportWhenClassHasNoMembersAndOnlyHasDanglingAttributeAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Test
+            {
+                [Obsolete]
+            }
+            """;
+
+        await RunAsync(testCode, compilerDiagnostics: CompilerDiagnostics.None);
+    }
+
+    [Fact]
+    public async Task NoReportWhenEnumMemberWithAttributeIsIncompleteAndHasNoFollowingDeclarationAsync()
+    {
+        string testCode = """
+            using System;
+
+            public enum Test
+            {
+                Value0,
+                [Obsolete]
+            }
+            """;
+
+        await RunAsync(testCode, compilerDiagnostics: CompilerDiagnostics.None);
+    }
+
+    [Fact]
+    public async Task NoReportWhenEnumHasNoValuesAndOnlyHasDanglingAttributeAsync()
+    {
+        string testCode = """
+            using System;
+
+            public enum Test
+            {
+                [Obsolete]
+            }
+            """;
+
+        await RunAsync(testCode, compilerDiagnostics: CompilerDiagnostics.None);
+    }
+
     private static async Task RunAsync(
         string testCode,
         int startLine = 0,
         int startColumn = 0,
         int endLine = 0,
-        int endColumn = 0
+        int endColumn = 0,
+        CompilerDiagnostics? compilerDiagnostics = null
     )
     {
         CSharpAnalyzerTest<Kuk0009DeclarationHeaderSeparationAnalyzer, DefaultVerifier> test = new()
@@ -1970,6 +2035,11 @@ public class Kuk0009DeclarationHeaderSeparationAnalyzerTests
             TestCode = testCode,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         };
+
+        if (compilerDiagnostics.HasValue)
+        {
+            test.CompilerDiagnostics = compilerDiagnostics.Value;
+        }
 
         if (startLine > 0)
         {

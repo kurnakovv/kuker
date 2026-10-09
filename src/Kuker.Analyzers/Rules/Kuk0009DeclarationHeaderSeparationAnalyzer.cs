@@ -121,14 +121,26 @@ namespace Kuker.Analyzers.Rules
             {
                 TMember member = members[i];
                 TMember previousMember = members[i - 1];
+
+                if (member is IncompleteMemberSyntax)
+                {
+                    continue;
+                }
+
                 SyntaxList<AttributeListSyntax> attributeLists = getAttributeLists(member);
 
-                SyntaxToken coreToken = GetCoreToken(member, attributeLists);
+                SyntaxToken? coreTokenOrNull = TryGetCoreToken(member, attributeLists);
+
+                if (coreTokenOrNull == null)
+                {
+                    continue;
+                }
+
+                SyntaxToken coreToken = coreTokenOrNull.Value;
                 SyntaxToken previousLastToken = previousMember.GetLastToken();
 
-                int gapStartPos = previousLastToken.Span.End;
-                int gapStartLine = sourceText.Lines.GetLineFromPosition(gapStartPos).LineNumber;
                 int coreLine = sourceText.Lines.GetLineFromPosition(coreToken.SpanStart).LineNumber;
+                int previousLine = sourceText.Lines.GetLineFromPosition(previousLastToken.Span.End).LineNumber;
 
                 bool hasAttributes = attributeLists.Count > 0;
 
@@ -140,7 +152,7 @@ namespace Kuker.Analyzers.Rules
                 int? bottomHeaderLine = null;
                 int topHeaderPos = 0;
 
-                for (int line = bottomScanLine; line > gapStartLine; line--)
+                for (int line = bottomScanLine; line > previousLine; line--)
                 {
                     TextLine textLine = sourceText.Lines[line];
                     string lineText = textLine.ToString();
@@ -193,7 +205,7 @@ namespace Kuker.Analyzers.Rules
                     int docEnd = docTrivia.FullSpan.Start + docTrimmedLength;
                     int docStartLine = sourceText.Lines.GetLineFromPosition(docStart).LineNumber;
 
-                    if (docStartLine <= gapStartLine + 1)
+                    if (docStartLine <= previousLine + 1)
                     {
                         ReportDiagnostic(context, TextSpan.FromBounds(docStart, docEnd));
                     }
@@ -204,7 +216,7 @@ namespace Kuker.Analyzers.Rules
                 int effectiveTopLine = topHeaderLine ??
                     sourceText.Lines.GetLineFromPosition(attributeLists.First().SpanStart).LineNumber;
 
-                bool hasBlankLineAbove = effectiveTopLine > gapStartLine + 1;
+                bool hasBlankLineAbove = effectiveTopLine > previousLine + 1;
 
                 if (hasBlankLineAbove)
                 {
@@ -260,24 +272,21 @@ namespace Kuker.Analyzers.Rules
             return null;
         }
 
-        private static SyntaxToken GetCoreToken(SyntaxNode member, SyntaxList<AttributeListSyntax> attributeLists)
+        private static SyntaxToken? TryGetCoreToken(SyntaxNode member, SyntaxList<AttributeListSyntax> attributeLists)
         {
             if (attributeLists.Count == 0)
             {
                 return member.GetFirstToken();
             }
 
-            int afterAttributesPos = attributeLists.Last().Span.End;
+            SyntaxToken nextToken = attributeLists.Last().GetLastToken().GetNextToken();
 
-            foreach (SyntaxToken token in member.DescendantTokens())
+            if (!member.FullSpan.Contains(nextToken.SpanStart))
             {
-                if (token.SpanStart >= afterAttributesPos)
-                {
-                    return token;
-                }
+                return null;
             }
 
-            return member.GetFirstToken();
+            return nextToken;
         }
 
         private static void ReportDiagnostic(SyntaxNodeAnalysisContext context, TextSpan span)
