@@ -181,7 +181,7 @@ namespace Kuker.Analyzers.Rules
 
                 if (!hasPrecedingHeaderLines && member is EnumMemberDeclarationSyntax)
                 {
-                    bool attributeInlineWithCore = hasAttributes &&
+                    bool attributeInlineWithCore =
                         sourceText.Lines.GetLineFromPosition(attributeLists.First().SpanStart).LineNumber == coreLine &&
                         sourceText.Lines.GetLineFromPosition(attributeLists.Last().Span.End - 1).LineNumber == coreLine;
 
