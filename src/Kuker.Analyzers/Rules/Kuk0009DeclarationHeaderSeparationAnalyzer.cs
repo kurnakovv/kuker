@@ -179,13 +179,16 @@ namespace Kuker.Analyzers.Rules
                     continue;
                 }
 
-                bool attributeInlineWithCore = hasAttributes &&
-                    sourceText.Lines.GetLineFromPosition(attributeLists.First().SpanStart).LineNumber == coreLine &&
-                    sourceText.Lines.GetLineFromPosition(attributeLists.Last().Span.End - 1).LineNumber == coreLine;
-
-                if (member is EnumMemberDeclarationSyntax && hasAttributes && attributeInlineWithCore && !hasPrecedingHeaderLines)
+                if (!hasPrecedingHeaderLines && member is EnumMemberDeclarationSyntax)
                 {
-                    continue;
+                    bool attributeInlineWithCore = hasAttributes &&
+                        sourceText.Lines.GetLineFromPosition(attributeLists.First().SpanStart).LineNumber == coreLine &&
+                        sourceText.Lines.GetLineFromPosition(attributeLists.Last().Span.End - 1).LineNumber == coreLine;
+
+                    if (attributeInlineWithCore)
+                    {
+                        continue;
+                    }
                 }
 
                 SyntaxTrivia? documentationTrivia = FindDocumentationCommentTrivia(member.GetLeadingTrivia());
