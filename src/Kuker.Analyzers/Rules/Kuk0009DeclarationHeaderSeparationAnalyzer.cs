@@ -150,7 +150,7 @@ namespace Kuker.Analyzers.Rules
 
                 int? topHeaderLine = null;
                 int? bottomHeaderLine = null;
-                int topHeaderPos = 0;
+                int topHeaderPosition = 0;
 
                 for (int line = bottomScanLine; line > previousLine; line--)
                 {
@@ -169,19 +169,19 @@ namespace Kuker.Analyzers.Rules
                     }
 
                     topHeaderLine = line;
-                    topHeaderPos = textLine.Start + (lineText.Length - lineText.TrimStart().Length);
+                    topHeaderPosition = textLine.Start + (lineText.Length - lineText.TrimStart().Length);
                 }
 
                 bool hasPrecedingHeaderLines = topHeaderLine.HasValue;
-
-                bool attributeInlineWithCore = hasAttributes &&
-                    sourceText.Lines.GetLineFromPosition(attributeLists.First().SpanStart).LineNumber == coreLine &&
-                    sourceText.Lines.GetLineFromPosition(attributeLists.Last().Span.End - 1).LineNumber == coreLine;
 
                 if (!hasAttributes && !hasPrecedingHeaderLines)
                 {
                     continue;
                 }
+
+                bool attributeInlineWithCore = hasAttributes &&
+                    sourceText.Lines.GetLineFromPosition(attributeLists.First().SpanStart).LineNumber == coreLine &&
+                    sourceText.Lines.GetLineFromPosition(attributeLists.Last().Span.End - 1).LineNumber == coreLine;
 
                 if (member is EnumMemberDeclarationSyntax && hasAttributes && attributeInlineWithCore && !hasPrecedingHeaderLines)
                 {
@@ -224,7 +224,7 @@ namespace Kuker.Analyzers.Rules
                 }
 
                 int spanStart = hasPrecedingHeaderLines
-                    ? topHeaderPos
+                    ? topHeaderPosition
                     : attributeLists.First().SpanStart;
 
                 int spanEnd;
