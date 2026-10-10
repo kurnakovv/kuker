@@ -199,7 +199,13 @@ namespace Kuker.Analyzers.Rules
                     string docText = docTrivia.ToFullString();
                     int docTrimmedLength = docText.Length;
 
-                    while (docTrimmedLength > 0 && (docText[docTrimmedLength - 1] == '\r' || docText[docTrimmedLength - 1] == '\n'))
+                    while (
+                        docTrimmedLength > 0 &&
+                        (
+                            docText[docTrimmedLength - 1] == '\r' ||
+                            docText[docTrimmedLength - 1] == '\n'
+                        )
+                    )
                     {
                         docTrimmedLength--;
                     }
