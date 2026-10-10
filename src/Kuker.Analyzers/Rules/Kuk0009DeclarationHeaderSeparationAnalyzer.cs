@@ -241,17 +241,17 @@ namespace Kuker.Analyzers.Rules
 
                 if (hasPrecedingHeaderLines)
                 {
-                    TextLine bottomLine = sourceText.Lines[bottomHeaderLine.Value];
-                    spanEnd = bottomLine.Start + bottomLine.ToString().TrimEnd().Length;
+                    TextLine bottomTextLine = sourceText.Lines[bottomHeaderLine.Value];
+                    spanEnd = bottomTextLine.Start + bottomTextLine.ToString().TrimEnd().Length;
                     ReportDiagnostic(context, TextSpan.FromBounds(spanStart, spanEnd));
                     continue;
                 }
 
                 spanEnd = attributeLists.Last().Span.End;
 
-                int attrEndLine = sourceText.Lines.GetLineFromPosition(spanEnd - 1).LineNumber;
+                int attributeEndLine = sourceText.Lines.GetLineFromPosition(spanEnd - 1).LineNumber;
 
-                for (int line = attrEndLine + 1; line < coreLine; line++)
+                for (int line = attributeEndLine + 1; line < coreLine; line++)
                 {
                     TextLine textLine = sourceText.Lines[line];
                     string trimmed = textLine.ToString().Trim();
