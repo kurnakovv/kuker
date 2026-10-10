@@ -219,7 +219,7 @@ namespace Kuker.Analyzers.Rules
 
                     if (docStartLine <= previousLine + 1)
                     {
-                        ReportDiagnostic(context, TextSpan.FromBounds(docStart, docEnd));
+                        ReportDiagnostic(context, docStart, docEnd);
                     }
 
                     continue;
@@ -245,7 +245,7 @@ namespace Kuker.Analyzers.Rules
                 {
                     TextLine bottomTextLine = sourceText.Lines[bottomHeaderLine.Value];
                     spanEnd = bottomTextLine.Start + bottomTextLine.ToString().TrimEnd().Length;
-                    ReportDiagnostic(context, TextSpan.FromBounds(spanStart, spanEnd));
+                    ReportDiagnostic(context, spanStart, spanEnd);
                     continue;
                 }
 
@@ -266,7 +266,7 @@ namespace Kuker.Analyzers.Rules
                     spanEnd = textLine.Start + textLine.ToString().TrimEnd().Length;
                 }
 
-                ReportDiagnostic(context, TextSpan.FromBounds(spanStart, spanEnd));
+                ReportDiagnostic(context, spanStart, spanEnd);
             }
         }
 
@@ -301,9 +301,9 @@ namespace Kuker.Analyzers.Rules
             return nextToken;
         }
 
-        private static void ReportDiagnostic(SyntaxNodeAnalysisContext context, TextSpan span)
+        private static void ReportDiagnostic(SyntaxNodeAnalysisContext context, int start, int end)
         {
-            Location location = Location.Create(context.Node.SyntaxTree, span);
+            Location location = Location.Create(context.Node.SyntaxTree, TextSpan.FromBounds(start, end));
 
             context.ReportDiagnostic(Diagnostic.Create(s_rule, location));
         }
