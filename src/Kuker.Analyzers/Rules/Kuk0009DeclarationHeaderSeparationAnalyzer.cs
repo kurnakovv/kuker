@@ -129,7 +129,11 @@ namespace Kuker.Analyzers.Rules
 
                 SyntaxList<AttributeListSyntax> attributeLists = getAttributeLists(member);
 
-                SyntaxToken? coreTokenOrNull = TryGetCoreToken(member, attributeLists);
+                bool hasAttributes = attributeLists.Count > 0;
+                AttributeListSyntax firstAttribute = hasAttributes ? attributeLists.First() : null;
+                AttributeListSyntax lastAttribute = hasAttributes ? attributeLists.Last() : null;
+
+                SyntaxToken? coreTokenOrNull = TryGetCoreToken(member, lastAttribute);
 
                 if (coreTokenOrNull == null)
                 {
@@ -142,10 +146,8 @@ namespace Kuker.Analyzers.Rules
                 int coreLine = sourceText.Lines.GetLineFromPosition(coreToken.SpanStart).LineNumber;
                 int previousLine = sourceText.Lines.GetLineFromPosition(previousLastToken.Span.End).LineNumber;
 
-                bool hasAttributes = attributeLists.Count > 0;
-
                 int bottomScanLine = hasAttributes
-                    ? sourceText.Lines.GetLineFromPosition(attributeLists.First().SpanStart).LineNumber - 1
+                    ? sourceText.Lines.GetLineFromPosition(firstAttribute.SpanStart).LineNumber - 1
                     : coreLine - 1;
 
                 int? topHeaderLine = null;
@@ -182,8 +184,8 @@ namespace Kuker.Analyzers.Rules
                 if (!hasPrecedingHeaderLines && member is EnumMemberDeclarationSyntax)
                 {
                     bool attributeInlineWithCore =
-                        sourceText.Lines.GetLineFromPosition(attributeLists.First().SpanStart).LineNumber == coreLine &&
-                        sourceText.Lines.GetLineFromPosition(attributeLists.Last().Span.End - 1).LineNumber == coreLine;
+                        sourceText.Lines.GetLineFromPosition(firstAttribute.SpanStart).LineNumber == coreLine &&
+                        sourceText.Lines.GetLineFromPosition(lastAttribute.Span.End - 1).LineNumber == coreLine;
 
                     if (attributeInlineWithCore)
                     {
@@ -224,7 +226,7 @@ namespace Kuker.Analyzers.Rules
                 }
 
                 int effectiveTopLine = topHeaderLine ??
-                    sourceText.Lines.GetLineFromPosition(attributeLists.First().SpanStart).LineNumber;
+                    sourceText.Lines.GetLineFromPosition(firstAttribute.SpanStart).LineNumber;
 
                 bool hasBlankLineAbove = effectiveTopLine > previousLine + 1;
 
@@ -235,7 +237,7 @@ namespace Kuker.Analyzers.Rules
 
                 int spanStart = hasPrecedingHeaderLines
                     ? topHeaderPosition
-                    : attributeLists.First().SpanStart;
+                    : firstAttribute.SpanStart;
 
                 int spanEnd;
 
@@ -247,7 +249,7 @@ namespace Kuker.Analyzers.Rules
                     continue;
                 }
 
-                spanEnd = attributeLists.Last().Span.End;
+                spanEnd = lastAttribute.Span.End;
 
                 int attributeEndLine = sourceText.Lines.GetLineFromPosition(spanEnd - 1).LineNumber;
 
@@ -282,14 +284,14 @@ namespace Kuker.Analyzers.Rules
             return null;
         }
 
-        private static SyntaxToken? TryGetCoreToken(SyntaxNode member, SyntaxList<AttributeListSyntax> attributeLists)
+        private static SyntaxToken? TryGetCoreToken(SyntaxNode member, AttributeListSyntax lastAttribute)
         {
-            if (attributeLists.Count == 0)
+            if (lastAttribute == null)
             {
                 return member.GetFirstToken();
             }
 
-            SyntaxToken nextToken = attributeLists.Last().GetLastToken().GetNextToken();
+            SyntaxToken nextToken = lastAttribute.GetLastToken().GetNextToken();
 
             if (!member.FullSpan.Contains(nextToken.SpanStart))
             {
