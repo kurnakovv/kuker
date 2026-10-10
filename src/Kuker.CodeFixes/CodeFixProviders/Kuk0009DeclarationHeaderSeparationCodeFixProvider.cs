@@ -68,11 +68,6 @@ namespace Kuker.CodeFixes.CodeFixProviders
                 ? sourceText.ToString(TextSpan.FromBounds(sourceText.Lines[0].End, sourceText.Lines[0].EndIncludingLineBreak))
                 : "\r\n";
 
-            if (string.IsNullOrEmpty(newLineText))
-            {
-                newLineText = "\r\n";
-            }
-
             SourceText newSourceText = sourceText.WithChanges(new TextChange(new TextSpan(line.Start, 0), newLineText));
 
             return document.WithText(newSourceText);
