@@ -2,6 +2,7 @@
 // This file is licensed under the MIT License.
 // See the LICENSE file in the project root for full license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Kuker.Analyzers.Constants;
@@ -106,9 +107,8 @@ namespace Kuker.Analyzers.Rules
         private static void AnalyzeMembers<TMember>(
             SyntaxNodeAnalysisContext context,
             IReadOnlyList<TMember> members,
-            System.Func<TMember, SyntaxList<AttributeListSyntax>> getAttributeLists
-        )
-            where TMember : SyntaxNode
+            Func<TMember, SyntaxList<AttributeListSyntax>> getAttributeLists
+        ) where TMember : SyntaxNode
         {
             if (members == null || members.Count == 0)
             {
