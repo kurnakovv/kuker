@@ -199,6 +199,7 @@ namespace Kuker.Analyzers.Rules
                     string docText = docTrivia.ToFullString();
                     int docTrimmedLength = docText.Length;
 
+                    // Better than `docText.TrimEnd('\r', '\n');`, because avoids allocating a new string.
                     while (
                         docTrimmedLength > 0 &&
                         (
