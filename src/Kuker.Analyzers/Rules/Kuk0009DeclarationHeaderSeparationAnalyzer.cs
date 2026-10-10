@@ -239,29 +239,29 @@ namespace Kuker.Analyzers.Rules
 
                 int spanEnd;
 
-                if (!hasPrecedingHeaderLines)
-                {
-                    spanEnd = attributeLists.Last().Span.End;
-
-                    int attrEndLine = sourceText.Lines.GetLineFromPosition(spanEnd - 1).LineNumber;
-
-                    for (int line = attrEndLine + 1; line < coreLine; line++)
-                    {
-                        TextLine textLine = sourceText.Lines[line];
-                        string trimmed = textLine.ToString().Trim();
-
-                        if (trimmed.Length == 0)
-                        {
-                            break;
-                        }
-
-                        spanEnd = textLine.Start + textLine.ToString().TrimEnd().Length;
-                    }
-                }
-                else
+                if (hasPrecedingHeaderLines)
                 {
                     TextLine bottomLine = sourceText.Lines[bottomHeaderLine.Value];
                     spanEnd = bottomLine.Start + bottomLine.ToString().TrimEnd().Length;
+                    ReportDiagnostic(context, TextSpan.FromBounds(spanStart, spanEnd));
+                    continue;
+                }
+
+                spanEnd = attributeLists.Last().Span.End;
+
+                int attrEndLine = sourceText.Lines.GetLineFromPosition(spanEnd - 1).LineNumber;
+
+                for (int line = attrEndLine + 1; line < coreLine; line++)
+                {
+                    TextLine textLine = sourceText.Lines[line];
+                    string trimmed = textLine.ToString().Trim();
+
+                    if (trimmed.Length == 0)
+                    {
+                        break;
+                    }
+
+                    spanEnd = textLine.Start + textLine.ToString().TrimEnd().Length;
                 }
 
                 ReportDiagnostic(context, TextSpan.FromBounds(spanStart, spanEnd));
