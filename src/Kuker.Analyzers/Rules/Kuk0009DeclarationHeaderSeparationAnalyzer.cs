@@ -154,6 +154,10 @@ namespace Kuker.Analyzers.Rules
                 int? bottomHeaderLine = null;
                 int topHeaderPosition = 0;
 
+                SyntaxTriviaList headerTrivia = hasAttributes
+                    ? firstAttribute.GetLeadingTrivia()
+                    : coreToken.LeadingTrivia;
+
                 for (int line = bottomScanLine; line > previousLine; line--)
                 {
                     TextLine textLine = sourceText.Lines[line];
@@ -162,6 +166,11 @@ namespace Kuker.Analyzers.Rules
 
                     if (trimmed.Length == 0)
                     {
+                        if (IsLineInsideCommentTrivia(headerTrivia, textLine))
+                        {
+                            continue;
+                        }
+
                         break;
                     }
 
@@ -252,6 +261,7 @@ namespace Kuker.Analyzers.Rules
                 spanEnd = lastAttribute.Span.End;
 
                 int attributeEndLine = sourceText.Lines.GetLineFromPosition(spanEnd - 1).LineNumber;
+                SyntaxTriviaList trailingHeaderTrivia = coreToken.LeadingTrivia;
 
                 for (int line = attributeEndLine + 1; line < coreLine; line++)
                 {
@@ -260,6 +270,11 @@ namespace Kuker.Analyzers.Rules
 
                     if (trimmed.Length == 0)
                     {
+                        if (IsLineInsideCommentTrivia(trailingHeaderTrivia, textLine))
+                        {
+                            continue;
+                        }
+
                         break;
                     }
 
@@ -268,6 +283,27 @@ namespace Kuker.Analyzers.Rules
 
                 ReportDiagnostic(context, spanStart, spanEnd);
             }
+        }
+
+        private static bool IsLineInsideCommentTrivia(SyntaxTriviaList triviaList, TextLine textLine)
+        {
+            foreach (SyntaxTrivia trivia in triviaList)
+            {
+                if (!trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) &&
+                    !trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
+                {
+                    continue;
+                }
+
+                if (trivia.FullSpan.Start <= textLine.Start &&
+                    trivia.FullSpan.End >= textLine.EndIncludingLineBreak
+                )
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static SyntaxTrivia? FindDocumentationCommentTrivia(SyntaxTriviaList leadingTrivia)
