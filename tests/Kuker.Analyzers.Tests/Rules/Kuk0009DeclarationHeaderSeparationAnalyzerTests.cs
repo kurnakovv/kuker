@@ -875,6 +875,55 @@ public class Kuk0009DeclarationHeaderSeparationAnalyzerTests
     }
 
     [Fact]
+    public async Task ReportWhenBlankLineInsideBlockCommentAfterAttributeIsNotTreatedAsSeparatorAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Test
+            {
+                public void Method0()
+                {
+                }
+                [Obsolete]
+                /* Comment1.
+
+                Continuation. */
+                public void Method1()
+                {
+                }
+            }
+            """;
+
+        await RunAsync(testCode, 8, 5, 11, 21);
+    }
+
+    [Fact]
+    public async Task NoReportWhenBlankLineBeforeAttributeIsRealSeparatorAndBlockCommentFollowsAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Test
+            {
+                public void Method0()
+                {
+                }
+
+                [Obsolete]
+                /* Comment1.
+
+                Continuation. */
+                public void Method1()
+                {
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
     public async Task ReportWhenCommentAndAttributeAreBeforeSecondDeclarationWithoutBlankLineAsync()
     {
         string testCode = """
