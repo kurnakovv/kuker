@@ -558,6 +558,51 @@ public class Kuk0009DeclarationHeaderSeparationAnalyzerTests
     }
 
     [Fact]
+    public async Task ReportWhenCommentPrecedesXmlDocHeaderWithoutBlankLineAsync()
+    {
+        string testCode = """
+            public class Test
+            {
+                public void Method0()
+                {
+                }
+                // note
+                /// <summary>
+                /// Method1.
+                /// </summary>
+                public void Method1()
+                {
+                }
+            }
+            """;
+
+        await RunAsync(testCode, 6, 5, 9, 19);
+    }
+
+    [Fact]
+    public async Task NoReportWhenCommentPrecedesXmlDocHeaderWithBlankLineAsync()
+    {
+        string testCode = """
+            public class Test
+            {
+                public void Method0()
+                {
+                }
+
+                // note
+                /// <summary>
+                /// Method1.
+                /// </summary>
+                public void Method1()
+                {
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
     public async Task NoReportWhenXmlDocIsBeforeSecondMethodWithBlankLineAsync()
     {
         string testCode = """

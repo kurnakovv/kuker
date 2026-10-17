@@ -226,9 +226,12 @@ namespace Kuker.Analyzers.Rules
                     int docEnd = docTrivia.FullSpan.Start + docTrimmedLength;
                     int docStartLine = sourceText.Lines.GetLineFromPosition(docStart).LineNumber;
 
-                    if (docStartLine <= previousLine + 1)
+                    int effectiveDocTopLine = topHeaderLine ?? docStartLine;
+
+                    if (effectiveDocTopLine <= previousLine + 1)
                     {
-                        ReportDiagnostic(context, docStart, docEnd);
+                        int spanStartDoc = hasPrecedingHeaderLines ? topHeaderPosition : docStart;
+                        ReportDiagnostic(context, spanStartDoc, docEnd);
                     }
 
                     continue;
