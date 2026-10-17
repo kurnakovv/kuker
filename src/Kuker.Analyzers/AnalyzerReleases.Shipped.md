@@ -40,3 +40,4 @@ KUK0007 | KukerAllRules | Warning | Kuk0007ILoggerTypeMatchesContainingTypeAnaly
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 KUK0008 | KukerAllRules | Warning | Kuk0008ConstructorMappingOrderAnalyzer [Documentation](https://github.com/kurnakovv/kuker/wiki/KUK0008)
+KUK0009 | KukerAllRules | Warning | Kuk0009DeclarationHeaderSeparationAnalyzer [Documentation](https://github.com/kurnakovv/kuker/wiki/KUK0009)
