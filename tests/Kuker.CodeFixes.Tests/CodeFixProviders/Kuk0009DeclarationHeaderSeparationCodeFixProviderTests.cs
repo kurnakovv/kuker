@@ -147,7 +147,9 @@ public class Kuk0009DeclarationHeaderSeparationCodeFixProviderTests
             }
             """;
 
+#pragma warning disable KUK0001 // Duplicate arguments passed to method
         await RunAsync(testCode, testCode, 5, 31, 5, 41);
+#pragma warning restore KUK0001 // Duplicate arguments passed to method
     }
 
     private static async Task RunAsync(
