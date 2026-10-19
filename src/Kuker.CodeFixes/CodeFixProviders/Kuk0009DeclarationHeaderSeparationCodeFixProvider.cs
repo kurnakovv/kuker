@@ -42,9 +42,19 @@ namespace Kuker.CodeFixes.CodeFixProviders
         /// </summary>
         /// <param name="context">The context in which the code fix is being registered.</param>
         /// <returns>A task representing the asynchronous operation.</returns>
-        public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+        public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             Diagnostic diagnostic = context.Diagnostics.First();
+
+            SourceText sourceText = await context.Document.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
+
+            TextLine line = sourceText.Lines.GetLineFromPosition(diagnostic.Location.SourceSpan.Start);
+            string textBeforeHeader = sourceText.ToString(TextSpan.FromBounds(line.Start, diagnostic.Location.SourceSpan.Start));
+
+            if (textBeforeHeader.Trim().Length > 0)
+            {
+                return;
+            }
 
             context.RegisterCodeFix(
                 CodeAction.Create(
@@ -54,8 +64,6 @@ namespace Kuker.CodeFixes.CodeFixProviders
                 ),
                 diagnostic
             );
-
-            return Task.CompletedTask;
         }
 
         private static async Task<Document> AddBlankLineAsync(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)

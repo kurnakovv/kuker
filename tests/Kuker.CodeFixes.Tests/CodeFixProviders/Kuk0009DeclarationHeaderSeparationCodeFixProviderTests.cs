@@ -120,6 +120,36 @@ public class Kuk0009DeclarationHeaderSeparationCodeFixProviderTests
         await RunAsync(testCode, fixedCode, 6, 5, 8, 19);
     }
 
+    [Fact]
+    public async Task CodeFixIsNotOfferedWhenHeaderStartsMidLineAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Test
+            {
+                int first; [Obsolete] int second;
+            }
+            """;
+
+        await RunAsync(testCode, testCode, 5, 16, 5, 26);
+    }
+
+    [Fact]
+    public async Task CodeFixIsNotOfferedWhenHeaderStartsMidLineForMethodAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Test
+            {
+                public void Method0() { } [Obsolete] public void Method1() { }
+            }
+            """;
+
+        await RunAsync(testCode, testCode, 5, 31, 5, 41);
+    }
+
     private static async Task RunAsync(
         string testCode,
         string fixedCode,
