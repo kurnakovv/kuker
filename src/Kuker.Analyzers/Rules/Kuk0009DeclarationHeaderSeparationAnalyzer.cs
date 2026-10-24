@@ -144,7 +144,8 @@ namespace Kuker.Analyzers.Rules
                 SyntaxToken previousLastToken = previousMember.GetLastToken();
 
                 int coreLine = sourceText.Lines.GetLineFromPosition(coreToken.SpanStart).LineNumber;
-                int previousLine = sourceText.Lines.GetLineFromPosition(previousLastToken.Span.End).LineNumber;
+                int previousBoundaryPosition = GetPreviousBoundaryPosition(previousLastToken);
+                int previousLine = sourceText.Lines.GetLineFromPosition(previousBoundaryPosition).LineNumber;
 
                 int bottomScanLine = hasAttributes
                     ? sourceText.Lines.GetLineFromPosition(firstAttribute.SpanStart).LineNumber - 1
@@ -286,6 +287,27 @@ namespace Kuker.Analyzers.Rules
 
                 ReportDiagnostic(context, spanStart, spanEnd);
             }
+        }
+
+        private static int GetPreviousBoundaryPosition(SyntaxToken previousLastToken)
+        {
+            int boundaryPosition = previousLastToken.Span.End;
+
+            foreach (SyntaxTrivia trivia in previousLastToken.TrailingTrivia)
+            {
+                if (!trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) &&
+                    !trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
+                {
+                    continue;
+                }
+
+                if (trivia.Span.End > boundaryPosition)
+                {
+                    boundaryPosition = trivia.Span.End;
+                }
+            }
+
+            return boundaryPosition;
         }
 
         private static bool IsLineInsideCommentTrivia(SyntaxTriviaList triviaList, TextLine textLine)

@@ -898,6 +898,43 @@ public class Kuk0009DeclarationHeaderSeparationAnalyzerTests
     }
 
     [Fact]
+    public async Task NoReportWhenAttributeFollowsPreviousMemberMultilineTrailingCommentWithBlankLineAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Test
+            {
+                int first; /* note
+                continuation */
+
+                [Obsolete]
+                int second;
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task ReportWhenAttributeFollowsPreviousMemberMultilineTrailingCommentWithoutBlankLineAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Test
+            {
+                int first; /* note
+                continuation */
+                [Obsolete]
+                int second;
+            }
+            """;
+
+        await RunAsync(testCode, 7, 5, 7, 15);
+    }
+
+    [Fact]
     public async Task NoReportWhenBlankLineBeforeBlockCommentIsRealSeparatorAsync()
     {
         string testCode = """
