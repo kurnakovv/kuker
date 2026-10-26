@@ -152,6 +152,37 @@ public class Kuk0009DeclarationHeaderSeparationCodeFixProviderTests
     }
 
     [Fact]
+    public async Task CodeFixAddsBlankLineAfterPreviousEnumMemberMultilineTrailingCommentAsync()
+    {
+        string testCode = """
+            using System;
+
+            public enum Test
+            {
+                Value0, /* note
+                continuation */
+                [Obsolete]
+                Value1,
+            }
+            """;
+
+        string fixedCode = """
+            using System;
+
+            public enum Test
+            {
+                Value0, /* note
+                continuation */
+
+                [Obsolete]
+                Value1,
+            }
+            """;
+
+        await RunAsync(testCode, fixedCode, 7, 5, 7, 15);
+    }
+
+    [Fact]
     public async Task CodeFixIsNotOfferedWhenHeaderStartsMidLineAsync()
     {
         string testCode = """

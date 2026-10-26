@@ -935,6 +935,43 @@ public class Kuk0009DeclarationHeaderSeparationAnalyzerTests
     }
 
     [Fact]
+    public async Task ReportWhenAttributeFollowsPreviousEnumMemberMultilineTrailingCommentWithoutBlankLineAsync()
+    {
+        string testCode = """
+            using System;
+
+            public enum Test
+            {
+                Value0, /* note
+                continuation */
+                [Obsolete]
+                Value1,
+            }
+            """;
+
+        await RunAsync(testCode, 7, 5, 7, 15);
+    }
+
+    [Fact]
+    public async Task NoReportWhenAttributeFollowsPreviousEnumMemberMultilineTrailingCommentWithBlankLineAsync()
+    {
+        string testCode = """
+            using System;
+
+            public enum Test
+            {
+                Value0, /* note
+                continuation */
+
+                [Obsolete]
+                Value1,
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
     public async Task NoReportWhenBlankLineBeforeBlockCommentIsRealSeparatorAsync()
     {
         string testCode = """

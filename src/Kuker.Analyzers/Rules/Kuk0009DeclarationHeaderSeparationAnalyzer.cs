@@ -142,6 +142,12 @@ namespace Kuker.Analyzers.Rules
 
                 SyntaxToken coreToken = coreTokenOrNull.Value;
                 SyntaxToken previousLastToken = previousMember.GetLastToken();
+                SyntaxToken nextToken = previousLastToken.GetNextToken();
+
+                if (nextToken.IsKind(SyntaxKind.CommaToken))
+                {
+                    previousLastToken = nextToken;
+                }
 
                 int coreLine = sourceText.Lines.GetLineFromPosition(coreToken.SpanStart).LineNumber;
                 int previousBoundaryPosition = GetPreviousBoundaryPosition(previousLastToken);
