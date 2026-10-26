@@ -1528,6 +1528,59 @@ public class Kuk0009DeclarationHeaderSeparationAnalyzerTests
     }
 
     [Fact]
+    public async Task ReportWhenXmlDocImmediatelyFollowsPreviousMemberButCommentAfterBlankLineIsLaterAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Test
+            {
+                public void Method0()
+                {
+                }
+                /// <summary>
+                /// Test.
+                /// </summary>
+
+                // Comment1.
+                [Obsolete]
+                public void Method1()
+                {
+                }
+            }
+            """;
+
+        await RunAsync(testCode, 8, 5, 10, 19);
+    }
+
+    [Fact]
+    public async Task NoReportWhenXmlDocHasBlankLineBeforeItAndCommentAfterBlankLineFollowsAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Test
+            {
+                public void Method0()
+                {
+                }
+
+                /// <summary>
+                /// Test.
+                /// </summary>
+
+                // Comment1.
+                [Obsolete]
+                public void Method1()
+                {
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
     public async Task NoReportWhenCommentSeparatedByBlankLineFromAttributeIsNotPartOfHeaderAsync()
     {
         string testCode = """
