@@ -603,6 +603,51 @@ public class Kuk0009DeclarationHeaderSeparationAnalyzerTests
     }
 
     [Fact]
+    public async Task ReportWhenXmlDocImmediatelyFollowsPreviousMemberButBlankLineIsBeforeDeclarationAsync()
+    {
+        string testCode = """
+            public class Test
+            {
+                public void Method0()
+                {
+                }
+                /// <summary>
+                /// Method1.
+                /// </summary>
+
+                public void Method1()
+                {
+                }
+            }
+            """;
+
+        await RunAsync(testCode, 6, 5, 8, 19);
+    }
+
+    [Fact]
+    public async Task NoReportWhenBlankLineIsBeforeXmlDocAndBlankLineIsBeforeDeclarationAsync()
+    {
+        string testCode = """
+            public class Test
+            {
+                public void Method0()
+                {
+                }
+
+                /// <summary>
+                /// Method1.
+                /// </summary>
+
+                public void Method1()
+                {
+                }
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
     public async Task NoReportWhenXmlDocIsBeforeSecondMethodWithBlankLineAsync()
     {
         string testCode = """
@@ -1985,6 +2030,43 @@ public class Kuk0009DeclarationHeaderSeparationAnalyzerTests
             public enum Test
             {
                 [Obsolete] Value0 = 0,
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task ReportWhenXmlDocImmediatelyFollowsPreviousEnumMemberButBlankLineIsBeforeMemberAsync()
+    {
+        string testCode = """
+            public enum Test
+            {
+                Value0,
+                /// <summary>
+                /// Value1.
+                /// </summary>
+
+                Value1,
+            }
+            """;
+
+        await RunAsync(testCode, 4, 5, 6, 19);
+    }
+
+    [Fact]
+    public async Task NoReportWhenBlankLineIsBeforeXmlDocAndBlankLineIsBeforeEnumMemberAsync()
+    {
+        string testCode = """
+            public enum Test
+            {
+                Value0,
+
+                /// <summary>
+                /// Value1.
+                /// </summary>
+
+                Value1,
             }
             """;
 

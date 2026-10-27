@@ -198,12 +198,14 @@ namespace Kuker.Analyzers.Rules
 
                 bool hasPrecedingHeaderLines = topHeaderLine.HasValue && (hasAttributes || hasNonDirectiveHeaderLine);
 
-                if (!hasAttributes && !hasPrecedingHeaderLines)
+                SyntaxTrivia? documentationTrivia = FindDocumentationCommentTrivia(member.GetLeadingTrivia());
+
+                if (!hasAttributes && !hasPrecedingHeaderLines && !documentationTrivia.HasValue)
                 {
                     continue;
                 }
 
-                if (!hasPrecedingHeaderLines && member is EnumMemberDeclarationSyntax)
+                if (!hasPrecedingHeaderLines && !documentationTrivia.HasValue && member is EnumMemberDeclarationSyntax)
                 {
                     bool attributeInlineWithCore =
                         sourceText.Lines.GetLineFromPosition(firstAttribute.SpanStart).LineNumber == coreLine &&
@@ -214,8 +216,6 @@ namespace Kuker.Analyzers.Rules
                         continue;
                     }
                 }
-
-                SyntaxTrivia? documentationTrivia = FindDocumentationCommentTrivia(member.GetLeadingTrivia());
 
                 if (documentationTrivia.HasValue)
                 {
