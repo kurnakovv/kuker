@@ -1653,6 +1653,21 @@ public class Kuk0009DeclarationHeaderSeparationAnalyzerTests
     }
 
     [Fact]
+    public async Task NoReportWhenDirectiveOnlyGapPrecedesSecondFieldWithoutAttributesOrCommentsAsync()
+    {
+        string testCode = """
+            public class Test
+            {
+                int first;
+            #nullable enable
+                int second;
+            }
+            """;
+
+        await RunAsync(testCode, compilerDiagnostics: CompilerDiagnostics.None);
+    }
+
+    [Fact]
     public async Task ReportWhenAttributeInsidePreprocessorDirectiveHasNoBlankLineBeforeDirectiveAsync()
     {
         string testCode = """

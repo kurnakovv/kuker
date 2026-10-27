@@ -160,6 +160,7 @@ namespace Kuker.Analyzers.Rules
                 int? topHeaderLine = null;
                 int? bottomHeaderLine = null;
                 int topHeaderPosition = 0;
+                bool hasNonDirectiveHeaderLine = false;
 
                 SyntaxTriviaList headerTrivia = hasAttributes
                     ? firstAttribute.GetLeadingTrivia()
@@ -181,6 +182,11 @@ namespace Kuker.Analyzers.Rules
                         break;
                     }
 
+                    if (!trimmed.StartsWith("#", StringComparison.Ordinal))
+                    {
+                        hasNonDirectiveHeaderLine = true;
+                    }
+
                     if (bottomHeaderLine == null)
                     {
                         bottomHeaderLine = line;
@@ -190,7 +196,8 @@ namespace Kuker.Analyzers.Rules
                     topHeaderPosition = textLine.Start + (lineText.Length - lineText.TrimStart().Length);
                 }
 
-                bool hasPrecedingHeaderLines = topHeaderLine.HasValue;
+                bool hasPrecedingHeaderLines = topHeaderLine.HasValue && (hasAttributes || hasNonDirectiveHeaderLine);
+
 
                 if (!hasAttributes && !hasPrecedingHeaderLines)
                 {
