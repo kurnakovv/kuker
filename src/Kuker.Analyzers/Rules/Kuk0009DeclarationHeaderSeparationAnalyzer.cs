@@ -204,7 +204,7 @@ namespace Kuker.Analyzers.Rules
                     topHeaderPosition = textLine.Start + (lineText.Length - lineText.TrimStart().Length);
                 }
 
-                bool hasPrecedingHeaderLines = topHeaderLine.HasValue && (hasAttributes || hasNonDirectiveHeaderLine);
+                bool hasPrecedingHeaderLines = topHeaderLine.HasValue && hasNonDirectiveHeaderLine;
 
                 SyntaxTrivia? documentationTrivia = FindDocumentationCommentTrivia(member.GetLeadingTrivia());
 

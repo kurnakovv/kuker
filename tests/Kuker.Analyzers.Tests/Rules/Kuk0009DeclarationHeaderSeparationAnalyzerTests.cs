@@ -2326,6 +2326,23 @@ public class Kuk0009DeclarationHeaderSeparationAnalyzerTests
     }
 
     [Fact]
+    public async Task NoReportWhenDirectiveOnlyGapPrecedesInlineAttributeSharingLineWithEnumMemberAsync()
+    {
+        string testCode = """
+            using System;
+
+            public enum Test
+            {
+                Value0 = 0,
+            #nullable enable
+                [Obsolete] Value1 = 1,
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
     public async Task ReportWhenStackedAttributesEndWithLastAttributeInlineWithEnumMemberAsync()
     {
         string testCode = """
