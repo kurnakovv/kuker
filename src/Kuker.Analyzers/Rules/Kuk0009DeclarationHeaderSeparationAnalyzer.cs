@@ -249,7 +249,9 @@ namespace Kuker.Analyzers.Rules
 
                     bool topHeaderIsEarlier = hasPrecedingHeaderLines && topHeaderLine.Value < docStartLine;
 
-                    int effectiveDocTopLine = topHeaderIsEarlier ? topHeaderLine.Value : docStartLine;
+                    int docAnchorLine = topHeaderIsEarlier ? topHeaderLine.Value : docStartLine;
+
+                    int effectiveDocTopLine = Math.Min(docAnchorLine, topScannedLine);
 
                     if (effectiveDocTopLine <= previousLine + 1)
                     {
@@ -260,11 +262,10 @@ namespace Kuker.Analyzers.Rules
                     continue;
                 }
 
-                int effectiveTopLine = topHeaderLine ??
-                    Math.Min(
-                        sourceText.Lines.GetLineFromPosition(firstAttribute.SpanStart).LineNumber,
-                        topScannedLine
-                    );
+                int topLineAnchor = topHeaderLine ??
+                    sourceText.Lines.GetLineFromPosition(firstAttribute.SpanStart).LineNumber;
+
+                int effectiveTopLine = Math.Min(topLineAnchor, topScannedLine);
 
                 bool hasBlankLineAbove = effectiveTopLine > previousLine + 1;
 

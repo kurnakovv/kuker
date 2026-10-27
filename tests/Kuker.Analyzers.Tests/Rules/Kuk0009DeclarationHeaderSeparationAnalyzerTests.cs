@@ -1870,6 +1870,76 @@ public class Kuk0009DeclarationHeaderSeparationAnalyzerTests
     }
 
     [Fact]
+    public async Task ReportWhenPragmaOnlyGapPrecedesCommentHeaderWithoutBlankLineAsync()
+    {
+        string testCode = """
+            public class Test
+            {
+                int first;
+            #pragma warning disable CS0168
+                // second
+                int second;
+            #pragma warning restore CS0168
+            }
+            """;
+
+        await RunAsync(testCode, 5, 5, 5, 14, CompilerDiagnostics.None);
+    }
+
+    [Fact]
+    public async Task ReportWhenPragmaOnlyGapPrecedesXmlDocHeaderWithoutBlankLineAsync()
+    {
+        string testCode = """
+            public class Test
+            {
+                int first;
+            #pragma warning disable CS0168
+                /// <summary>Doc</summary>
+                int second;
+            #pragma warning restore CS0168
+            }
+            """;
+
+        await RunAsync(testCode, 5, 5, 5, 31, CompilerDiagnostics.None);
+    }
+
+    [Fact]
+    public async Task NoReportWhenBlankLineIsBeforePragmaOnlyGapPrecedingCommentHeaderAsync()
+    {
+        string testCode = """
+            public class Test
+            {
+                int first;
+
+            #pragma warning disable CS0168
+                // second
+                int second;
+            #pragma warning restore CS0168
+            }
+            """;
+
+        await RunAsync(testCode, compilerDiagnostics: CompilerDiagnostics.None);
+    }
+
+    [Fact]
+    public async Task NoReportWhenBlankLineIsBeforePragmaOnlyGapPrecedingXmlDocHeaderAsync()
+    {
+        string testCode = """
+            public class Test
+            {
+                int first;
+
+            #pragma warning disable CS0168
+                /// <summary>Doc</summary>
+                int second;
+            #pragma warning restore CS0168
+            }
+            """;
+
+        await RunAsync(testCode, compilerDiagnostics: CompilerDiagnostics.None);
+    }
+
+    [Fact]
     public async Task NoReportWhenPragmaDisablesDifferentDiagnosticIdGapOnlyPrecedesSecondFieldAsync()
     {
         string testCode = """
