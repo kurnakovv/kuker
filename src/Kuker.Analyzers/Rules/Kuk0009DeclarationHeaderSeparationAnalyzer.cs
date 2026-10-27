@@ -198,7 +198,6 @@ namespace Kuker.Analyzers.Rules
 
                 bool hasPrecedingHeaderLines = topHeaderLine.HasValue && (hasAttributes || hasNonDirectiveHeaderLine);
 
-
                 if (!hasAttributes && !hasPrecedingHeaderLines)
                 {
                     continue;
