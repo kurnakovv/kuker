@@ -122,7 +122,7 @@ namespace Kuker.Analyzers.Rules
                 TMember member = members[i];
                 TMember previousMember = members[i - 1];
 
-                if (member is IncompleteMemberSyntax)
+                if (member is IncompleteMemberSyntax || member is GlobalStatementSyntax)
                 {
                     continue;
                 }

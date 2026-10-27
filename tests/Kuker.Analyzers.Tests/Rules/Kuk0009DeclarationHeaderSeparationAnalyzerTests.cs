@@ -1178,6 +1178,18 @@ public class Kuk0009DeclarationHeaderSeparationAnalyzerTests
     }
 
     [Fact]
+    public async Task NoReportWhenCommentPrecedesSecondTopLevelGlobalStatementWithoutBlankLineAsync()
+    {
+        string testCode = """
+            System.Console.WriteLine("A");
+            // Comment1.
+            System.Console.WriteLine("B");
+            """;
+
+        await RunAsync(testCode, compilerDiagnostics: CompilerDiagnostics.None);
+    }
+
+    [Fact]
     public async Task NoReportWhenAssemblyAttributeIsBeforeFirstDeclarationAsync()
     {
         string testCode = """
