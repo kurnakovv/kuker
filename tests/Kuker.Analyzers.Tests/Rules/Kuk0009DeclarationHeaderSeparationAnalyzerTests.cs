@@ -1760,6 +1760,156 @@ public class Kuk0009DeclarationHeaderSeparationAnalyzerTests
     }
 
     [Fact]
+    public async Task NoReportWhenPragmaDisablesKuk0009AfterAttributeIsAnchoredAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Test
+            {
+                public void Method0()
+                {
+                }
+            #pragma warning disable KUK0009
+                [Obsolete]
+                public void Method1()
+                {
+                }
+            #pragma warning restore KUK0009
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task ReportWhenPragmaDisablesDifferentDiagnosticIdDoesNotSuppressKuk0009Async()
+    {
+        string testCode = """
+            using System;
+
+            public class Test
+            {
+                public void Method0()
+                {
+                }
+            #pragma warning disable CS0168
+                [Obsolete]
+                public void Method1()
+                {
+                }
+            #pragma warning restore CS0168
+            }
+            """;
+
+        await RunAsync(testCode, 9, 5, 9, 15);
+    }
+
+    [Fact]
+    public async Task NoReportWhenBlankLineIsBeforePragmaDisablingDifferentDiagnosticIdAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Test
+            {
+                public void Method0()
+                {
+                }
+
+            #pragma warning disable CS0168
+                [Obsolete]
+                public void Method1()
+                {
+                }
+            #pragma warning restore CS0168
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task NoReportWhenPragmaPrecedesCommentAndAttributeAnchorsDiagnosticOnCommentAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Test
+            {
+                public void Method0()
+                {
+                }
+            #pragma warning disable KUK0009
+                // comment
+                [Obsolete]
+                public void Method1()
+                {
+                }
+            #pragma warning restore KUK0009
+            }
+            """;
+
+        await RunAsync(testCode);
+    }
+
+    [Fact]
+    public async Task NoReportWhenPragmaOnlyGapPrecedesSecondFieldWithoutAttributesOrCommentsAsync()
+    {
+        string testCode = """
+            public class Test
+            {
+                int first;
+            #pragma warning disable KUK0009
+                int second;
+            #pragma warning restore KUK0009
+            }
+            """;
+
+        await RunAsync(testCode, compilerDiagnostics: CompilerDiagnostics.None);
+    }
+
+    [Fact]
+    public async Task NoReportWhenPragmaDisablesDifferentDiagnosticIdGapOnlyPrecedesSecondFieldAsync()
+    {
+        string testCode = """
+            public class Test
+            {
+                int first;
+            #pragma warning disable CS0168
+                int second;
+            #pragma warning restore CS0168
+            }
+            """;
+
+        await RunAsync(testCode, compilerDiagnostics: CompilerDiagnostics.None);
+    }
+
+    [Fact]
+    public async Task ReportWhenAttributeIsAbovePragmaAndCommentAnchorsDiagnosticOnAttributeAsync()
+    {
+        string testCode = """
+            using System;
+
+            public class Test
+            {
+                public void Method0()
+                {
+                }
+                [Obsolete]
+            #pragma warning disable KUK0009
+                // comment
+                public void Method1()
+                {
+                }
+            #pragma warning restore KUK0009
+            }
+            """;
+
+        await RunAsync(testCode, 8, 5, 10, 15);
+    }
+
+    [Fact]
     public async Task NoReportWhenFirstDeclarationInsideConditionalDirectiveHasHeaderDirectlyAfterDirectiveAsync()
     {
         string testCode = """

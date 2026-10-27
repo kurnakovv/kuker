@@ -160,6 +160,7 @@ namespace Kuker.Analyzers.Rules
                 int? topHeaderLine = null;
                 int? bottomHeaderLine = null;
                 int topHeaderPosition = 0;
+                int topScannedLine = bottomScanLine + 1;
                 bool hasNonDirectiveHeaderLine = false;
 
                 SyntaxTriviaList headerTrivia = hasAttributes
@@ -182,9 +183,16 @@ namespace Kuker.Analyzers.Rules
                         break;
                     }
 
+                    topScannedLine = line;
+
                     if (!trimmed.StartsWith("#", StringComparison.Ordinal))
                     {
                         hasNonDirectiveHeaderLine = true;
+                    }
+
+                    if (trimmed.StartsWith("#pragma", StringComparison.Ordinal))
+                    {
+                        continue;
                     }
 
                     if (bottomHeaderLine == null)
@@ -253,7 +261,10 @@ namespace Kuker.Analyzers.Rules
                 }
 
                 int effectiveTopLine = topHeaderLine ??
-                    sourceText.Lines.GetLineFromPosition(firstAttribute.SpanStart).LineNumber;
+                    Math.Min(
+                        sourceText.Lines.GetLineFromPosition(firstAttribute.SpanStart).LineNumber,
+                        topScannedLine
+                    );
 
                 bool hasBlankLineAbove = effectiveTopLine > previousLine + 1;
 
